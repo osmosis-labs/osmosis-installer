@@ -1,4 +1,4 @@
-#Osmosis Installer
+# Osmosis Installer
 ![](screenshot.png)
 Simple installer with the following features:
 
