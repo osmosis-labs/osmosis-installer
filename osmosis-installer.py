@@ -270,7 +270,8 @@ def initSetup ():
     os.chdir(os.path.expanduser(HOME.stdout.strip()))
     subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], shell=True)
     os.chdir(os.path.expanduser(HOME.stdout.strip()+'/osmosis'))
-    subprocess.run(["git checkout v6.0.0 && make install"], shell=True)
+    subprocess.run(["git checkout v6.0.0"], shell=True)
+    subprocess.run(["make install"], shell=True)
     if networkAns == "1":
         setupMainnet ()
     elif networkAns == "2":
