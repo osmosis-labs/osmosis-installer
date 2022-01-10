@@ -314,11 +314,6 @@ Please choose a network to join:
         initSetup()
     elif networkAns == '2':
         initSetup()
-    elif networkAns == '3':
-        print("shortcut")
-        cosmovisorInit()
-    elif networkAns == '4':
-        testing()
     else:
         print("Please only enter the number preceding the option and nothing else, in this case 1 or 2")
         start()
