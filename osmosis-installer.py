@@ -245,7 +245,7 @@ def setupTestnet ():
         print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
         subprocess.run(["osmosisd","init", nodeName, "--chain-id=osmosis-testnet-0","-o"], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, shell=True)
         print(bcolors.OKGREEN + "Downloading and Replacing Genesis" + bcolors.ENDC)
-        os.chdir(os.path.expanduser(HOME.stdout.strip()+'/.osmosisd/config'))
+        os.chdir(HOME.stdout.strip()+'/.osmosisd/config')
         subprocess.run(["wget https://github.com/osmosis-labs/networks/raw/unity/v4/osmosis-1/upgrades/v4/testnet/genesis.tar.bz2"], shell=True)
         print(bcolors.OKGREEN + "Finding and Replacing Seeds" + bcolors.ENDC)
         subprocess.run(["tar -xjf genesis.tar.bz2"], shell=True)
