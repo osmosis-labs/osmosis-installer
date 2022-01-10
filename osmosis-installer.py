@@ -230,7 +230,6 @@ def dataSyncSelection ():
 
 def setupMainnet ():
     subprocess.run(["clear"], shell=True)
-    nodeName= input(bcolors.OKGREEN + "Input desired node name (no quotes): ")
     print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
     subprocess.run(["osmosisd","init", nodeName, "-o"], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, shell=True)
     print(bcolors.OKGREEN + "Downloading and Replacing Genesis" + bcolors.ENDC)
@@ -240,21 +239,29 @@ def setupMainnet ():
 
 def setupTestnet ():
     subprocess.run(["clear"], shell=True)
-    nodeName= input(bcolors.OKGREEN + "Input desired node name (no quotes, cant be blank): ")
-    if nodeName:
-        print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
-        subprocess.run(["osmosisd","init", nodeName, "--chain-id=osmosis-testnet-0","-o"], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, shell=True)
-        print(bcolors.OKGREEN + "Downloading and Replacing Genesis" + bcolors.ENDC)
-        os.chdir(HOME.stdout.strip()+'/.osmosisd/config')
-        subprocess.run(["wget https://github.com/osmosis-labs/networks/raw/unity/v4/osmosis-1/upgrades/v4/testnet/genesis.tar.bz2"], shell=True)
-        print(bcolors.OKGREEN + "Finding and Replacing Seeds" + bcolors.ENDC)
-        subprocess.run(["tar -xjf genesis.tar.bz2"], shell=True)
-        subprocess.run(["rm genesis.tar.bz2"], shell=True)
-        subprocess.run(["sed -i.bak -E 's/seeds = \"63aba59a7da5197c0fbcdc13e760d7561791dca8@162.55.132.230:2000,f515a8599b40f0e84dfad935ba414674ab11a668@osmosis.blockpane.com:26656\"/seeds = \"4eaed17781cd948149098d55f80a28232a365236@testmosis.blockpane.com:26656\"/g' ~/.osmosisd/config/config.toml"], shell=True)
-        #subprocess.run(["osmosisd unsafe-reset-all"], shell=True)
-        testnetType()
-    else:
+    print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
+    subprocess.run(["osmosisd","init", nodeName, "--chain-id=osmosis-testnet-0","-o"], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, shell=True)
+    print(bcolors.OKGREEN + "Downloading and Replacing Genesis" + bcolors.ENDC)
+    os.chdir(os.path.expanduser(HOME.stdout.strip()+'/.osmosisd/config'))
+    subprocess.run(["wget https://github.com/osmosis-labs/networks/raw/unity/v4/osmosis-1/upgrades/v4/testnet/genesis.tar.bz2"], shell=True)
+    print(bcolors.OKGREEN + "Finding and Replacing Seeds" + bcolors.ENDC)
+    subprocess.run(["tar -xjf genesis.tar.bz2"], shell=True)
+    subprocess.run(["rm genesis.tar.bz2"], shell=True)
+    subprocess.run(["sed -i.bak -E 's/seeds = \"63aba59a7da5197c0fbcdc13e760d7561791dca8@162.55.132.230:2000,f515a8599b40f0e84dfad935ba414674ab11a668@osmosis.blockpane.com:26656\"/seeds = \"4eaed17781cd948149098d55f80a28232a365236@testmosis.blockpane.com:26656\"/g' ~/.osmosisd/config/config.toml"], shell=True)
+    #subprocess.run(["osmosisd unsafe-reset-all"], shell=True)
+    testnetType()
+
+
+def initNodeName():
+    global nodeName
+    subprocess.run(["clear"], shell=True)
+    nodeName= input(bcolors.OKGREEN + "Input desired node name (no quotes, cant be blank): ")    
+    if nodeName and networkAns == "1":
+        setupMainnet()
+    elif nodeName and networkAns == "2":
         setupTestnet()
+    else:
+        initNodeName()
 
 
 def initSetup ():
@@ -272,13 +279,7 @@ def initSetup ():
     os.chdir(os.path.expanduser(HOME.stdout.strip()+'/osmosis'))
     subprocess.run(["git checkout v6.0.0"], shell=True)
     subprocess.run(["make install"], shell=True)
-    if networkAns == "1":
-        setupMainnet ()
-    elif networkAns == "2":
-        setupTestnet ()
-
-
-
+    initNodeName()
 
 
 
