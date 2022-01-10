@@ -16,15 +16,15 @@ class bcolors:
 def completeCosmovisor ():
     subprocess.run(["clear"], shell=True)
     print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis full node!")
-    print(bcolors.OKGREEN + "The cosmovisor service is currently running in the background") 
+    print(bcolors.OKGREEN + "The cosmovisor service is currently running in the background")
     print(bcolors.OKGREEN + "To see the status of cosmovisor, run the following command: sudo systemctl status cosmovisor")
     print(bcolors.OKGREEN + "To see the live logs from cosmovisor, run the following command: journalctl -u cosmovisor -f"+ bcolors.ENDC)
 
 
 def completeOsmosisd ():
     subprocess.run(["clear"], shell=True)
-    print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis full node!") 
-    print(bcolors.OKGREEN + "The osmosisd service is currently running in the background") 
+    print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis full node!")
+    print(bcolors.OKGREEN + "The osmosisd service is currently running in the background")
     print(bcolors.OKGREEN + "To see the status of the osmosis daemon, run the following command: sudo systemctl status osmosisd")
     print(bcolors.OKGREEN + "To see the live logs from the osmosis daemon, run the following command: journalctl -u osmosisd -f"+ bcolors.ENDC)
 
@@ -33,7 +33,7 @@ def cosmovisorInit ():
     subprocess.run(["clear"], shell=True)
     print(bcolors.OKGREEN + """Do you want to use Cosmovisor to automate future upgrades?
 1) Yes, install cosmovisor and set up background service
-2) No, just set up an osmosisd background service 
+2) No, just set up an osmosisd background service
     """)
     useCosmovisor = input(bcolors.OKGREEN + 'Enter Choice: ')
     if useCosmovisor == "1":
@@ -50,13 +50,13 @@ def cosmovisorInit ():
         subprocess.run(["mkdir -p "+ HOME.stdout.strip()+"/.osmosisd/cosmovisor/upgrades"], shell=True)
         subprocess.run(["echo '# Setup Cosmovisor' >> "+ HOME.stdout.strip()+"/.profile"], shell=True)
         subprocess.run(["echo 'export DAEMON_NAME=osmosisd' >> "+ HOME.stdout.strip()+"/.profile"], shell=True)
-        subprocess.run(["echo 'export DAEMON_HOME="+ HOME.stdout.strip()+"/.osmosisd' >> "+ HOME.stdout.strip()+"/.profile"], shell=True)    
+        subprocess.run(["echo 'export DAEMON_HOME="+ HOME.stdout.strip()+"/.osmosisd' >> "+ HOME.stdout.strip()+"/.profile"], shell=True)
         subprocess.run(["echo 'export DAEMON_ALLOW_DOWNLOAD_BINARIES=false' >> "+ HOME.stdout.strip()+"/.profile"], shell=True)
-        subprocess.run(["echo 'export DAEMON_LOG_BUFFER_SIZE=512' >> "+ HOME.stdout.strip()+"/.profile"], shell=True) 
+        subprocess.run(["echo 'export DAEMON_LOG_BUFFER_SIZE=512' >> "+ HOME.stdout.strip()+"/.profile"], shell=True)
         subprocess.run(["echo 'export DAEMON_RESTART_AFTER_UPGRADE=true' >> "+ HOME.stdout.strip()+"/.profile"], shell=True)
-        subprocess.run(["echo 'export UNSAFE_SKIP_BACKUP=true' >> "+ HOME.stdout.strip()+"/.profile"], shell=True) 
+        subprocess.run(["echo 'export UNSAFE_SKIP_BACKUP=true' >> "+ HOME.stdout.strip()+"/.profile"], shell=True)
         subprocess.run([". "+ HOME.stdout.strip()+"/.profile"], shell=True)
-        subprocess.run(["cp "+ GOPATH.stdout.strip()+"/bin/osmosisd "+ HOME.stdout.strip()+"/.osmosisd/cosmovisor/genesis/bin"], shell=True)     
+        subprocess.run(["cp "+ GOPATH.stdout.strip()+"/bin/osmosisd "+ HOME.stdout.strip()+"/.osmosisd/cosmovisor/genesis/bin"], shell=True)
         print(bcolors.OKGREEN + "Creating Cosmovisor Service" + bcolors.ENDC)
         subprocess.run(["""echo '[Unit]
 Description=Cosmovisor daemon
@@ -103,7 +103,7 @@ WantedBy=multi-user.target
         subprocess.run(["sudo mv osmosisd.service /lib/systemd/system/osmosisd.service"], shell=True)
         subprocess.run(["sudo systemctl daemon-reload"], shell=True)
         subprocess.run(["sudo systemctl start osmosisd"], shell=True)
-        completeOsmosisd() 
+        completeOsmosisd()
     else:
         print ("Wrong selection, try again")
         cosmovisorInit()
@@ -120,7 +120,7 @@ def snapshotInstall ():
     subprocess.run(["wget https://mp20.net/snapshots/osmosis-testnet/osmosis-testnet-mp20-latest.tar.xz"], shell=True)
     subprocess.run(["tar -I'pixz' -xvf osmosis-testnet-mp20-latest.tar.xz --strip-components=4"], shell=True)
     cosmovisorInit()
- 
+
 
 
 def mainNetLocation ():
@@ -140,7 +140,7 @@ def mainNetLocation ():
         snapshotInstall()
     elif nodeLocationAns == "3":
         location = "SanFrancisco"
-        snapshotInstall()      
+        snapshotInstall()
     else:
         print ("Wrong selection, try again")
         mainNetLocation()
@@ -168,7 +168,7 @@ def testnetType ():
 1) Download a snapshot (recommended)
 2) I have my own Osmosis snapshot, skip to setting up cosmovisor and/or osmosisd service
 3) Use statesync (NOT YET IMPLEMENTED)
-    """) 
+    """)
     dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: ')
     if dataTypeAns == "1":
         testnetSnapshotInstall()
@@ -202,7 +202,7 @@ def mainNetType ():
     elif nodeTypeAns == "2":
         fileName = "osmosis-1-archive"
         location = "Netherlands"
-        snapshotInstall()       
+        snapshotInstall()
     else:
         print ("Wrong selection, try again")
         mainNetType()
@@ -214,7 +214,7 @@ def dataSyncSelection ():
 1) Download a snapshot from ChainLayer (recommended)
 2) I have my own Osmosis snapshot, skip to setting up cosmovisor and/or osmosisd service
 3) Use statesync (NOT YET IMPLEMENTED)
-    """) 
+    """)
     dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: ')
     if dataTypeAns == "1":
         mainNetType()
@@ -264,9 +264,9 @@ def initSetup ():
     subprocess.run(["sudo apt install git build-essential ufw curl jq snapd --yes"], shell=True)
     print(bcolors.OKGREEN + "Installing Go" + bcolors.ENDC)
     subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.17.2"], shell=True)
-    print(bcolors.OKGREEN + "Reloading Profile" + bcolors.ENDC)    
+    print(bcolors.OKGREEN + "Reloading Profile" + bcolors.ENDC)
     subprocess.run([". "+ HOME.stdout.strip()+"/.profile"], shell=True)
-    print(bcolors.OKGREEN + "Installing Osmosis V6 Binary" + bcolors.ENDC) 
+    print(bcolors.OKGREEN + "Installing Osmosis V6 Binary" + bcolors.ENDC)
     os.chdir(os.path.expanduser(HOME.stdout.strip()))
     subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], shell=True)
     os.chdir(os.path.expanduser(HOME.stdout.strip()+'/osmosis'))
@@ -292,12 +292,12 @@ def start ():
     GOPATH = subprocess.run(["echo $GOPATH"], capture_output=True, shell=True, text=True)
     USER = subprocess.run(["echo $USER"], capture_output=True, shell=True, text=True)
     print(bcolors.OKGREEN + """
-██████╗ ███████╗███╗   ███╗ ██████╗ ███████╗██╗███████╗
+ ██████╗ ███████╗███╗   ███╗ ██████╗ ███████╗██╗███████╗
 ██╔═══██╗██╔════╝████╗ ████║██╔═══██╗██╔════╝██║██╔════╝
 ██║   ██║███████╗██╔████╔██║██║   ██║███████╗██║███████╗
 ██║   ██║╚════██║██║╚██╔╝██║██║   ██║╚════██║██║╚════██║
 ╚██████╔╝███████║██║ ╚═╝ ██║╚██████╔╝███████║██║███████║
-╚═════╝ ╚══════╝╚═╝     ╚═╝ ╚═════╝ ╚══════╝╚═╝╚══════╝                          
+╚═════╝ ╚══════╝╚═╝     ╚═╝ ╚═════╝ ╚══════╝╚═╝╚══════╝
 
 
 Welcome to the Osmosis node installer V1.0.0!
