@@ -82,13 +82,13 @@ WantedBy=multi-user.target
         subprocess.run(["sudo systemctl start cosmovisor"], shell=True)
         completeCosmovisor()
     elif useCosmovisor == "2":
-        print(bcolors.OKGREEN + "Creating Cosmovisor Service" + bcolors.ENDC)
+        print(bcolors.OKGREEN + "Creating Osmosisd Service" + bcolors.ENDC)
         subprocess.run(["""echo '[Unit]
 Description=Osmosis Daemon
 After=network-online.target
 [Service]
 User="""+ USER.stdout.strip()+"""
-ExecStart=which osmosisd start
+ExecStart="""+ HOME.stdout.strip()+"""/go/bin/osmosisd start
 Restart=always
 RestartSec=3
 LimitNOFILE=4096
