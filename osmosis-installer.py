@@ -15,26 +15,25 @@ class bcolors:
 
 def completeCosmovisor ():
     subprocess.run(["clear"], shell=True)
-    print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis full node!")   
+    print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis full node!")
+    print(bcolors.OKGREEN + "The cosmovisor service is currently running in the background") 
     print(bcolors.OKGREEN + "To see the status of cosmovisor, run the following command: sudo systemctl status cosmovisor")
-    print(bcolors.OKGREEN + "To see the live logs from cosmovisor, run the following command: journalctl -u cosmovisor -f")
+    print(bcolors.OKGREEN + "To see the live logs from cosmovisor, run the following command: journalctl -u cosmovisor -f"+ bcolors.ENDC)
 
 
 def completeOsmosisd ():
     subprocess.run(["clear"], shell=True)
-    print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis full node!")   
+    print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis full node!") 
+    print(bcolors.OKGREEN + "The osmosisd service is currently running in the background") 
     print(bcolors.OKGREEN + "To see the status of the osmosis daemon, run the following command: sudo systemctl status osmosisd")
-    print(bcolors.OKGREEN + "To see the live logs from the osmosis daemon, run the following command: journalctl -u osmosisd -f")
+    print(bcolors.OKGREEN + "To see the live logs from the osmosis daemon, run the following command: journalctl -u osmosisd -f"+ bcolors.ENDC)
 
 
 def cosmovisorInit ():
     subprocess.run(["clear"], shell=True)
-    HOME = subprocess.run(["echo $HOME"], capture_output=True, shell=True, text=True)
-    GOPATH = subprocess.run(["echo $GOPATH"], capture_output=True, shell=True, text=True)
-    USER = subprocess.run(["echo $USER"], capture_output=True, shell=True, text=True)
     print(bcolors.OKGREEN + """Do you want to use Cosmovisor to automate future upgrades?
-1) Yes
-2) No
+1) Yes, install cosmovisor and set up background service
+2) No, just set up an osmosisd background service 
     """)
     useCosmovisor = input(bcolors.OKGREEN + 'Enter Choice: ')
     if useCosmovisor == "1":
@@ -42,7 +41,8 @@ def cosmovisorInit ():
         os.chdir(os.path.expanduser(HOME.stdout.strip()))
         subprocess.run(["git clone https://github.com/cosmos/cosmos-sdk"], shell=True)
         os.chdir(os.path.expanduser(HOME.stdout.strip()+'/cosmos-sdk'))
-        subprocess.run(["git checkout v0.44.0 && make cosmovisor"], shell=True)
+        subprocess.run(["git checkout v0.44.0"], shell=True)
+        subprocess.run(["make cosmovisor"], shell=True)
         subprocess.run(["cp cosmovisor/cosmovisor "+ GOPATH.stdout.strip()+"/bin/cosmovisor"], shell=True)
         subprocess.run(["mkdir -p "+ HOME.stdout.strip()+"/.osmosisd/cosmovisor"], shell=True)
         subprocess.run(["mkdir -p "+ HOME.stdout.strip()+"/.osmosisd/cosmovisor/genesis"], shell=True)
@@ -55,7 +55,7 @@ def cosmovisorInit ():
         subprocess.run(["echo 'export DAEMON_LOG_BUFFER_SIZE=512' >> "+ HOME.stdout.strip()+"/.profile"], shell=True) 
         subprocess.run(["echo 'export DAEMON_RESTART_AFTER_UPGRADE=true' >> "+ HOME.stdout.strip()+"/.profile"], shell=True)
         subprocess.run(["echo 'export UNSAFE_SKIP_BACKUP=true' >> "+ HOME.stdout.strip()+"/.profile"], shell=True) 
-        subprocess.run(["source "+ HOME.stdout.strip()+"/.profile"], shell=True)
+        subprocess.run([". "+ HOME.stdout.strip()+"/.profile"], shell=True)
         subprocess.run(["cp "+ GOPATH.stdout.strip()+"/bin/osmosisd "+ HOME.stdout.strip()+"/.osmosisd/cosmovisor/genesis/bin"], shell=True)     
         print(bcolors.OKGREEN + "Creating Cosmovisor Service" + bcolors.ENDC)
         subprocess.run(["""echo '[Unit]
@@ -82,13 +82,13 @@ WantedBy=multi-user.target
         subprocess.run(["sudo systemctl start cosmovisor"], shell=True)
         completeCosmovisor()
     elif useCosmovisor == "2":
-        print(bcolors.OKGREEN + "Creating Cosmovisor Service" + bcolors.ENDC)
+        print(bcolors.OKGREEN + "Creating Osmosisd Service" + bcolors.ENDC)
         subprocess.run(["""echo '[Unit]
 Description=Osmosis Daemon
 After=network-online.target
 [Service]
 User="""+ USER.stdout.strip()+"""
-ExecStart=$(which osmosisd) start
+ExecStart="""+ HOME.stdout.strip()+"""/go/bin/osmosisd start
 Restart=always
 RestartSec=3
 LimitNOFILE=4096
@@ -116,8 +116,9 @@ def snapshotInstall ():
     subprocess.run(["sudo apt-get install wget liblz4-tool aria2 -y"], shell=True)
     print(bcolors.OKGREEN + "Downloading Snapshot" + bcolors.ENDC)
     proc = subprocess.run(["curl https://quicksync.io/osmosis.json|jq -r '.[] |select(.file==\""+ fileName +"\")|select (.mirror==\""+ location +"\")|.url'"], capture_output=True, shell=True, text=True)
-    os.chdir(os.path.expanduser('~/.osmosisd/'))
-    subprocess.run(["wget -c "+proc.stdout.strip()+" -O - | lz4 -d | tar -xvf -"], shell=True)
+    os.chdir(os.path.expanduser(HOME.stdout.strip()+'/.osmosisd/'))
+    subprocess.run(["wget https://mp20.net/snapshots/osmosis-testnet/osmosis-testnet-mp20-latest.tar.xz"], shell=True)
+    subprocess.run(["tar -I'pixz' -xvf osmosis-testnet-mp20-latest.tar.xz --strip-components=4"], shell=True)
     cosmovisorInit()
  
 
@@ -143,6 +144,43 @@ def mainNetLocation ():
     else:
         print ("Wrong selection, try again")
         mainNetLocation()
+
+
+
+def testnetSnapshotInstall ():
+    subprocess.run(["clear"], shell=True)
+    print(bcolors.OKGREEN + "Downloading Decompression Packages" + bcolors.ENDC)
+    subprocess.run(["sudo apt-get install wget liblz4-tool aria2 pixz -y"], shell=True)
+    print(bcolors.OKGREEN + "Downloading Snapshot" + bcolors.ENDC)
+    os.chdir(os.path.expanduser(HOME.stdout.strip()+'/.osmosisd'))
+    subprocess.run(["wget https://mp20.net/snapshots/osmosis-testnet/osmosis-testnet-mp20-latest.tar.xz"], shell=True)
+    subprocess.run(["tar -I'pixz' -xvf osmosis-testnet-mp20-latest.tar.xz --strip-components=4"], shell=True)
+    subprocess.run(["rm osmosis-testnet-mp20-latest.tar.xz"], shell=True)
+    cosmovisorInit()
+
+
+
+
+
+def testnetType ():
+    subprocess.run(["clear"], shell=True)
+    print(bcolors.OKGREEN + """Please choose from the following options:
+1) Download a snapshot (recommended)
+2) I have my own Osmosis snapshot, skip to setting up cosmovisor and/or osmosisd service
+3) Use statesync (NOT YET IMPLEMENTED)
+    """) 
+    dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: ')
+    if dataTypeAns == "1":
+        testnetSnapshotInstall()
+    elif dataTypeAns == "2":
+        cosmovisorInit()
+    elif dataTypeAns == "3":
+        print("Not yet implemented, try again later")
+        testnetType()
+    else:
+        print ("Wrong selection, try again")
+        testnetType()
+
 
 def mainNetType ():
     global fileName
@@ -174,16 +212,50 @@ def dataSyncSelection ():
     subprocess.run(["clear"], shell=True)
     print(bcolors.OKGREEN + """Please choose from the following options:
 1) Download a snapshot from ChainLayer (recommended)
-2) I have my own Osmosis snapshot, skip to setting up daemon 
+2) I have my own Osmosis snapshot, skip to setting up cosmovisor and/or osmosisd service
+3) Use statesync (NOT YET IMPLEMENTED)
     """) 
     dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: ')
     if dataTypeAns == "1":
         mainNetType()
     elif dataTypeAns == "2":
-        cosmovisorInit()       
+        cosmovisorInit()
+    elif dataTypeAns == "3":
+        print("Not yet implemented, try again later")
+        dataSyncSelection()
     else:
         print ("Wrong selection, try again")
         dataSyncSelection()
+
+
+def setupMainnet ():
+    subprocess.run(["clear"], shell=True)
+    nodeName= input(bcolors.OKGREEN + "Input desired node name (no quotes): ")
+    print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
+    subprocess.run(["osmosisd","init", nodeName, "-o"], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, shell=True)
+    print(bcolors.OKGREEN + "Downloading and Replacing Genesis" + bcolors.ENDC)
+    subprocess.run(["wget -O "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.json https://github.com/osmosis-labs/networks/raw/main/osmosis-1/genesis.json"], shell=True)
+    dataSyncSelection()
+
+
+def setupTestnet ():
+    subprocess.run(["clear"], shell=True)
+    nodeName= input(bcolors.OKGREEN + "Input desired node name (no quotes, cant be blank): ")
+    if nodeName:
+        print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
+        subprocess.run(["osmosisd","init", nodeName, "--chain-id=osmosis-testnet-0","-o"], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, shell=True)
+        print(bcolors.OKGREEN + "Downloading and Replacing Genesis" + bcolors.ENDC)
+        os.chdir(os.path.expanduser(HOME.stdout.strip()+'/.osmosisd/config'))
+        subprocess.run(["wget https://github.com/osmosis-labs/networks/raw/unity/v4/osmosis-1/upgrades/v4/testnet/genesis.tar.bz2"], shell=True)
+        print(bcolors.OKGREEN + "Finding and Replacing Seeds" + bcolors.ENDC)
+        subprocess.run(["tar -xjf genesis.tar.bz2"], shell=True)
+        subprocess.run(["rm genesis.tar.bz2"], shell=True)
+        subprocess.run(["sed -i.bak -E 's/seeds = \"63aba59a7da5197c0fbcdc13e760d7561791dca8@162.55.132.230:2000,f515a8599b40f0e84dfad935ba414674ab11a668@osmosis.blockpane.com:26656\"/seeds = \"4eaed17781cd948149098d55f80a28232a365236@testmosis.blockpane.com:26656\"/g' ~/.osmosisd/config/config.toml"], shell=True)
+        #subprocess.run(["osmosisd unsafe-reset-all"], shell=True)
+        testnetType()
+    else:
+        setupTestnet()
+
 
 def initSetup ():
     print(bcolors.OKGREEN + "Updating Packages" + bcolors.ENDC)
@@ -193,27 +265,32 @@ def initSetup ():
     print(bcolors.OKGREEN + "Installing Go" + bcolors.ENDC)
     subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.17.2"], shell=True)
     print(bcolors.OKGREEN + "Reloading Profile" + bcolors.ENDC)    
-    subprocess.run([". ~/.profile"], shell=True)
+    subprocess.run([". "+ HOME.stdout.strip()+"/.profile"], shell=True)
     print(bcolors.OKGREEN + "Installing Osmosis V6 Binary" + bcolors.ENDC) 
-    os.chdir(os.path.expanduser('~'))
+    os.chdir(os.path.expanduser(HOME.stdout.strip()))
     subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], shell=True)
-    os.chdir(os.path.expanduser('~/osmosis'))
+    os.chdir(os.path.expanduser(HOME.stdout.strip()+'/osmosis'))
     subprocess.run(["git checkout v6.0.0 && make install"], shell=True)
-    subprocess.run(["clear"], shell=True)
-    nodeName= input(bcolors.OKGREEN + "Input desired node name (no quotes): ")
-    print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
-    subprocess.run(["osmosisd","init", nodeName, "-o"], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, shell=True)
-    print(bcolors.OKGREEN + "Downloading and Replacing Genesis" + bcolors.ENDC)
-    subprocess.run(["wget -O ~/.osmosisd/config/genesis.json https://github.com/osmosis-labs/networks/raw/main/osmosis-1/genesis.json"], shell=True)
-    dataSyncSelection()
+    if networkAns == "1":
+        setupMainnet ()
+    elif networkAns == "2":
+        setupTestnet ()
 
-def testing ():
-    HOME = subprocess.run(["echo $HOME"], capture_output=True, shell=True, text=True)
-    print(HOME.stdout)
+
+
+
+
 
 
 def start ():
     subprocess.run(["clear"], shell=True)
+    global HOME
+    global GOPATH
+    global USER
+    global networkAns
+    HOME = subprocess.run(["echo $HOME"], capture_output=True, shell=True, text=True)
+    GOPATH = subprocess.run(["echo $GOPATH"], capture_output=True, shell=True, text=True)
+    USER = subprocess.run(["echo $USER"], capture_output=True, shell=True, text=True)
     print(bcolors.OKGREEN + """
 ██████╗ ███████╗███╗   ███╗ ██████╗ ███████╗██╗███████╗
 ██╔═══██╗██╔════╝████╗ ████║██╔═══██╗██╔════╝██║██╔════╝
@@ -223,7 +300,7 @@ def start ():
 ╚═════╝ ╚══════╝╚═╝     ╚═╝ ╚═════╝ ╚══════╝╚═╝╚══════╝                          
 
 
-Welcome to the Osmosis node installer!
+Welcome to the Osmosis node installer V1.0.0!
 For more information, please visit docs.osmosis.zone
 
 Please choose a network to join:
@@ -231,18 +308,12 @@ Please choose a network to join:
 2) Testnet (osmosis-testnet-0)
     """)
 
-
     networkAns = input(bcolors.OKGREEN + 'Enter Choice: ')
 
     if networkAns == '1':
         initSetup()
     elif networkAns == '2':
-        print("Testnet Setup")
-    elif networkAns == '3':
-        print("shortcut")
-        cosmovisorInit()
-    elif networkAns == '4':
-        testing()
+        initSetup()
     else:
         print("Please only enter the number preceding the option and nothing else, in this case 1 or 2")
         start()
