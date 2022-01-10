@@ -14,16 +14,9 @@
 
         body {
             background: linear-gradient(
-                    0deg,#1b0144,#36003c);
+                    0deg, #1b0144, #36003c);
             color: #fff;
             font-family: 'Prompt', sans-serif;
-        }
-        .centerImage {
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-            width: 60%;
-
         }
         .command {
             color: lightgreen;
@@ -56,7 +49,11 @@
 <main>
     <div class="px-4 py-5 my-5 text-center">
         <h1 class="display-5 fw-bold">Osmosis Installer</h1>
-        <img src="screenshot.png" alt="" class="d-block mx-auto centerImage">
+       <div class="row">
+           <div class="col col-sm-12 col-md-4 col-lg-5 mx-auto d-block">
+               <img src="screenshot.png" alt="" class="mx-auto d-block img-fluid">
+           </div>
+       </div>
 
         <p class="lead mb-4">
             To install Osmosisd, run the following in your terminal, then follow the on-screen instructions.
