@@ -1,4 +1,3 @@
-import subprocess
 import os
 
 class bcolors:
@@ -39,7 +38,7 @@ def cosmovisorInit ():
         subprocess.run(["git clone https://github.com/cosmos/cosmos-sdk"], shell=True)
         os.chdir(os.path.expanduser(HOME.stdout.strip()+'/cosmos-sdk'))
         subprocess.run(["git checkout v0.44.0"], shell=True)
-        subprocess.run(["make cosmovisor"], shell=True)
+        subprocess.run(["make cosmovisor"], shell=True, env=my_env)
         subprocess.run(["cp cosmovisor/cosmovisor "+ GOPATH.stdout.strip()+"/bin/cosmovisor"], shell=True)
         subprocess.run(["mkdir -p "+ HOME.stdout.strip()+"/.osmosisd/cosmovisor"], shell=True)
         subprocess.run(["mkdir -p "+ HOME.stdout.strip()+"/.osmosisd/cosmovisor/genesis"], shell=True)
@@ -242,7 +241,7 @@ def dataSyncSelection ():
 
 def setupMainnet ():
     print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
-    subprocess.run(["osmosisd init " + nodeName + " -o"], shell=True)
+    subprocess.run(["osmosisd init " + nodeName + " -o"], shell=True, env=my_env)
     print(bcolors.OKGREEN + "Downloading and Replacing Genesis" + bcolors.ENDC)
     subprocess.run(["wget -O "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.json https://github.com/osmosis-labs/networks/raw/main/osmosis-1/genesis.json"], shell=True)
     subprocess.run(["clear"], shell=True)
@@ -251,7 +250,7 @@ def setupMainnet ():
 
 def setupTestnet ():
     print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
-    subprocess.run(["osmosisd init " + nodeName + " --chain-id=osmosis-testnet-0 -o"], shell=True)
+    subprocess.run(["osmosisd init " + nodeName + " --chain-id=osmosis-testnet-0 -o"], shell=True, env=my_env)
     print(bcolors.OKGREEN + "Downloading and Replacing Genesis" + bcolors.ENDC)
     os.chdir(os.path.expanduser(HOME.stdout.strip()+'/.osmosisd/config'))
     subprocess.run(["wget https://github.com/osmosis-labs/networks/raw/unity/v4/osmosis-1/upgrades/v4/testnet/genesis.tar.bz2"], shell=True)
@@ -280,6 +279,7 @@ def initNodeName():
 
 
 def initSetup ():
+    global my_env
     print(bcolors.OKGREEN + "Updating Packages" + bcolors.ENDC)
     subprocess.run(["sudo apt-get update && sudo apt-get upgrade -y"], shell=True)
     print(bcolors.OKGREEN + "Installing Make and GCC" + bcolors.ENDC)
