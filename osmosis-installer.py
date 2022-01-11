@@ -1,5 +1,7 @@
 import subprocess
 import os
+import platform
+import time
 
 class bcolors:
     HEADER = '\033[95m'
@@ -301,6 +303,50 @@ def initSetup ():
     initNodeName()
 
 
+def initEnvironment():
+    if os_name == "Linux":
+        print("System Detected: Linux")
+        mem_bytes = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
+        mem_gib = mem_bytes/(1024.**3)
+        print("RAM Detected: "+str(round(mem_gib))+"GB")
+        if round(mem_gib) < 32:
+            print("""
+You have less than the recommended 32GB of RAM. Would you like to set up a swap file?
+1) Yes, set up swap file
+2) No, do not set up swap file
+            """)
+            swapAns = input(bcolors.OKGREEN + 'Enter Choice: ')
+            if swapAns == "1":
+                swapNeeded = 32 - round(mem_gib)
+                print("Setting up "+ str(swapNeeded)+ "GB swap file")
+                subprocess.run(["sudo swapoff -a"], shell=True)
+                subprocess.run(["sudo fallocate -l " +str(swapNeeded)+"G /swapfile"], shell=True)
+                subprocess.run(["sudo chmod 600 /swapfile"], shell=True)
+                subprocess.run(["sudo mkswap /swapfile"], shell=True)
+                subprocess.run(["sudo swapon /swapfile"], shell=True)
+                subprocess.run(["clear"], shell=True)
+                print("Swap file set, moving on to system setup...")
+                time.sleep(3)               
+                initSetup()
+            elif swapAns == "2":
+                subprocess.run(["clear"], shell=True)
+                initSetup()
+            else:
+                initEnvironment()
+        else:
+            print("You have enough RAM to meet the 32GB minimum requirement, moving on to system setup...")
+            time.sleep(3)
+            subprocess.run(["clear"], shell=True)
+            initSetup()
+        
+    #elif os_name == "MacOS":
+        #print("System Detected: Linux")
+    
+    else:
+        print("System OS not detected...Will continue with Linux environment assumption")
+        initSetup()
+         
+
 
 
 def start ():
@@ -309,6 +355,8 @@ def start ():
     global USER
     global networkAns
     global GOPATH
+    global os_name
+    os_name = platform.system()
     HOME = subprocess.run(["echo $HOME"], capture_output=True, shell=True, text=True)
     USER = subprocess.run(["echo $USER"], capture_output=True, shell=True, text=True)
     GOPATH = HOME.stdout.strip()+"/go"
@@ -333,10 +381,10 @@ Please choose a network to join:
 
     if networkAns == '1':
         subprocess.run(["clear"], shell=True)
-        initSetup()
+        initEnvironment()
     elif networkAns == '2':
         subprocess.run(["clear"], shell=True)
-        initSetup()
+        initEnvironment()
     else:
         print("Please only enter the number preceding the option and nothing else, in this case 1 or 2")
         start()
