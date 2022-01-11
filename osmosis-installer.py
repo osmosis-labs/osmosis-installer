@@ -116,7 +116,7 @@ def snapshotInstall ():
     print(bcolors.OKGREEN + "Downloading Snapshot" + bcolors.ENDC)
     proc = subprocess.run(["curl https://quicksync.io/osmosis.json|jq -r '.[] |select(.file==\""+ fileName +"\")|select (.mirror==\""+ location +"\")|.url'"], capture_output=True, shell=True, text=True)
     os.chdir(os.path.expanduser(HOME.stdout.strip()+'/.osmosisd/'))
-    subprocess.run(["wget -O - "+proc+" | lz4 -d | tar -xvf -"], shell=True)
+    subprocess.run(["wget -O - "+proc.stdout.strip()+" | lz4 -d | tar -xvf -"], shell=True)
     subprocess.run(["clear"], shell=True)
     cosmovisorInit()
  
