@@ -231,7 +231,7 @@ def dataSyncSelection ():
 def setupMainnet ():
     subprocess.run(["clear"], shell=True)
     print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
-    subprocess.run(["osmosisd","init", nodeName, "-o"], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, shell=True)
+    subprocess.run(["osmosisd init " + nodeName + " -o"], shell=True)
     print(bcolors.OKGREEN + "Downloading and Replacing Genesis" + bcolors.ENDC)
     subprocess.run(["wget -O "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.json https://github.com/osmosis-labs/networks/raw/main/osmosis-1/genesis.json"], shell=True)
     dataSyncSelection()
@@ -240,7 +240,7 @@ def setupMainnet ():
 def setupTestnet ():
     subprocess.run(["clear"], shell=True)
     print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
-    subprocess.run(["osmosisd","init", nodeName, "--chain-id=osmosis-testnet-0","-o"], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, shell=True)
+    subprocess.run(["osmosisd init " + nodeName + " --chain-id=osmosis-testnet-0 -o"], shell=True)
     print(bcolors.OKGREEN + "Downloading and Replacing Genesis" + bcolors.ENDC)
     os.chdir(os.path.expanduser(HOME.stdout.strip()+'/.osmosisd/config'))
     subprocess.run(["wget https://github.com/osmosis-labs/networks/raw/unity/v4/osmosis-1/upgrades/v4/testnet/genesis.tar.bz2"], shell=True)
@@ -298,12 +298,12 @@ def start ():
     HOME = subprocess.run(["echo $HOME"], capture_output=True, shell=True, text=True)
     USER = subprocess.run(["echo $USER"], capture_output=True, shell=True, text=True)
     print(bcolors.OKGREEN + """
-██████╗ ███████╗███╗   ███╗ ██████╗ ███████╗██╗███████╗
+ ██████╗ ███████╗███╗   ███╗ ██████╗ ███████╗██╗███████╗
 ██╔═══██╗██╔════╝████╗ ████║██╔═══██╗██╔════╝██║██╔════╝
 ██║   ██║███████╗██╔████╔██║██║   ██║███████╗██║███████╗
 ██║   ██║╚════██║██║╚██╔╝██║██║   ██║╚════██║██║╚════██║
 ╚██████╔╝███████║██║ ╚═╝ ██║╚██████╔╝███████║██║███████║
-╚═════╝ ╚══════╝╚═╝     ╚═╝ ╚═════╝ ╚══════╝╚═╝╚══════╝                          
+ ╚═════╝ ╚══════╝╚═╝     ╚═╝ ╚═════╝ ╚══════╝╚═╝╚══════╝                          
 
 
 Welcome to the Osmosis node installer V1.0.0!
