@@ -40,7 +40,7 @@ def cosmovisorInit ():
         os.chdir(os.path.expanduser(HOME.stdout.strip()+'/cosmos-sdk'))
         subprocess.run(["git checkout v0.44.0"], shell=True)
         subprocess.run(["make cosmovisor"], shell=True, env=my_env)
-        subprocess.run(["cp cosmovisor/cosmovisor "+ GOPATH.stdout.strip()+"/bin/cosmovisor"], shell=True)
+        subprocess.run(["cp cosmovisor/cosmovisor "+ GOPATH +"/bin/cosmovisor"], shell=True)
         subprocess.run(["mkdir -p "+ HOME.stdout.strip()+"/.osmosisd/cosmovisor"], shell=True)
         subprocess.run(["mkdir -p "+ HOME.stdout.strip()+"/.osmosisd/cosmovisor/genesis"], shell=True)
         subprocess.run(["mkdir -p "+ HOME.stdout.strip()+"/.osmosisd/cosmovisor/genesis/bin"], shell=True)
@@ -53,7 +53,7 @@ def cosmovisorInit ():
         subprocess.run(["echo 'export DAEMON_RESTART_AFTER_UPGRADE=true' >> "+ HOME.stdout.strip()+"/.profile"], shell=True)
         subprocess.run(["echo 'export UNSAFE_SKIP_BACKUP=true' >> "+ HOME.stdout.strip()+"/.profile"], shell=True) 
         subprocess.run([". "+ HOME.stdout.strip()+"/.profile"], shell=True)
-        subprocess.run(["cp "+ GOPATH.stdout.strip()+"/bin/osmosisd "+ HOME.stdout.strip()+"/.osmosisd/cosmovisor/genesis/bin"], shell=True)     
+        subprocess.run(["cp "+ GOPATH +"/bin/osmosisd "+ HOME.stdout.strip()+"/.osmosisd/cosmovisor/genesis/bin"], shell=True)     
         print(bcolors.OKGREEN + "Creating Cosmovisor Service" + bcolors.ENDC)
         subprocess.run(["""echo '[Unit]
 Description=Cosmovisor daemon
