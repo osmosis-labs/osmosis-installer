@@ -111,6 +111,20 @@ WantedBy=multi-user.target
         cosmovisorInit()
 
 
+def stateSyncInit ():
+    LATEST_HEIGHT= subprocess.run(["curl -s https://osmosis.validator.network/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True)
+    TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 1000)
+    TRUST_HASH= subprocess.run(["curl -s \"https://osmosis.validator.network/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True)
+    RPCs = "osmosis.validator.network,osmo-sync.blockpane.com:26657"
+    subprocess.run(["sed -i.bak -E 's/enable = false/enable = true/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    subprocess.run(["sed -i.bak -E 's/rpc_servers = \"\"/rpc_servers = \""+RPCs+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    subprocess.run(["sed -i.bak -E 's/trust_height = 0/trust_height = "+TRUST_HEIGHT+"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    subprocess.run(["sed -i.bak -E 's/trust_hash = \"\"/trust_hash = \""+TRUST_HASH.stdout.strip()+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    
+    
+    
+
+
 
 def snapshotInstall ():
     print(bcolors.OKGREEN + "Downloading Decompression Packages" + bcolors.ENDC)
@@ -260,7 +274,7 @@ def setupTestnet ():
     print(bcolors.OKGREEN + "Finding and Replacing Seeds" + bcolors.ENDC)
     subprocess.run(["tar -xjf genesis.tar.bz2"], shell=True)
     subprocess.run(["rm genesis.tar.bz2"], shell=True)
-    subprocess.run(["sed -i.bak -E 's/seeds = \"63aba59a7da5197c0fbcdc13e760d7561791dca8@162.55.132.230:2000,f515a8599b40f0e84dfad935ba414674ab11a668@osmosis.blockpane.com:26656\"/seeds = \"4eaed17781cd948149098d55f80a28232a365236@testmosis.blockpane.com:26656\"/g' ~/.osmosisd/config/config.toml"], shell=True)
+    subprocess.run(["sed -i.bak -E 's/seeds = \"63aba59a7da5197c0fbcdc13e760d7561791dca8@162.55.132.230:2000,f515a8599b40f0e84dfad935ba414674ab11a668@osmosis.blockpane.com:26656\"/seeds = \"4eaed17781cd948149098d55f80a28232a365236@testmosis.blockpane.com:26656\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     #subprocess.run(["osmosisd unsafe-reset-all"], shell=True)
     subprocess.run(["clear"], shell=True)
     testnetType()
@@ -289,6 +303,7 @@ def initSetup ():
     subprocess.run(["sudo apt install git build-essential ufw curl jq snapd --yes"], shell=True)
     print(bcolors.OKGREEN + "Installing Go" + bcolors.ENDC)
     subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.17.2"], shell=True)
+    #subprocess.run(["curl -O - https://git.io/vQhTU | bash -s -- --version 1.17.2"], shell=True)
     print(bcolors.OKGREEN + "Reloading Profile" + bcolors.ENDC)    
     subprocess.run([". "+ HOME.stdout.strip()+"/.profile"], shell=True)
     print(bcolors.OKGREEN + "Installing Osmosis V6 Binary" + bcolors.ENDC) 
@@ -339,11 +354,29 @@ You have less than the recommended 32GB of RAM. Would you like to set up a swap 
             subprocess.run(["clear"], shell=True)
             initSetup()
         
-    #elif os_name == "MacOS":
-        #print("System Detected: Linux")
-    
+    elif os_name == "Darwin":
+        print("System Detected: Mac")
+        mem_bytes = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
+        mem_gib = mem_bytes/(1024.**3)
+        #mem = subprocess.run(["sysctl hw.memsize"], shell=True)
+        print("RAM Detected: "+str(round(mem_gib))+"GB")
+        if round(mem_gib) < 32:
+            print("""
+You have less than the recommended 32GB of RAM. Would you still like to continue?
+1) Yes, continue
+2) No, quit
+            """)
+            warnAns = input(bcolors.OKGREEN + 'Enter Choice: ')
+            if warnAns == "1":              
+                initSetup()
+            elif warnAns == "2":
+                subprocess.run(["clear"], shell=True)
+                quit()
+            else:
+                initEnvironment()
     else:
-        print("System OS not detected...Will continue with Linux environment assumption")
+        print("System OS not detected...Will continue with Linux environment assumption...")
+        time.sleep(3)
         initSetup()
          
 
