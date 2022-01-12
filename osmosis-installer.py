@@ -356,9 +356,10 @@ You have less than the recommended 32GB of RAM. Would you like to set up a swap 
         
     elif os_name == "Darwin":
         print("System Detected: Mac")
-        mem_bytes = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
-        mem_gib = mem_bytes/(1024.**3)
-        #mem = subprocess.run(["sysctl hw.memsize"], shell=True)
+        mem_bytes = subprocess.run(["sysctl hw.memsize"], capture_output=True, shell=True, text=True)
+        mem_bytes = str(mem_bytes.stdout.strip())
+        mem_bytes = mem_bytes[11:]
+        mem_gib = int(mem_bytes)/(1024.**3)
         print("RAM Detected: "+str(round(mem_gib))+"GB")
         if round(mem_gib) < 32:
             print("""
