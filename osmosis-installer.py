@@ -115,7 +115,7 @@ def stateSyncInit ():
     LATEST_HEIGHT= subprocess.run(["curl -s https://osmosis.validator.network/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True)
     TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 1000)
     TRUST_HASH= subprocess.run(["curl -s \"https://osmosis.validator.network/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True)
-    RPCs = "osmosis.validator.network,osmo-sync.blockpane.com:26657"
+    RPCs = "osmo-sync.blockpane.com:26657"
     subprocess.run(["sed -i.bak -E 's/enable = false/enable = true/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["sed -i.bak -E 's/rpc_servers = \"\"/rpc_servers = \""+RPCs+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["sed -i.bak -E 's/trust_height = 0/trust_height = "+TRUST_HEIGHT+"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
@@ -195,8 +195,9 @@ def testnetType ():
         cosmovisorInit()
     elif dataTypeAns == "3":
         subprocess.run(["clear"], shell=True)
-        print("Not yet implemented, try again later")
-        testnetType()
+        stateSyncInit()
+        #print("Not yet implemented, try again later")
+        #testnetType()
     else:
         subprocess.run(["clear"], shell=True)
         print ("Wrong selection, try again")
@@ -303,7 +304,7 @@ def initSetup ():
     subprocess.run(["sudo apt install git build-essential ufw curl jq snapd --yes"], shell=True)
     print(bcolors.OKGREEN + "Installing Go" + bcolors.ENDC)
     subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.17.2"], shell=True)
-    #subprocess.run(["curl -O - https://git.io/vQhTU | bash -s -- --version 1.17.2"], shell=True)
+    #subprocess.run(["curl -O https://git.io/vQhTU | bash vQhTU --version 1.17.2"], shell=True)
     print(bcolors.OKGREEN + "Reloading Profile" + bcolors.ENDC)    
     subprocess.run([". "+ HOME.stdout.strip()+"/.profile"], shell=True)
     print(bcolors.OKGREEN + "Installing Osmosis V6 Binary" + bcolors.ENDC) 
@@ -375,6 +376,11 @@ You have less than the recommended 32GB of RAM. Would you still like to continue
                 quit()
             else:
                 initEnvironment()
+        else:
+            print("You have enough RAM to meet the 32GB minimum requirement, moving on to system setup...")
+            time.sleep(3)
+            subprocess.run(["clear"], shell=True)
+            initSetup()
     else:
         print("System OS not detected...Will continue with Linux environment assumption...")
         time.sleep(3)
