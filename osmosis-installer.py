@@ -112,14 +112,27 @@ WantedBy=multi-user.target
 
 
 def stateSyncInit ():
+    print(bcolors.OKGREEN + "Replacing trust height,trust hash, and RPCs in config.toml" + bcolors.ENDC)
     LATEST_HEIGHT= subprocess.run(["curl -s http://osmo-sync.blockpane.com:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True)
-    TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 1000)
+    TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 500)
     TRUST_HASH= subprocess.run(["curl -s \"http://osmo-sync.blockpane.com:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True)
-    RPCs = "osmo-sync.blockpane.com:26657,51.250.2.242:26657"
+    RPCs = "osmo-sync.blockpane.com:26657,51.250.2.242:26657,64.227.67.103:26657"
     subprocess.run(["sed -i.bak -E 's/enable = false/enable = true/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["sed -i.bak -E 's/rpc_servers = \"\"/rpc_servers = \""+RPCs+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["sed -i.bak -E 's/trust_height = 0/trust_height = "+TRUST_HEIGHT+"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["sed -i.bak -E 's/trust_hash = \"\"/trust_hash = \""+TRUST_HASH.stdout.strip()+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    print(bcolors.OKGREEN + "LET OSMOSISD RUN AND STATE SYNC. ONCE IT'S SYNCED, IT WILL FAIL AND THE FIX WILL BE IMPLEMENTED" + bcolors.ENDC)
+    time.sleep(7)
+    subprocess.run(["osmosisd start"], shell=True, env=my_env)
+    print(bcolors.OKGREEN + "Installing required patches for state sync fix" + bcolors.ENDC)
+    os.chdir(os.path.expanduser(HOME.stdout.strip()))
+    subprocess.run(["git clone https://github.com/tendermint/tendermint"], shell=True, env=my_env)
+    os.chdir(os.path.expanduser(HOME.stdout.strip()+'/tendermint/'))
+    subprocess.run(["git checkout callum/app-version"], shell=True, env=my_env)
+    subprocess.run(["make install"], shell=True, env=my_env)
+    subprocess.run(["tendermint set-app-version 1 --home "+HOME.stdout.strip()+"/.osmosisd"], shell=True, env=my_env)
+    cosmovisorInit()
+
     
     
     
