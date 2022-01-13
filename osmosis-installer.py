@@ -248,8 +248,9 @@ def dataSyncSelection ():
         cosmovisorInit()
     elif dataTypeAns == "3":
         subprocess.run(["clear"], shell=True)
-        print("Not yet implemented, try again later")
-        dataSyncSelection()
+        stateSyncInit ()
+        #print("Not yet implemented, try again later")
+        #dataSyncSelection()
     else:
         subprocess.run(["clear"], shell=True)
         print ("Wrong selection, try again")
