@@ -3,6 +3,7 @@ import os
 import platform
 import time
 
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -18,21 +19,31 @@ class bcolors:
 def completeCosmovisor ():
     print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis full node!")
     print(bcolors.OKGREEN + "The cosmovisor service is currently running in the background") 
-    print(bcolors.OKGREEN + "To see the status of cosmovisor, run the following command: sudo systemctl status cosmovisor")
-    print(bcolors.OKGREEN + "To see the live logs from cosmovisor, run the following command: journalctl -u cosmovisor -f"+ bcolors.ENDC)
+    print(bcolors.OKGREEN + "To see the status of cosmovisor, run the following command: 'sudo systemctl status cosmovisor'")
+    print(bcolors.OKGREEN + "To see the live logs from cosmovisor, run the following command: 'journalctl -u cosmovisor -f'")
+    print(bcolors.OKGREEN + "In order to use osmosisd from the cli, either reload your terminal or refresh you profile with: 'source ~/.profile'"+ bcolors.ENDC)
 
 
 def completeOsmosisd ():
     print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis full node!") 
     print(bcolors.OKGREEN + "The osmosisd service is currently running in the background") 
-    print(bcolors.OKGREEN + "To see the status of the osmosis daemon, run the following command: sudo systemctl status osmosisd")
-    print(bcolors.OKGREEN + "To see the live logs from the osmosis daemon, run the following command: journalctl -u osmosisd -f"+ bcolors.ENDC)
+    print(bcolors.OKGREEN + "To see the status of the osmosis daemon, run the following command: 'sudo systemctl status osmosisd'")
+    print(bcolors.OKGREEN + "To see the live logs from the osmosis daemon, run the following command: 'journalctl -u osmosisd -f'")
+    print(bcolors.OKGREEN + "In order to use cosmovisor/osmosisd from the cli, either reload your terminal or refresh you profile with: 'source ~/.profile'"+ bcolors.ENDC)
+
+
+def complete ():
+    print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis full node!") 
+    print(bcolors.OKGREEN + "The osmosisd service is NOT running in the background") 
+    print(bcolors.OKGREEN + "In order to use cosmovisor/osmosisd from the cli, either reload your terminal or refresh you profile with: 'source ~/.profile'"+ bcolors.ENDC)
+    print(bcolors.OKGREEN + "After reloading your terminal and/or profile, you can start osmosisd with: 'osmosisd start'"+ bcolors.ENDC)
 
 
 def cosmovisorInit ():
     print(bcolors.OKGREEN + """Do you want to use Cosmovisor to automate future upgrades?
 1) Yes, install cosmovisor and set up background service
-2) No, just set up an osmosisd background service 
+2) No, just set up an osmosisd background service
+3) Don't install cosmovisor and don't set up a background service 
     """)
     useCosmovisor = input(bcolors.OKGREEN + 'Enter Choice: ')
     if useCosmovisor == "1":
@@ -104,7 +115,9 @@ WantedBy=multi-user.target
         subprocess.run(["sudo systemctl daemon-reload"], shell=True)
         subprocess.run(["sudo systemctl start osmosisd"], shell=True)
         subprocess.run(["clear"], shell=True)
-        completeOsmosisd() 
+        completeOsmosisd()
+    elif useCosmovisor == "3":
+        complete()
     else:
         subprocess.run(["clear"], shell=True)
         print ("Wrong selection, try again")
@@ -134,11 +147,6 @@ def stateSyncInit ():
     subprocess.run(["clear"], shell=True)
     cosmovisorInit()
 
-    
-    
-    
-
-
 
 def snapshotInstall ():
     print(bcolors.OKGREEN + "Downloading Decompression Packages" + bcolors.ENDC)
@@ -150,7 +158,6 @@ def snapshotInstall ():
     subprocess.run(["clear"], shell=True)
     cosmovisorInit()
  
-
 
 def mainNetLocation ():
     global location
@@ -178,7 +185,6 @@ def mainNetLocation ():
         mainNetLocation()
 
 
-
 def testnetSnapshotInstall ():
     print(bcolors.OKGREEN + "Downloading Decompression Packages" + bcolors.ENDC)
     subprocess.run(["sudo apt-get install wget liblz4-tool aria2 pixz -y"], shell=True)
@@ -189,9 +195,6 @@ def testnetSnapshotInstall ():
     subprocess.run(["rm osmosis-testnet-mp20-latest.tar.xz"], shell=True)
     subprocess.run(["clear"], shell=True)
     cosmovisorInit()
-
-
-
 
 
 def testnetType ():
@@ -206,7 +209,7 @@ def testnetType ():
     elif dataTypeAns == "2":
         subprocess.run(["clear"], shell=True)
         cosmovisorInit()
-    #elif dataTypeAns == "":
+    #elif dataTypeAns == "3":
         #subprocess.run(["clear"], shell=True)
         #stateSyncInit()
     else:
@@ -266,7 +269,6 @@ def dataSyncSelection ():
         dataSyncSelection()
 
 
-
 def setupMainnet ():
     print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
     subprocess.run(["osmosisd init " + nodeName + " -o"], shell=True, env=my_env)
@@ -305,27 +307,42 @@ def initNodeName():
         initNodeName()
 
 
-
 def initSetup ():
     global my_env
-    print(bcolors.OKGREEN + "Updating Packages" + bcolors.ENDC)
-    subprocess.run(["sudo apt-get update && sudo apt-get upgrade -y"], shell=True)
-    print(bcolors.OKGREEN + "Installing Make and GCC" + bcolors.ENDC)
-    subprocess.run(["sudo apt install git build-essential ufw curl jq snapd --yes"], shell=True)
-    print(bcolors.OKGREEN + "Installing Go" + bcolors.ENDC)
-    subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.17.2"], shell=True)
-    #subprocess.run(["curl -O https://git.io/vQhTU | bash vQhTU --version 1.17.2"], shell=True)
-    print(bcolors.OKGREEN + "Reloading Profile" + bcolors.ENDC)    
-    subprocess.run([". "+ HOME.stdout.strip()+"/.profile"], shell=True)
-    print(bcolors.OKGREEN + "Installing Osmosis V6 Binary" + bcolors.ENDC) 
-    os.chdir(os.path.expanduser(HOME.stdout.strip()))
-    subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], shell=True)
-    os.chdir(os.path.expanduser(HOME.stdout.strip()+'/osmosis'))
-    subprocess.run(["git checkout v6.0.0"], shell=True)
-    my_env = os.environ.copy()
-    my_env["PATH"] = "/root/go/bin:/root/go/bin:/root/.go/bin:" + my_env["PATH"]
-    subprocess.run(["make install"], shell=True, env=my_env)
-    subprocess.run(["clear"], shell=True)
+    if os_name == "Linux":
+        print(bcolors.OKGREEN + "Updating Packages" + bcolors.ENDC)
+        subprocess.run(["sudo apt-get update && sudo apt-get upgrade -y"], shell=True)
+        print(bcolors.OKGREEN + "Installing Make and GCC" + bcolors.ENDC)
+        subprocess.run(["sudo apt install git build-essential ufw curl jq snapd --yes"], shell=True)
+        print(bcolors.OKGREEN + "Installing Go" + bcolors.ENDC)
+        subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.17.2"], shell=True)
+        print(bcolors.OKGREEN + "Reloading Profile" + bcolors.ENDC)    
+        subprocess.run([". "+ HOME.stdout.strip()+"/.profile"], shell=True)
+        print(bcolors.OKGREEN + "Installing Osmosis V6 Binary" + bcolors.ENDC) 
+        os.chdir(os.path.expanduser(HOME.stdout.strip()))
+        subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], shell=True)
+        os.chdir(os.path.expanduser(HOME.stdout.strip()+'/osmosis'))
+        subprocess.run(["git checkout v6.0.0"], shell=True)
+        my_env = os.environ.copy()
+        my_env["PATH"] = "/root/go/bin:/root/go/bin:/root/.go/bin:" + my_env["PATH"]
+        subprocess.run(["make install"], shell=True, env=my_env)
+        subprocess.run(["clear"], shell=True)
+    else:
+        print(bcolors.OKGREEN + "Installing Go" + bcolors.ENDC)
+        subprocess.run(["curl -OL https://git.io/vQhTU"], shell=True)
+        subprocess.run(["bash vQhTU --version 1.17.2"], shell=True)
+        subprocess.run(["rm vQhTU"], shell=True)
+        print(bcolors.OKGREEN + "Reloading Profile" + bcolors.ENDC)    
+        subprocess.run([". "+ HOME.stdout.strip()+"/.profile"], shell=True)
+        print(bcolors.OKGREEN + "Installing Osmosis V6 Binary" + bcolors.ENDC) 
+        os.chdir(os.path.expanduser(HOME.stdout.strip()))
+        subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], shell=True)
+        os.chdir(os.path.expanduser(HOME.stdout.strip()+'/osmosis'))
+        subprocess.run(["git checkout v6.0.0"], shell=True)
+        my_env = os.environ.copy()
+        my_env["PATH"] = "/root/go/bin:/root/go/bin:/root/.go/bin:" + my_env["PATH"]
+        subprocess.run(["make install"], shell=True, env=my_env)
+        subprocess.run(["clear"], shell=True)
     initNodeName()
 
 
@@ -396,8 +413,6 @@ You have less than the recommended 32GB of RAM. Would you still like to continue
         time.sleep(3)
         initSetup()
          
-
-
 
 def start ():
     subprocess.run(["clear"], shell=True)
