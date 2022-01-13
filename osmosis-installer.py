@@ -131,6 +131,7 @@ def stateSyncInit ():
     subprocess.run(["git checkout callum/app-version"], shell=True, env=my_env)
     subprocess.run(["make install"], shell=True, env=my_env)
     subprocess.run(["tendermint set-app-version 1 --home "+HOME.stdout.strip()+"/.osmosisd"], shell=True, env=my_env)
+    subprocess.run(["clear"], shell=True)
     cosmovisorInit()
 
     
@@ -195,9 +196,8 @@ def testnetSnapshotInstall ():
 
 def testnetType ():
     print(bcolors.OKGREEN + """Please choose from the following options:
-1) Download a snapshot (recommended)
+1) Download a snapshot from MP20 (recommended)
 2) I have my own Osmosis snapshot, skip to setting up cosmovisor and/or osmosisd service
-3) Use statesync (NOT YET IMPLEMENTED)
     """) 
     dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: ')
     if dataTypeAns == "1":
@@ -206,11 +206,9 @@ def testnetType ():
     elif dataTypeAns == "2":
         subprocess.run(["clear"], shell=True)
         cosmovisorInit()
-    elif dataTypeAns == "3":
-        subprocess.run(["clear"], shell=True)
-        stateSyncInit()
-        #print("Not yet implemented, try again later")
-        #testnetType()
+    #elif dataTypeAns == "":
+        #subprocess.run(["clear"], shell=True)
+        #stateSyncInit()
     else:
         subprocess.run(["clear"], shell=True)
         print ("Wrong selection, try again")
@@ -248,22 +246,20 @@ def mainNetType ():
 
 def dataSyncSelection ():
     print(bcolors.OKGREEN + """Please choose from the following options:
-1) Download a snapshot from ChainLayer (recommended)
+1) Use statesync (recommended)
+2) Download a snapshot from ChainLayer
 2) I have my own Osmosis snapshot, skip to setting up cosmovisor and/or osmosisd service
-3) Use statesync (NOT YET IMPLEMENTED)
     """) 
     dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: ')
-    if dataTypeAns == "1":
+    if dataTypeAns == "2":
         subprocess.run(["clear"], shell=True)
         mainNetType()
-    elif dataTypeAns == "2":
-        subprocess.run(["clear"], shell=True)
-        cosmovisorInit()
     elif dataTypeAns == "3":
         subprocess.run(["clear"], shell=True)
+        cosmovisorInit()
+    elif dataTypeAns == "1":
+        subprocess.run(["clear"], shell=True)
         stateSyncInit ()
-        #print("Not yet implemented, try again later")
-        #dataSyncSelection()
     else:
         subprocess.run(["clear"], shell=True)
         print ("Wrong selection, try again")
@@ -356,7 +352,7 @@ You have less than the recommended 32GB of RAM. Would you like to set up a swap 
                 subprocess.run(["sudo swapon /swapfile"], shell=True)
                 subprocess.run(["clear"], shell=True)
                 print("Swap file set, moving on to system setup...")
-                time.sleep(3)               
+                time.sleep(1)               
                 initSetup()
             elif swapAns == "2":
                 subprocess.run(["clear"], shell=True)
