@@ -285,11 +285,7 @@ def dataSyncSelection ():
         mainNetType()
     elif dataTypeAns == "3":
         subprocess.run(["clear"], shell=True)
-<<<<<<< HEAD
         partComplete()
-=======
-        quit()
->>>>>>> c5778845c26cac24e69c2606d3c7e408d77e4112
     else:
         subprocess.run(["clear"], shell=True)
         print ("Wrong selection, try again")
