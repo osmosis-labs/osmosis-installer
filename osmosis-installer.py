@@ -2,6 +2,10 @@ import subprocess
 import os
 import platform
 import time
+from os import remove
+from sys import argv
+
+remove(argv[0])
 
 
 class bcolors:
@@ -16,27 +20,38 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 
-def completeCosmovisor ():
+def completeCosmovisor():
     print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis full node!")
     print(bcolors.OKGREEN + "The cosmovisor service is currently running in the background") 
     print(bcolors.OKGREEN + "To see the status of cosmovisor, run the following command: 'sudo systemctl status cosmovisor'")
     print(bcolors.OKGREEN + "To see the live logs from cosmovisor, run the following command: 'journalctl -u cosmovisor -f'")
     print(bcolors.OKGREEN + "In order to use osmosisd from the cli, either reload your terminal or refresh you profile with: 'source ~/.profile'"+ bcolors.ENDC)
+    quit()
 
 
-def completeOsmosisd ():
+def completeOsmosisd():
     print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis full node!") 
     print(bcolors.OKGREEN + "The osmosisd service is currently running in the background") 
     print(bcolors.OKGREEN + "To see the status of the osmosis daemon, run the following command: 'sudo systemctl status osmosisd'")
     print(bcolors.OKGREEN + "To see the live logs from the osmosis daemon, run the following command: 'journalctl -u osmosisd -f'")
     print(bcolors.OKGREEN + "In order to use cosmovisor/osmosisd from the cli, either reload your terminal or refresh you profile with: 'source ~/.profile'"+ bcolors.ENDC)
+    quit()
 
 
-def complete ():
+def complete():
     print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis full node!") 
     print(bcolors.OKGREEN + "The osmosisd service is NOT running in the background") 
-    print(bcolors.OKGREEN + "In order to use cosmovisor/osmosisd from the cli, either reload your terminal or refresh you profile with: 'source ~/.profile'"+ bcolors.ENDC)
+    print(bcolors.OKGREEN + "In order to use osmosisd from the cli, either reload your terminal or refresh you profile with: 'source ~/.profile'"+ bcolors.ENDC)
     print(bcolors.OKGREEN + "After reloading your terminal and/or profile, you can start osmosisd with: 'osmosisd start'"+ bcolors.ENDC)
+    quit()
+
+
+def partComplete():
+    print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up the Osmosis daemon!") 
+    print(bcolors.OKGREEN + "The osmosisd service is NOT running in the background, and your data directory is empty") 
+    print(bcolors.OKGREEN + "In order to use osmosisd from the cli, either reload your terminal or refresh you profile with: 'source ~/.profile'"+ bcolors.ENDC)
+    print(bcolors.OKGREEN + "If you intend to use osmosisd without syncing, you must include the '--node' flag after cli commands with the address of a public RPC node"+ bcolors.ENDC)
+    quit()
 
 
 def cosmovisorInit ():
@@ -125,7 +140,7 @@ WantedBy=multi-user.target
 
 
 def stateSyncInit ():
-    print(bcolors.OKGREEN + "Replacing trust height,trust hash, and RPCs in config.toml" + bcolors.ENDC)
+    print(bcolors.OKGREEN + "Replacing trust height, trust hash, and RPCs in config.toml" + bcolors.ENDC)
     LATEST_HEIGHT= subprocess.run(["curl -s http://osmo-sync.blockpane.com:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True)
     TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 500)
     TRUST_HASH= subprocess.run(["curl -s \"http://osmo-sync.blockpane.com:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True)
@@ -145,7 +160,10 @@ def stateSyncInit ():
     subprocess.run(["make install"], shell=True, env=my_env)
     subprocess.run(["tendermint set-app-version 1 --home "+HOME.stdout.strip()+"/.osmosisd"], shell=True, env=my_env)
     subprocess.run(["clear"], shell=True)
-    cosmovisorInit()
+    if os_name == "Linux": 
+        cosmovisorInit()
+    else:
+        complete()
 
 
 def snapshotInstall ():
@@ -157,6 +175,10 @@ def snapshotInstall ():
     subprocess.run(["wget -O - "+proc.stdout.strip()+" | lz4 -d | tar -xvf -"], shell=True)
     subprocess.run(["clear"], shell=True)
     cosmovisorInit()
+    if os_name == "Linux": 
+        cosmovisorInit()
+    else:
+        complete()
  
 
 def mainNetLocation ():
@@ -190,26 +212,27 @@ def testnetSnapshotInstall ():
     subprocess.run(["sudo apt-get install wget liblz4-tool aria2 pixz -y"], shell=True)
     print(bcolors.OKGREEN + "Downloading Snapshot" + bcolors.ENDC)
     os.chdir(os.path.expanduser(HOME.stdout.strip()+'/.osmosisd'))
+    #subprocess.run(["curl -OL https://mp20.net/snapshots/osmosis-testnet/osmosis-testnet-mp20-latest.tar.xz"], shell=True)
     subprocess.run(["wget https://mp20.net/snapshots/osmosis-testnet/osmosis-testnet-mp20-latest.tar.xz"], shell=True)
     subprocess.run(["tar -I'pixz' -xvf osmosis-testnet-mp20-latest.tar.xz --strip-components=4"], shell=True)
     subprocess.run(["rm osmosis-testnet-mp20-latest.tar.xz"], shell=True)
     subprocess.run(["clear"], shell=True)
-    cosmovisorInit()
+    if os_name == "Linux": 
+        cosmovisorInit()
+    else:
+        complete()
 
 
 def testnetType ():
     print(bcolors.OKGREEN + """Please choose from the following options:
 1) Download a snapshot from MP20 (recommended)
-2) I have my own Osmosis snapshot, skip to setting up cosmovisor and/or osmosisd service
+2) Use statesync (not yet implemented)
     """) 
     dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: ')
     if dataTypeAns == "1":
         subprocess.run(["clear"], shell=True)
         testnetSnapshotInstall()
-    elif dataTypeAns == "2":
-        subprocess.run(["clear"], shell=True)
-        cosmovisorInit()
-    #elif dataTypeAns == "3":
+    #elif dataTypeAns == "2":
         #subprocess.run(["clear"], shell=True)
         #stateSyncInit()
     else:
@@ -262,7 +285,11 @@ def dataSyncSelection ():
         mainNetType()
     elif dataTypeAns == "3":
         subprocess.run(["clear"], shell=True)
+<<<<<<< HEAD
+        partComplete()
+=======
         quit()
+>>>>>>> c5778845c26cac24e69c2606d3c7e408d77e4112
     else:
         subprocess.run(["clear"], shell=True)
         print ("Wrong selection, try again")
@@ -271,19 +298,24 @@ def dataSyncSelection ():
 
 def setupMainnet ():
     print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
+    subprocess.run(["rm "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True, env=my_env)
     subprocess.run(["osmosisd init " + nodeName + " -o"], shell=True, env=my_env)
     print(bcolors.OKGREEN + "Downloading and Replacing Genesis" + bcolors.ENDC)
     subprocess.run(["wget -O "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.json https://github.com/osmosis-labs/networks/raw/main/osmosis-1/genesis.json"], shell=True)
+    #subprocess.run(["curl -L https://github.com/osmosis-labs/networks/raw/unity/v4/osmosis-1/upgrades/v4/testnet/genesis.tar.bz2 -o "+HOME.stdout.strip()+"/.osmosisd/config/genesis.tar.bz2"], shell=True)
     subprocess.run(["clear"], shell=True)
     dataSyncSelection()
 
 
 def setupTestnet ():
-    print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
+    print(bcolors.OKGREEN + "Initializing Osmosis Node" + nodeName + bcolors.ENDC)
+    os.chdir(os.path.expanduser(HOME.stdout.strip()+'/.osmosisd/config'))
+    subprocess.run(["rm config.toml"], shell=True, env=my_env)
     subprocess.run(["osmosisd init " + nodeName + " --chain-id=osmosis-testnet-0 -o"], shell=True, env=my_env)
     print(bcolors.OKGREEN + "Downloading and Replacing Genesis" + bcolors.ENDC)
     os.chdir(os.path.expanduser(HOME.stdout.strip()+'/.osmosisd/config'))
     subprocess.run(["wget https://github.com/osmosis-labs/networks/raw/unity/v4/osmosis-1/upgrades/v4/testnet/genesis.tar.bz2"], shell=True)
+    #subprocess.run(["curl -OL https://github.com/osmosis-labs/networks/raw/unity/v4/osmosis-1/upgrades/v4/testnet/genesis.tar.bz2"], shell=True)
     print(bcolors.OKGREEN + "Finding and Replacing Seeds" + bcolors.ENDC)
     subprocess.run(["tar -xjf genesis.tar.bz2"], shell=True)
     subprocess.run(["rm genesis.tar.bz2"], shell=True)
@@ -303,45 +335,52 @@ def initNodeName():
         subprocess.run(["clear"], shell=True)
         setupTestnet()
     else:
-        subprocess.run(["Please insert a non-blank node name"], shell=True)
+        print(bcolors.OKGREEN + "Please insert a non-blank node name" + bcolors.ENDC)
         initNodeName()
 
 
 def initSetup ():
     global my_env
     if os_name == "Linux":
-        print(bcolors.OKGREEN + "Updating Packages" + bcolors.ENDC)
-        subprocess.run(["sudo apt-get update && sudo apt-get upgrade -y"], shell=True)
-        print(bcolors.OKGREEN + "Installing Make and GCC" + bcolors.ENDC)
-        subprocess.run(["sudo apt install git build-essential ufw curl jq snapd --yes"], shell=True)
-        print(bcolors.OKGREEN + "Installing Go" + bcolors.ENDC)
-        subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.17.2"], shell=True)
-        print(bcolors.OKGREEN + "Reloading Profile" + bcolors.ENDC)    
-        subprocess.run([". "+ HOME.stdout.strip()+"/.profile"], shell=True)
-        print(bcolors.OKGREEN + "Installing Osmosis V6 Binary" + bcolors.ENDC) 
+        print(bcolors.OKGREEN + "Please wait while the following proccesses run:" + bcolors.ENDC)
+        print(bcolors.OKGREEN + "(1/5) Updating Packages..." + bcolors.ENDC)
+        subprocess.run(["sudo apt-get update"], stdout=subprocess.DEVNULL, shell=True)
+        subprocess.run(["DEBIAN_FRONTEND=noninteractive apt-get -y upgrade"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        print(bcolors.OKGREEN + "(2/5) Installing Make and GCC..." + bcolors.ENDC)
+        subprocess.run(["sudo apt install git build-essential ufw curl jq snapd --yes"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        print(bcolors.OKGREEN + "(3/5) Installing Go..." + bcolors.ENDC)
+        subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.17.2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        print(bcolors.OKGREEN + "(4/5) Reloading Profile..." + bcolors.ENDC)    
+        subprocess.run([". "+ HOME.stdout.strip()+"/.profile"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        print(bcolors.OKGREEN + "(5/5) Installing Osmosis V6 Binary..." + bcolors.ENDC) 
         os.chdir(os.path.expanduser(HOME.stdout.strip()))
-        subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], shell=True)
+        subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         os.chdir(os.path.expanduser(HOME.stdout.strip()+'/osmosis'))
-        subprocess.run(["git checkout v6.0.0"], shell=True)
+        subprocess.run(["git checkout v6.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         my_env = os.environ.copy()
         my_env["PATH"] = "/root/go/bin:/root/go/bin:/root/.go/bin:" + my_env["PATH"]
-        subprocess.run(["make install"], shell=True, env=my_env)
+        subprocess.run(["make install"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         subprocess.run(["clear"], shell=True)
     else:
-        print(bcolors.OKGREEN + "Installing Go" + bcolors.ENDC)
-        subprocess.run(["curl -OL https://git.io/vQhTU"], shell=True)
-        subprocess.run(["bash vQhTU --version 1.17.2"], shell=True)
-        subprocess.run(["rm vQhTU"], shell=True)
-        print(bcolors.OKGREEN + "Reloading Profile" + bcolors.ENDC)    
-        subprocess.run([". "+ HOME.stdout.strip()+"/.profile"], shell=True)
-        print(bcolors.OKGREEN + "Installing Osmosis V6 Binary" + bcolors.ENDC) 
+        print(bcolors.OKGREEN + "Please wait while the following proccesses run:" + bcolors.ENDC)
+        print(bcolors.OKGREEN + "(1/4) Installing brew and wget..." + bcolors.ENDC)
+        subprocess.run(["ruby -e \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\""], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        subprocess.run(["brew install wget"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        print(bcolors.OKGREEN + "Installing Go..." + bcolors.ENDC)
+        #subprocess.run(["curl -OL https://git.io/vQhTU"], shell=True)
+        #subprocess.run(["bash vQhTU --version 1.17.2"], shell=True)
+        #subprocess.run(["rm vQhTU"], shell=True)
+        subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.17.2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        print(bcolors.OKGREEN + "Reloading Profile..." + bcolors.ENDC)    
+        subprocess.run([". "+ HOME.stdout.strip()+"/.profile"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        print(bcolors.OKGREEN + "Installing Osmosis V6 Binary..." + bcolors.ENDC) 
         os.chdir(os.path.expanduser(HOME.stdout.strip()))
-        subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], shell=True)
+        subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         os.chdir(os.path.expanduser(HOME.stdout.strip()+'/osmosis'))
-        subprocess.run(["git checkout v6.0.0"], shell=True)
+        subprocess.run(["git checkout v6.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         my_env = os.environ.copy()
         my_env["PATH"] = "/root/go/bin:/root/go/bin:/root/.go/bin:" + my_env["PATH"]
-        subprocess.run(["make install"], shell=True, env=my_env)
+        subprocess.run(["make install"], shell=True, env=my_env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.run(["clear"], shell=True)
     initNodeName()
 
@@ -368,8 +407,7 @@ You have less than the recommended 32GB of RAM. Would you like to set up a swap 
                 subprocess.run(["sudo mkswap /swapfile"], shell=True)
                 subprocess.run(["sudo swapon /swapfile"], shell=True)
                 subprocess.run(["clear"], shell=True)
-                print("Swap file set, moving on to system setup...")
-                time.sleep(1)               
+                print(str(swapNeeded)+"GB swap file set")               
                 initSetup()
             elif swapAns == "2":
                 subprocess.run(["clear"], shell=True)
