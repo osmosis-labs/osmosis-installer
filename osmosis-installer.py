@@ -266,7 +266,7 @@ def dataSyncSelection ():
     else:
         subprocess.run(["clear"], shell=True)
         print ("Wrong selection, try again")
-        dataSyncSelection())
+        dataSyncSelection()
 
 
 def setupMainnet ():
