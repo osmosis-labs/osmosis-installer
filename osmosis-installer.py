@@ -251,22 +251,22 @@ def dataSyncSelection ():
     print(bcolors.OKGREEN + """Please choose from the following options:
 1) Use statesync (recommended)
 2) Download a snapshot from ChainLayer
-2) I have my own Osmosis snapshot, skip to setting up cosmovisor and/or osmosisd service
+3) Exit now, I only wanted to install the daemon
     """) 
     dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: ')
-    if dataTypeAns == "2":
+    if dataTypeAns == "1":
+        subprocess.run(["clear"], shell=True)
+        stateSyncInit ()
+    elif dataTypeAns == "2":
         subprocess.run(["clear"], shell=True)
         mainNetType()
     elif dataTypeAns == "3":
         subprocess.run(["clear"], shell=True)
-        cosmovisorInit()
-    elif dataTypeAns == "1":
-        subprocess.run(["clear"], shell=True)
-        stateSyncInit ()
+        quit()
     else:
         subprocess.run(["clear"], shell=True)
         print ("Wrong selection, try again")
-        dataSyncSelection()
+        dataSyncSelection())
 
 
 def setupMainnet ():
