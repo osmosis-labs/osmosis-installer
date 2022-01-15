@@ -288,8 +288,8 @@ def mainNetType ():
 
 def dataSyncSelection ():
     print(bcolors.OKGREEN + """Please choose from the following options:
-1) Use statesync
-2) Download a snapshot from ChainLayer (recommended)
+1) Use statesync (recommended)
+2) Download a snapshot from ChainLayer
 3) Exit now, I only wanted to install the daemon
     """+ bcolors.ENDC)
     dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
