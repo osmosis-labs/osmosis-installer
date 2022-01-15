@@ -429,6 +429,7 @@ You have less than the recommended 32GB of RAM. Would you like to set up a swap 
                 subprocess.run(["clear"], shell=True)
                 initSetup()
             else:
+                subprocess.run(["clear"], shell=True)
                 initEnvironment()
         else:
             print(bcolors.OKGREEN +"You have enough RAM to meet the 32GB minimum requirement, moving on to system setup..."+ bcolors.ENDC)
@@ -456,6 +457,7 @@ You have less than the recommended 32GB of RAM. Would you still like to continue
                 subprocess.run(["clear"], shell=True)
                 quit()
             else:
+                subprocess.run(["clear"], shell=True)
                 initEnvironment()
         else:
             print(bcolors.OKGREEN +"You have enough RAM to meet the 32GB minimum requirement, moving on to system setup..."+ bcolors.ENDC)
@@ -508,7 +510,6 @@ Please choose a network to join:
         subprocess.run(["clear"], shell=True)
         initEnvironment()
     else:
-        print("Please only enter the number preceding the option and nothing else, in this case 1 or 2")
         start()
 
 
