@@ -56,11 +56,11 @@ def partComplete():
 
 def cosmovisorInit ():
     print(bcolors.OKGREEN + """Do you want to use Cosmovisor to automate future upgrades?
-1) Yes, install cosmovisor and set up background service
+1) Yes, install cosmovisor and set up background service (recommended)
 2) No, just set up an osmosisd background service
 3) Don't install cosmovisor and don't set up a background service
     """+ bcolors.ENDC)
-    useCosmovisor = input(bcolors.OKGREEN + 'Enter Choice: ')
+    useCosmovisor = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
     if useCosmovisor == "1":
         subprocess.run(["clear"], shell=True)
         print(bcolors.OKGREEN + "Setting Up Cosmovisor..." + bcolors.ENDC)
@@ -165,6 +165,23 @@ def stateSyncInit ():
     else:
         complete()
 
+def testnetStateSyncInit ():
+    print(bcolors.OKGREEN + "Replacing trust height, trust hash, and RPCs in config.toml" + bcolors.ENDC)
+    LATEST_HEIGHT= subprocess.run(["curl -s http://51.15.246.145:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True)
+    TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 1000)
+    TRUST_HASH= subprocess.run(["curl -s \"http://51.15.246.145:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True)
+    RPCs = "51.15.246.145:26657,51.15.246.145:26657"
+    subprocess.run(["sed -i.bak -E 's/enable = false/enable = true/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    subprocess.run(["sed -i.bak -E 's/rpc_servers = \"\"/rpc_servers = \""+RPCs+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    subprocess.run(["sed -i.bak -E 's/trust_height = 0/trust_height = "+TRUST_HEIGHT+"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    subprocess.run(["sed -i.bak -E 's/trust_hash = \"\"/trust_hash = \""+TRUST_HASH.stdout.strip()+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    if os_name == "Linux":
+        subprocess.run(["clear"], shell=True)
+        cosmovisorInit()
+    else:
+        subprocess.run(["clear"], shell=True)
+        complete()
+
 
 def snapshotInstall ():
     print(bcolors.OKGREEN + "Downloading Decompression Packages..." + bcolors.ENDC)
@@ -188,7 +205,7 @@ def mainNetLocation ():
 2) Singapore
 3) SanFrancisco
     """+ bcolors.ENDC)
-    nodeLocationAns = input(bcolors.OKGREEN + 'Enter Choice: ')
+    nodeLocationAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
     if nodeLocationAns == "1":
         subprocess.run(["clear"], shell=True)
         location = "Netherlands"
@@ -225,16 +242,16 @@ def testnetSnapshotInstall ():
 
 def testnetType ():
     print(bcolors.OKGREEN + """Please choose from the following options:
-1) Download a snapshot from MP20 (recommended)
-2) Use statesync (not yet implemented)
+1) Use statesync (recommended)
+2) Download a snapshot from MP20
     """+ bcolors.ENDC)
     dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
-    if dataTypeAns == "1":
+    if dataTypeAns == "2":
         subprocess.run(["clear"], shell=True)
         testnetSnapshotInstall()
-    #elif dataTypeAns == "2":
-        #subprocess.run(["clear"], shell=True)
-        #stateSyncInit()
+    elif dataTypeAns == "1":
+        subprocess.run(["clear"], shell=True)
+        testnetStateSyncInit()
     else:
         subprocess.run(["clear"], shell=True)
         print("Wrong selection, try again")
@@ -249,7 +266,7 @@ def mainNetType ():
 2) Default
 3) Archive
     """+ bcolors.ENDC)
-    nodeTypeAns = input(bcolors.OKGREEN + 'Enter Choice: ')
+    nodeTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
     if nodeTypeAns == "1":
         subprocess.run(["clear"], shell=True)
         fileName = "osmosis-1-pruned"
@@ -275,7 +292,7 @@ def dataSyncSelection ():
 2) Download a snapshot from ChainLayer
 3) Exit now, I only wanted to install the daemon
     """+ bcolors.ENDC)
-    dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: ')
+    dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
     if dataTypeAns == "1":
         subprocess.run(["clear"], shell=True)
         stateSyncInit ()
@@ -293,7 +310,9 @@ def dataSyncSelection ():
 
 def setupMainnet ():
     print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
+    subprocess.run(["osmosisd unsafe-reset-all"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["rm "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    subprocess.run(["rm "+HOME.stdout.strip()+"/.osmosisd/config/addrbook.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["osmosisd init " + nodeName + " -o"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL ,shell=True, env=my_env)
     print(bcolors.OKGREEN + "Downloading and Replacing Genesis..." + bcolors.ENDC)
     subprocess.run(["wget -O "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.json https://github.com/osmosis-labs/networks/raw/main/osmosis-1/genesis.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
@@ -303,25 +322,26 @@ def setupMainnet ():
 
 
 def setupTestnet ():
-    print(bcolors.OKGREEN + "Initializing Osmosis Node" + nodeName + bcolors.ENDC)
+    print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
+    subprocess.run(["osmosisd unsafe-reset-all"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["rm "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    subprocess.run(["rm "+HOME.stdout.strip()+"/.osmosisd/config/addrbook.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["osmosisd init " + nodeName + " --chain-id=osmosis-testnet-0 -o"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     print(bcolors.OKGREEN + "Downloading and Replacing Genesis..." + bcolors.ENDC)
     os.chdir(os.path.expanduser(HOME.stdout.strip()+'/.osmosisd/config'))
     subprocess.run(["wget https://github.com/osmosis-labs/networks/raw/unity/v4/osmosis-1/upgrades/v4/testnet/genesis.tar.bz2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     #subprocess.run(["curl -OL https://github.com/osmosis-labs/networks/raw/unity/v4/osmosis-1/upgrades/v4/testnet/genesis.tar.bz2"], shell=True)
-    print(bcolors.OKGREEN + "Finding and Replacing Seeds" + bcolors.ENDC)
+    print(bcolors.OKGREEN + "Finding and Replacing Seeds..." + bcolors.ENDC)
     subprocess.run(["tar -xjf genesis.tar.bz2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     subprocess.run(["rm genesis.tar.bz2"], shell=True)
     subprocess.run(["sed -i.bak -E 's/seeds = \"63aba59a7da5197c0fbcdc13e760d7561791dca8@162.55.132.230:2000,f515a8599b40f0e84dfad935ba414674ab11a668@osmosis.blockpane.com:26656\"/seeds = \"4eaed17781cd948149098d55f80a28232a365236@testmosis.blockpane.com:26656\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
-    #subprocess.run(["osmosisd unsafe-reset-all"], shell=True)
     subprocess.run(["clear"], shell=True)
     testnetType()
 
 
 def initNodeName():
     global nodeName
-    nodeName= input(bcolors.OKGREEN + "Input desired node name (no quotes, cant be blank): ")
+    nodeName= input(bcolors.OKGREEN + "Input desired node name (no quotes, cant be blank): "+ bcolors.ENDC)
     if nodeName and networkAns == "1":
         subprocess.run(["clear"], shell=True)
         setupMainnet()
@@ -393,10 +413,10 @@ You have less than the recommended 32GB of RAM. Would you like to set up a swap 
 1) Yes, set up swap file
 2) No, do not set up swap file
             """+ bcolors.ENDC)
-            swapAns = input(bcolors.OKGREEN + 'Enter Choice: ')
+            swapAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
             if swapAns == "1":
                 swapNeeded = 32 - round(mem_gib)
-                print(bcolors.OKGREEN +"Setting up "+ str(swapNeeded)+ "GB swap file"+ bcolors.ENDC)
+                print(bcolors.OKGREEN +"Setting up "+ str(swapNeeded)+ "GB swap file..."+ bcolors.ENDC)
                 subprocess.run(["sudo swapoff -a"], shell=True)
                 subprocess.run(["sudo fallocate -l " +str(swapNeeded)+"G /swapfile"], shell=True)
                 subprocess.run(["sudo chmod 600 /swapfile"], shell=True)
@@ -429,7 +449,7 @@ You have less than the recommended 32GB of RAM. Would you still like to continue
 1) Yes, continue
 2) No, quit
             """+ bcolors.ENDC)
-            warnAns = input(bcolors.OKGREEN + 'Enter Choice: ')
+            warnAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
             if warnAns == "1":
                 initSetup()
             elif warnAns == "2":
@@ -470,6 +490,7 @@ def start ():
 
 Welcome to the Osmosis node installer V1.0.0!
 For more information, please visit docs.osmosis.zone
+Before continuing, ensure you currently have no osmosis background services running
 
 Please choose a network to join:
 1) Mainnet (osmosis-1)
