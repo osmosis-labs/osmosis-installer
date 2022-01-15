@@ -494,7 +494,7 @@ Welcome to the Osmosis node installer V1.0.0!
 For more information, please visit docs.osmosis.zone
 Ensure no osmosis services are running in the background
 If running over an old osmosis installation, back up
-previous osmosis data before proceeding
+any important osmosis data before proceeding
 
 Please choose a network to join:
 1) Mainnet (osmosis-1)
