@@ -288,8 +288,8 @@ def mainNetType ():
 
 def dataSyncSelection ():
     print(bcolors.OKGREEN + """Please choose from the following options:
-1) Use statesync (recommended)
-2) Download a snapshot from ChainLayer
+1) Use statesync
+2) Download a snapshot from ChainLayer (recommended)
 3) Exit now, I only wanted to install the daemon
     """+ bcolors.ENDC)
     dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
@@ -490,7 +490,9 @@ def start ():
 
 Welcome to the Osmosis node installer V1.0.0!
 For more information, please visit docs.osmosis.zone
-Before continuing, ensure you currently have no osmosis background services running
+Ensure no osmosis services are running in the background
+If running over an old osmosis installation, back up
+previous osmosis data before proceeding
 
 Please choose a network to join:
 1) Mainnet (osmosis-1)
