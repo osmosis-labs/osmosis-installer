@@ -341,6 +341,7 @@ def setupTestnet ():
 
 def initNodeName():
     global nodeName
+    print(bcolors.OKGREEN + "AFTER INPUTING NODE NAME, ALL PREVIOUS OSMOSIS DATA WILL BE RESET" + bcolors.ENDC)
     nodeName= input(bcolors.OKGREEN + "Input desired node name (no quotes, cant be blank): "+ bcolors.ENDC)
     if nodeName and networkAns == "1":
         subprocess.run(["clear"], shell=True)
