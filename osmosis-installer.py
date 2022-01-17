@@ -381,7 +381,17 @@ def initSetup ():
     else:
         print(bcolors.OKGREEN + "Please wait while the following proccesses run:" + bcolors.ENDC)
         print(bcolors.OKGREEN + "(1/4) Installing brew and wget..." + bcolors.ENDC)
-        subprocess.run(["ruby -e \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\""], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        #subprocess.run(["ruby -e \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\""], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        #echo | /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+        #sudo chown -R $(whoami) /usr/local/var/homebrew
+        #echo | /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+        #brew install wget
+        #sudo chown -R $(whoami) /usr/local/share/zsh /usr/local/share/zsh/site-functions
+        #brew install wget
+        #subprocess.run(["brew install wget"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        subprocess.run(["sudo chown -R $(whoami) /usr/local/var/homebrew"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        subprocess.run(["echo | /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)\""], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        subprocess.run(["sudo chown -R $(whoami) /usr/local/share/zsh /usr/local/share/zsh/site-functions"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         subprocess.run(["brew install wget"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         print(bcolors.OKGREEN + "Installing Go..." + bcolors.ENDC)
         #subprocess.run(["curl -OL https://git.io/vQhTU"], shell=True)
@@ -440,6 +450,11 @@ You have less than the recommended 32GB of RAM. Would you like to set up a swap 
 
     elif os_name == "Darwin":
         print(bcolors.OKGREEN +"System Detected: Mac"+ bcolors.ENDC)
+
+        #these two lines will prevent those with Macs from trying to use this script for now
+        print(bcolors.OKGREEN +"MAC NOT YET SUPPORTED, WILL BE SUPPORTED SOON"+ bcolors.ENDC)
+        quit()
+
         mem_bytes = subprocess.run(["sysctl hw.memsize"], capture_output=True, shell=True, text=True)
         mem_bytes = str(mem_bytes.stdout.strip())
         mem_bytes = mem_bytes[11:]
