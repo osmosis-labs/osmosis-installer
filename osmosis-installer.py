@@ -360,7 +360,7 @@ def initNodeName():
 def initSetup ():
     global my_env
     if os_name == "Linux":
-        print(bcolors.OKGREEN + "Please wait while the following proccesses run:" + bcolors.ENDC)
+        print(bcolors.OKGREEN + "Please wait while the following processes run:" + bcolors.ENDC)
         print(bcolors.OKGREEN + "(1/5) Updating Packages..." + bcolors.ENDC)
         subprocess.run(["sudo apt-get update"], stdout=subprocess.DEVNULL, shell=True)
         subprocess.run(["DEBIAN_FRONTEND=noninteractive apt-get -y upgrade"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
@@ -381,7 +381,7 @@ def initSetup ():
         subprocess.run(["make install"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         subprocess.run(["clear"], shell=True)
     else:
-        print(bcolors.OKGREEN + "Please wait while the following proccesses run:" + bcolors.ENDC)
+        print(bcolors.OKGREEN + "Please wait while the following processes run:" + bcolors.ENDC)
         print(bcolors.OKGREEN + "(1/4) Installing brew and wget..." + bcolors.ENDC)
         #subprocess.run(["ruby -e \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\""], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         #echo | /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
