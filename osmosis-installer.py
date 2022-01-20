@@ -98,7 +98,8 @@ User="""+ USER.stdout.strip()+"""
 ExecStart="""+ HOME.stdout.strip()+"""/go/bin/cosmovisor start
 Restart=always
 RestartSec=3
-LimitNOFILE=4096
+LimitNOFILE=infinity
+LimitNPROC=infinity
 [Install]
 WantedBy=multi-user.target
 ' >cosmovisor.service
@@ -118,7 +119,8 @@ User="""+ USER.stdout.strip()+"""
 ExecStart="""+ HOME.stdout.strip()+"""/go/bin/osmosisd start
 Restart=always
 RestartSec=3
-LimitNOFILE=4096
+LimitNOFILE=infinity
+LimitNPROC=infinity
 Environment=\"DAEMON_HOME="""+ HOME.stdout.strip()+"""/.osmosisd\"
 Environment=\"DAEMON_NAME=osmosisd\"
 Environment=\"DAEMON_ALLOW_DOWNLOAD_BINARIES=false\"
