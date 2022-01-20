@@ -135,6 +135,7 @@ WantedBy=multi-user.target
         subprocess.run(["clear"], shell=True)
         completeOsmosisd()
     elif useCosmovisor == "3":
+        subprocess.run(["clear"], shell=True)
         complete()
     else:
         subprocess.run(["clear"], shell=True)
