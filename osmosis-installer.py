@@ -174,12 +174,10 @@ def testnetStateSyncInit ():
     TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 1000)
     TRUST_HASH= subprocess.run(["curl -s \"http://51.15.246.145:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True)
     RPCs = "51.15.246.145:26657,51.15.246.145:26657"
-    peers = "65a42230367a8e3e6ad47e5064b8a883b59c7720@167.99.88.212:26656"
     subprocess.run(["sed -i.bak -E 's/enable = false/enable = true/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["sed -i.bak -E 's/rpc_servers = \"\"/rpc_servers = \""+RPCs+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["sed -i.bak -E 's/trust_height = 0/trust_height = "+TRUST_HEIGHT+"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["sed -i.bak -E 's/trust_hash = \"\"/trust_hash = \""+TRUST_HASH.stdout.strip()+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
-    subprocess.run(["sed -i.bak -E 's/persistent_peers = \"\"/persistent_peers = \""+peers+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     if os_name == "Linux":
         subprocess.run(["clear"], shell=True)
         cosmovisorInit()
@@ -337,6 +335,8 @@ def setupTestnet ():
     subprocess.run(["wget -O "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.tar.bz2 https://github.com/osmosis-labs/networks/raw/unity/v4/osmosis-1/upgrades/v4/testnet/genesis.tar.bz2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     #subprocess.run(["curl -OL https://github.com/osmosis-labs/networks/raw/unity/v4/osmosis-1/upgrades/v4/testnet/genesis.tar.bz2"], shell=True)
     print(bcolors.OKGREEN + "Finding and Replacing Seeds..." + bcolors.ENDC)
+    peers = "65a42230367a8e3e6ad47e5064b8a883b59c7720@167.99.88.212:26656"
+    subprocess.run(["sed -i.bak -E 's/persistent_peers = \"\"/persistent_peers = \""+peers+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["tar -xjf "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.tar.bz2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     subprocess.run(["rm "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.tar.bz2"], shell=True)
     subprocess.run(["sed -i.bak -E 's/seeds = \"63aba59a7da5197c0fbcdc13e760d7561791dca8@162.55.132.230:2000,f515a8599b40f0e84dfad935ba414674ab11a668@osmosis.blockpane.com:26656\"/seeds = \"4eaed17781cd948149098d55f80a28232a365236@testmosis.blockpane.com:26656\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
