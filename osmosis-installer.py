@@ -278,7 +278,7 @@ def mainNetType ():
         subprocess.run(["clear"], shell=True)
         fileName = "osmosis-1-default"
         mainNetLocation()
-    elif nodeTypeAns == "2":
+    elif nodeTypeAns == "3":
         subprocess.run(["clear"], shell=True)
         fileName = "osmosis-1-archive"
         location = "Netherlands"
