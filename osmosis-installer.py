@@ -174,10 +174,12 @@ def testnetStateSyncInit ():
     TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 1000)
     TRUST_HASH= subprocess.run(["curl -s \"http://51.15.246.145:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True)
     RPCs = "51.15.246.145:26657,51.15.246.145:26657"
+    peers = "65a42230367a8e3e6ad47e5064b8a883b59c7720@167.99.88.212:26656"
     subprocess.run(["sed -i.bak -E 's/enable = false/enable = true/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["sed -i.bak -E 's/rpc_servers = \"\"/rpc_servers = \""+RPCs+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["sed -i.bak -E 's/trust_height = 0/trust_height = "+TRUST_HEIGHT+"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["sed -i.bak -E 's/trust_hash = \"\"/trust_hash = \""+TRUST_HASH.stdout.strip()+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    subprocess.run(["sed -i.bak -E 's/persistent_peers = \"\"/persistent_peers = \""+peers+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     if os_name == "Linux":
         subprocess.run(["clear"], shell=True)
         cosmovisorInit()
