@@ -126,6 +126,7 @@ Environment=\"DAEMON_HOME="""+ HOME.stdout.strip()+"""/.osmosisd\"
 Environment=\"DAEMON_NAME=osmosisd\"
 Environment=\"DAEMON_ALLOW_DOWNLOAD_BINARIES=false\"
 Environment=\"DAEMON_RESTART_AFTER_UPGRADE=true\"
+Environment=\"DAEMON_LOG_BUFFER_SIZE=512\"
 [Install]
 WantedBy=multi-user.target
 ' >osmosisd.service
