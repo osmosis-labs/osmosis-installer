@@ -172,10 +172,10 @@ def stateSyncInit ():
 
 def testnetStateSyncInit ():
     print(bcolors.OKGREEN + "Replacing trust height, trust hash, and RPCs in config.toml" + bcolors.ENDC)
-    LATEST_HEIGHT= subprocess.run(["curl -s http://51.15.246.145:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True)
+    LATEST_HEIGHT= subprocess.run(["curl -s http://167.99.88.212:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True)
     TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 1000)
-    TRUST_HASH= subprocess.run(["curl -s \"http://51.15.246.145:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True)
-    RPCs = "51.15.246.145:26657,51.15.246.145:26657"
+    TRUST_HASH= subprocess.run(["curl -s \"http://167.99.88.212:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True)
+    RPCs = "167.99.88.212:26657,167.99.88.212:26657"
     subprocess.run(["sed -i.bak -E 's/enable = false/enable = true/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["sed -i.bak -E 's/rpc_servers = \"\"/rpc_servers = \""+RPCs+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["sed -i.bak -E 's/trust_height = 0/trust_height = "+TRUST_HEIGHT+"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
