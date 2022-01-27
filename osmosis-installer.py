@@ -156,7 +156,7 @@ def stateSyncInit ():
     subprocess.run(["sed -i.bak -E 's/rpc_servers = \"\"/rpc_servers = \""+RPCs+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["sed -i.bak -E 's/trust_height = 0/trust_height = "+TRUST_HEIGHT+"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["sed -i.bak -E 's/trust_hash = \"\"/trust_hash = \""+TRUST_HASH.stdout.strip()+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
-    print(bcolors.OKGREEN + "OSMOSIS IS CURRENTLY STATESYNCING. THIS PROCESS CAN TAKE ANYWHERE FROM 5-15 MINUTES. PLEASE DO NOT CANCEL THIS PROCESS" + bcolors.ENDC)
+    print(bcolors.OKGREEN + "OSMOSIS IS CURRENTLY STATESYNCING. THIS PROCESS CAN TAKE ANYWHERE FROM 5-15 MINUTES AND IN SOME CASES LONGER. PLEASE DO NOT CANCEL THIS PROCESS UNLESS IT HAS TAKEN LONGER THAN 30 MINUTES" + bcolors.ENDC)
     subprocess.run(["osmosisd start"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     print(bcolors.OKGREEN + "Statesync finished. Installing required patches for state sync fix" + bcolors.ENDC)
     os.chdir(os.path.expanduser(HOME.stdout.strip()))
