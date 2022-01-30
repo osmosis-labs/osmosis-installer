@@ -173,10 +173,10 @@ def stateSyncInit ():
 
 def testnetStateSyncInit ():
     print(bcolors.OKGREEN + "Replacing trust height, trust hash, and RPCs in config.toml" + bcolors.ENDC)
-    LATEST_HEIGHT= subprocess.run(["curl -s http://167.99.88.212:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True)
+    LATEST_HEIGHT= subprocess.run(["curl -s http://165.227.122.46:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True)
     TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 1000)
-    TRUST_HASH= subprocess.run(["curl -s \"http://167.99.88.212:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True)
-    RPCs = "167.99.88.212:26657,167.99.88.212:26657"
+    TRUST_HASH= subprocess.run(["curl -s \"http://165.227.122.46:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True)
+    RPCs = "165.227.122.46:26657,165.227.122.46:26657"
     subprocess.run(["sed -i.bak -E 's/enable = false/enable = true/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["sed -i.bak -E 's/rpc_servers = \"\"/rpc_servers = \""+RPCs+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["sed -i.bak -E 's/trust_height = 0/trust_height = "+TRUST_HEIGHT+"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
@@ -331,18 +331,17 @@ def setupTestnet ():
     print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
     subprocess.run(["osmosisd unsafe-reset-all"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["rm "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    subprocess.run(["rm "+HOME.stdout.strip()+"/.osmosisd/config/addrbook.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    subprocess.run(["osmosisd init " + nodeName + " --chain-id=osmosis-testnet-0 -o"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    #subprocess.run(["rm "+HOME.stdout.strip()+"/.osmosisd/config/addrbook.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    subprocess.run(["osmosisd init " + nodeName + " --chain-id=osmo-testnet-1 -o"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     print(bcolors.OKGREEN + "Downloading and Replacing Genesis..." + bcolors.ENDC)
     #os.chdir(os.path.expanduser(HOME.stdout.strip()+'/.osmosisd/config'))
-    subprocess.run(["wget -O "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.tar.bz2 https://github.com/osmosis-labs/networks/raw/unity/v4/osmosis-1/upgrades/v4/testnet/genesis.tar.bz2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-    #subprocess.run(["curl -OL https://github.com/osmosis-labs/networks/raw/unity/v4/osmosis-1/upgrades/v4/testnet/genesis.tar.bz2"], shell=True)
+    subprocess.run(["wget -O "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.tar.bz2 https://github.com/osmosis-labs/networks/raw/adam/v2testnet/osmo-testnet-1/genesis.tar.bz2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     print(bcolors.OKGREEN + "Finding and Replacing Seeds..." + bcolors.ENDC)
-    peers = "65a42230367a8e3e6ad47e5064b8a883b59c7720@167.99.88.212:26656"
+    peers = "edd2b4968f012148641205b8ddd29f1beae8ab09@68.183.153.16:26656,e159391f00e8127d8e6ec1319b04633ffc33ed1a@165.227.122.46:26656"
     subprocess.run(["sed -i.bak -E 's/persistent_peers = \"\"/persistent_peers = \""+peers+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["tar -xjf "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.tar.bz2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     subprocess.run(["rm "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.tar.bz2"], shell=True)
-    subprocess.run(["sed -i.bak -E 's/seeds = \"63aba59a7da5197c0fbcdc13e760d7561791dca8@162.55.132.230:2000,f515a8599b40f0e84dfad935ba414674ab11a668@osmosis.blockpane.com:26656\"/seeds = \"4eaed17781cd948149098d55f80a28232a365236@testmosis.blockpane.com:26656\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    subprocess.run(["sed -i.bak -E 's/seeds = \"63aba59a7da5197c0fbcdc13e760d7561791dca8@162.55.132.230:2000,f515a8599b40f0e84dfad935ba414674ab11a668@osmosis.blockpane.com:26656\"/seeds = \"f5051996db0e0df69c55c36977407a9b8f94edb4@159.203.100.232:26656\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["clear"], shell=True)
     testnetType()
 
@@ -523,7 +522,7 @@ any important osmosis data before proceeding
 
 Please choose a network to join:
 1) Mainnet (osmosis-1)
-2) Testnet (osmosis-testnet-0)
+2) Testnet (osmo-testnet-1)
     """+ bcolors.ENDC)
 
     networkAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
