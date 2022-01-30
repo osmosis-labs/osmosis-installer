@@ -56,7 +56,7 @@ def partComplete():
 
 def cosmovisorInit ():
     print(bcolors.OKGREEN + """Do you want to use Cosmovisor to automate future upgrades?
-1) Yes, install cosmovisor and set up background service (recommended)
+1) Yes, install cosmovisor and set up background service
 2) No, just set up an osmosisd background service
 3) Don't install cosmovisor and don't set up a background service
     """+ bcolors.ENDC)
@@ -197,7 +197,6 @@ def snapshotInstall ():
     os.chdir(os.path.expanduser(HOME.stdout.strip()+'/.osmosisd/'))
     subprocess.run(["wget -O - "+proc.stdout.strip()+" | lz4 -d | tar -xvf -"], shell=True)
     subprocess.run(["clear"], shell=True)
-    cosmovisorInit()
     if os_name == "Linux":
         cosmovisorInit()
     else:
@@ -230,38 +229,28 @@ def mainNetLocation ():
         mainNetLocation()
 
 
-def testnetSnapshotInstall ():
-    print(bcolors.OKGREEN + "Downloading Decompression Packages..." + bcolors.ENDC)
-    subprocess.run(["sudo apt-get install wget liblz4-tool aria2 pixz -y"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-    print(bcolors.OKGREEN + "Downloading Snapshot..." + bcolors.ENDC)
-    os.chdir(os.path.expanduser(HOME.stdout.strip()+'/.osmosisd'))
-    #subprocess.run(["curl -OL https://mp20.net/snapshots/osmosis-testnet/osmosis-testnet-mp20-latest.tar.xz"], shell=True)
-    subprocess.run(["wget https://mp20.net/snapshots/osmosis-testnet/osmosis-testnet-mp20-latest.tar.xz"], shell=True)
-    subprocess.run(["tar -I'pixz' -xvf osmosis-testnet-mp20-latest.tar.xz --strip-components=4"], shell=True)
-    subprocess.run(["rm osmosis-testnet-mp20-latest.tar.xz"], shell=True)
-    subprocess.run(["clear"], shell=True)
-    if os_name == "Linux":
-        cosmovisorInit()
-    else:
-        complete()
 
-
-def testnetType ():
-    print(bcolors.OKGREEN + """Please choose from the following options:
-1) Use statesync (recommended)
-2) Download a snapshot from MP20
+def testNetType ():
+    global fileName
+    global location
+    print(bcolors.OKGREEN + """Please choose the node snapshot type:
+1) Pruned
     """+ bcolors.ENDC)
-    dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
-    if dataTypeAns == "2":
+    nodeTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+    if nodeTypeAns == "1":
         subprocess.run(["clear"], shell=True)
-        testnetSnapshotInstall()
-    elif dataTypeAns == "1":
-        subprocess.run(["clear"], shell=True)
-        testnetStateSyncInit()
+        fileName = "osmotestnet-1-pruned"
+        location = "Netherlands"
+        snapshotInstall()
+    #elif nodeTypeAns == "2":
+        #subprocess.run(["clear"], shell=True)
+        #fileName = "osmotestnet-1-archive"
+        #location = "Netherlands"
+        #snapshotInstall()
     else:
         subprocess.run(["clear"], shell=True)
         print("Wrong selection, try again")
-        testnetType()
+        testNetType()
 
 
 def mainNetType ():
@@ -314,6 +303,28 @@ def dataSyncSelection ():
         dataSyncSelection()
 
 
+def dataSyncSelectionTest ():
+    print(bcolors.OKGREEN + """Please choose from the following options:
+1) Use statesync (recommended)
+2) Download a snapshot from ChainLayer
+3) Exit now, I only wanted to install the daemon
+    """+ bcolors.ENDC)
+    dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+    if dataTypeAns == "1":
+        subprocess.run(["clear"], shell=True)
+        testnetStateSyncInit()
+    elif dataTypeAns == "2":
+        subprocess.run(["clear"], shell=True)
+        testNetType()
+    elif dataTypeAns == "3":
+        subprocess.run(["clear"], shell=True)
+        partComplete()
+    else:
+        subprocess.run(["clear"], shell=True)
+        print("Wrong selection, try again")
+        dataSyncSelectionTest()
+
+
 def setupMainnet ():
     print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
     subprocess.run(["osmosisd unsafe-reset-all"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -322,7 +333,6 @@ def setupMainnet ():
     subprocess.run(["osmosisd init " + nodeName + " -o"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL ,shell=True, env=my_env)
     print(bcolors.OKGREEN + "Downloading and Replacing Genesis..." + bcolors.ENDC)
     subprocess.run(["wget -O "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.json https://github.com/osmosis-labs/networks/raw/main/osmosis-1/genesis.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-    #subprocess.run(["curl -L https://github.com/osmosis-labs/networks/raw/unity/v4/osmosis-1/upgrades/v4/testnet/genesis.tar.bz2 -o "+HOME.stdout.strip()+"/.osmosisd/config/genesis.tar.bz2"], shell=True)
     subprocess.run(["clear"], shell=True)
     dataSyncSelection()
 
@@ -343,7 +353,7 @@ def setupTestnet ():
     subprocess.run(["rm "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.tar.bz2"], shell=True)
     subprocess.run(["sed -i.bak -E 's/seeds = \"63aba59a7da5197c0fbcdc13e760d7561791dca8@162.55.132.230:2000,f515a8599b40f0e84dfad935ba414674ab11a668@osmosis.blockpane.com:26656\"/seeds = \"f5051996db0e0df69c55c36977407a9b8f94edb4@159.203.100.232:26656\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["clear"], shell=True)
-    testnetType()
+    dataSyncSelectionTest()
 
 
 def initNodeName():
