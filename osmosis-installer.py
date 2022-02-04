@@ -403,13 +403,14 @@ def initSetup ():
     else:
         print(bcolors.OKGREEN + "Please wait while the following processes run:" + bcolors.ENDC)
         print(bcolors.OKGREEN + "(1/4) Installing brew and wget..." + bcolors.ENDC)
-        #subprocess.run(["sudo chown -R $(whoami) /usr/local/var/homebrew"], shell=True)
+        subprocess.run(["sudo chown -R $(whoami) /usr/local/var/homebrew"], shell=True)
         subprocess.run(["echo | /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)\""], shell=True)
         #subprocess.run(["sudo chown -R $(whoami) /usr/local/share/zsh /usr/local/share/zsh/site-functions"], shell=True)
         subprocess.run(["echo 'eval \"$(/opt/homebrew/bin/brew shellenv)\"' >> "+HOME.stdout.strip()+"/.zprofile"], shell=True)
         subprocess.run(["eval \"$(/opt/homebrew/bin/brew shellenv)\""], shell=True)
-        my_env = os.environ.copy()
-        my_env["PATH"] = "/"+HOME.stdout.strip()+"/go/bin:/"+HOME.stdout.strip()+"/go/bin:/"+HOME.stdout.strip()+"/.go/bin:" + my_env["PATH"]
+        #my_env = os.environ.copy()
+        #my_env["PATH"] = "/"+HOME.stdout.strip()+"/go/bin:/"+HOME.stdout.strip()+"/go/bin:/"+HOME.stdout.strip()+"/.go/bin:" + my_env["PATH"]
+        my_env = subprocess.run(["eval \"$(/opt/homebrew/bin/brew shellenv)\""], shell=True)
         subprocess.run(["brew install wget"], shell=True, env=my_env)
         print(bcolors.OKGREEN + "(2/4) Installing jq..." + bcolors.ENDC)
         subprocess.run(["brew install jq"], shell=True, env=my_env)
