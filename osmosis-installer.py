@@ -414,7 +414,7 @@ def initSetup ():
         print(bcolors.OKGREEN + "(2/4) Installing jq..." + bcolors.ENDC)
         subprocess.run(["brew install jq"], shell=True, env=my_env)
         print(bcolors.OKGREEN + "(3/4) Installing Go..." + bcolors.ENDC)
-        subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.17.2"], shell=True)
+        subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.17.2"], shell=True, env=my_env)
         #print(bcolors.OKGREEN + "Reloading Profile..." + bcolors.ENDC)
         #subprocess.run([". "+ HOME.stdout.strip()+"/.profile"], shell=True)
         print(bcolors.OKGREEN + "(4/4) Installing Osmosis V6.2.0 Binary..." + bcolors.ENDC)
