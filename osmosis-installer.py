@@ -148,9 +148,9 @@ WantedBy=multi-user.target
 
 def stateSyncInit ():
     print(bcolors.OKGREEN + "Replacing trust height, trust hash, and RPCs in config.toml" + bcolors.ENDC)
-    LATEST_HEIGHT= subprocess.run(["curl -s http://osmo-sync.blockpane.com:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True)
+    LATEST_HEIGHT= subprocess.run(["curl -s http://osmo-sync.blockpane.com:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True, env=my_env)
     TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 1000)
-    TRUST_HASH= subprocess.run(["curl -s \"http://osmo-sync.blockpane.com:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True)
+    TRUST_HASH= subprocess.run(["curl -s \"http://osmo-sync.blockpane.com:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True, env=my_env)
     RPCs = "osmo-sync.blockpane.com:26657,osmo-sync.blockpane.com:26657"
     subprocess.run(["sed -i.bak -E 's/enable = false/enable = true/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["sed -i.bak -E 's/rpc_servers = \"\"/rpc_servers = \""+RPCs+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
@@ -173,9 +173,9 @@ def stateSyncInit ():
 
 def testnetStateSyncInit ():
     print(bcolors.OKGREEN + "Replacing trust height, trust hash, and RPCs in config.toml" + bcolors.ENDC)
-    LATEST_HEIGHT= subprocess.run(["curl -s http://165.227.122.46:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True)
+    LATEST_HEIGHT= subprocess.run(["curl -s http://165.227.122.46:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True, env=my_env)
     TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 1000)
-    TRUST_HASH= subprocess.run(["curl -s \"http://165.227.122.46:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True)
+    TRUST_HASH= subprocess.run(["curl -s \"http://165.227.122.46:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True, env=my_env)
     RPCs = "165.227.122.46:26657,165.227.122.46:26657"
     subprocess.run(["sed -i.bak -E 's/enable = false/enable = true/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["sed -i.bak -E 's/rpc_servers = \"\"/rpc_servers = \""+RPCs+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
@@ -194,12 +194,12 @@ def snapshotInstall ():
     if os_name == "Linux":
         subprocess.run(["sudo apt-get install wget liblz4-tool aria2 -y"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     else:
-        subprocess.run(["brew install aria2"], shell=True)
-        subprocess.run(["brew install lz4"], shell=True)
+        subprocess.run(["brew install aria2"], shell=True, env=my_env)
+        subprocess.run(["brew install lz4"], shell=True, env=my_env)
     print(bcolors.OKGREEN + "Downloading Snapshot..." + bcolors.ENDC)
     proc = subprocess.run(["curl https://quicksync.io/osmosis.json|jq -r '.[] |select(.file==\""+ fileName +"\")|select (.mirror==\""+ location +"\")|.url'"], capture_output=True, shell=True, text=True)
     os.chdir(os.path.expanduser(HOME.stdout.strip()+'/.osmosisd/'))
-    subprocess.run(["wget -O - "+proc.stdout.strip()+" | lz4 -d | tar -xvf -"], shell=True)
+    subprocess.run(["wget -O - "+proc.stdout.strip()+" | lz4 -d | tar -xvf -"], shell=True, env=my_env)
     subprocess.run(["clear"], shell=True)
     if os_name == "Linux":
         cosmovisorInit()
@@ -337,7 +337,7 @@ def setupMainnet ():
     subprocess.run(["rm "+HOME.stdout.strip()+"/.osmosisd/config/addrbook.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["osmosisd init " + nodeName + " -o"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL ,shell=True, env=my_env)
     print(bcolors.OKGREEN + "Downloading and Replacing Genesis..." + bcolors.ENDC)
-    subprocess.run(["wget -O "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.json https://github.com/osmosis-labs/networks/raw/main/osmosis-1/genesis.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+    subprocess.run(["wget -O "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.json https://github.com/osmosis-labs/networks/raw/main/osmosis-1/genesis.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["clear"], shell=True)
     dataSyncSelection()
 
