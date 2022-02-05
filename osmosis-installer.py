@@ -408,9 +408,8 @@ def initSetup ():
         #subprocess.run(["sudo chown -R $(whoami) /usr/local/share/zsh /usr/local/share/zsh/site-functions"], shell=True)
         subprocess.run(["echo 'eval \"$(/opt/homebrew/bin/brew shellenv)\"' >> "+HOME.stdout.strip()+"/.zprofile"], shell=True)
         subprocess.run(["eval \"$(/opt/homebrew/bin/brew shellenv)\""], shell=True)
-        #my_env = os.environ.copy()
-        #my_env["PATH"] = "/"+HOME.stdout.strip()+"/go/bin:/"+HOME.stdout.strip()+"/go/bin:/"+HOME.stdout.strip()+"/.go/bin:" + my_env["PATH"]
-        my_env = subprocess.run(["eval \"$(/opt/homebrew/bin/brew shellenv)\""], shell=True)
+        my_env = os.environ.copy()
+        my_env["PATH"] = "/opt/homebrew/bin/brew:" + my_env["PATH"]
         subprocess.run(["brew install wget"], shell=True, env=my_env)
         print(bcolors.OKGREEN + "(2/4) Installing jq..." + bcolors.ENDC)
         subprocess.run(["brew install jq"], shell=True, env=my_env)
