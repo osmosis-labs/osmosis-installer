@@ -189,6 +189,33 @@ def testnetStateSyncInit ():
         complete()
 
 
+def pruningSettings ():
+    print(bcolors.OKGREEN + """Please choose your desired pruning settings:
+1) Default (keep last 100,000 states to query the last week worth of data and prune at 100 block intervals)
+2) Nothing (keep everything, select this if running an archive node)
+3) Everything (keep nothing and prune at 10 block intervals)
+    """+ bcolors.ENDC)
+    pruneAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+    if pruneAns == "1":
+        subprocess.run(["clear"], shell=True)
+        #snapshotInstall()
+    elif pruneAns == "2":
+        subprocess.run(["clear"], shell=True)
+        subprocess.run(["sed -i.bak -E 's/pruning = \"default\"/pruning = \"nothing\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        #snapshotInstall()
+    elif pruneAns == "3":
+        subprocess.run(["clear"], shell=True)
+        subprocess.run(["sed -i.bak -E 's/pruning = \"default\"/pruning = \"everything\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        #snapshotInstall()
+    else:
+        subprocess.run(["clear"], shell=True)
+        print("Wrong selection, try again")
+        pruningSettings()
+
+
+
+
+
 def snapshotInstall ():
     print(bcolors.OKGREEN + "Downloading Decompression Packages..." + bcolors.ENDC)
     if os_name == "Linux":
@@ -330,6 +357,41 @@ def dataSyncSelectionTest ():
         dataSyncSelectionTest()
 
 
+def pruningSettings ():
+    print(bcolors.OKGREEN + """Please choose your desired pruning settings:
+1) Default (keep last 100,000 states to query the last week worth of data and prune at 100 block intervals)
+2) Nothing (keep everything, select this if running an archive node)
+3) Everything (keep nothing and prune at 10 block intervals)
+    """+ bcolors.ENDC)
+    pruneAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+    if pruneAns == "1" and networkAns == "1":
+        subprocess.run(["clear"], shell=True)
+        dataSyncSelection()
+    elif pruneAns == "1" and networkAns == "2":
+        subprocess.run(["clear"], shell=True)
+        dataSyncSelectionTest()
+    elif pruneAns == "2" and networkAns == "1":
+        subprocess.run(["clear"], shell=True)
+        subprocess.run(["sed -i.bak -E 's/pruning = \"default\"/pruning = \"nothing\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        dataSyncSelection()
+    elif pruneAns == "2" and networkAns == "2":
+        subprocess.run(["clear"], shell=True)
+        subprocess.run(["sed -i.bak -E 's/pruning = \"default\"/pruning = \"nothing\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        dataSyncSelectionTest()
+    elif pruneAns == "3" and networkAns == "1":
+        subprocess.run(["clear"], shell=True)
+        subprocess.run(["sed -i.bak -E 's/pruning = \"default\"/pruning = \"everything\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        dataSyncSelection()
+    elif pruneAns == "3" and networkAns == "2":
+        subprocess.run(["clear"], shell=True)
+        subprocess.run(["sed -i.bak -E 's/pruning = \"default\"/pruning = \"everything\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        dataSyncSelectionTest()
+    else:
+        subprocess.run(["clear"], shell=True)
+        print("Wrong selection, try again")
+        pruningSettings()
+
+
 def setupMainnet ():
     print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
     subprocess.run(["osmosisd unsafe-reset-all"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -339,7 +401,7 @@ def setupMainnet ():
     print(bcolors.OKGREEN + "Downloading and Replacing Genesis..." + bcolors.ENDC)
     subprocess.run(["wget -O "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.json https://github.com/osmosis-labs/networks/raw/main/osmosis-1/genesis.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["clear"], shell=True)
-    dataSyncSelection()
+    pruningSettings()
 
 
 def setupTestnet ():
@@ -358,7 +420,7 @@ def setupTestnet ():
     subprocess.run(["rm "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.tar.bz2"], shell=True)
     subprocess.run(["sed -i.bak -E 's/seeds = \"63aba59a7da5197c0fbcdc13e760d7561791dca8@162.55.132.230:2000,f515a8599b40f0e84dfad935ba414674ab11a668@osmosis.blockpane.com:26656\"/seeds = \"f5051996db0e0df69c55c36977407a9b8f94edb4@159.203.100.232:26656\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["clear"], shell=True)
-    dataSyncSelectionTest()
+    pruningSettings()
 
 
 def initNodeName():
