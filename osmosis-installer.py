@@ -189,33 +189,6 @@ def testnetStateSyncInit ():
         complete()
 
 
-def pruningSettings ():
-    print(bcolors.OKGREEN + """Please choose your desired pruning settings:
-1) Default (keep last 100,000 states to query the last week worth of data and prune at 100 block intervals)
-2) Nothing (keep everything, select this if running an archive node)
-3) Everything (keep nothing and prune at 10 block intervals)
-    """+ bcolors.ENDC)
-    pruneAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
-    if pruneAns == "1":
-        subprocess.run(["clear"], shell=True)
-        #snapshotInstall()
-    elif pruneAns == "2":
-        subprocess.run(["clear"], shell=True)
-        subprocess.run(["sed -i.bak -E 's/pruning = \"default\"/pruning = \"nothing\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
-        #snapshotInstall()
-    elif pruneAns == "3":
-        subprocess.run(["clear"], shell=True)
-        subprocess.run(["sed -i.bak -E 's/pruning = \"default\"/pruning = \"everything\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
-        #snapshotInstall()
-    else:
-        subprocess.run(["clear"], shell=True)
-        print("Wrong selection, try again")
-        pruningSettings()
-
-
-
-
-
 def snapshotInstall ():
     print(bcolors.OKGREEN + "Downloading Decompression Packages..." + bcolors.ENDC)
     if os_name == "Linux":
@@ -359,9 +332,9 @@ def dataSyncSelectionTest ():
 
 def pruningSettings ():
     print(bcolors.OKGREEN + """Please choose your desired pruning settings:
-1) Default (keep last 100,000 states to query the last week worth of data and prune at 100 block intervals)
-2) Nothing (keep everything, select this if running an archive node)
-3) Everything (keep nothing and prune at 10 block intervals)
+1) Default: (keep last 100,000 states to query the last week worth of data and prune at 100 block intervals)
+2) Nothing: (keep everything, select this if running an archive node)
+3) Everything: (modified prune everything due to bug, keep last 5,000 states and prune at 10 block intervals)
     """+ bcolors.ENDC)
     pruneAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
     if pruneAns == "1" and networkAns == "1":
@@ -381,10 +354,14 @@ def pruningSettings ():
     elif pruneAns == "3" and networkAns == "1":
         subprocess.run(["clear"], shell=True)
         subprocess.run(["sed -i.bak -E 's/pruning = \"default\"/pruning = \"everything\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        subprocess.run(["sed -i.bak -E 's/pruning-keep-recent = \"0\"/pruning-keep-recent = \"5000\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        subprocess.run(["sed -i.bak -E 's/pruning-interval = \"0\"/pruning-interval = \"10\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
         dataSyncSelection()
     elif pruneAns == "3" and networkAns == "2":
         subprocess.run(["clear"], shell=True)
         subprocess.run(["sed -i.bak -E 's/pruning = \"default\"/pruning = \"everything\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        subprocess.run(["sed -i.bak -E 's/pruning-keep-recent = \"0\"/pruning-keep-recent = \"5000\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        subprocess.run(["sed -i.bak -E 's/pruning-interval = \"0\"/pruning-interval = \"10\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
         dataSyncSelectionTest()
     else:
         subprocess.run(["clear"], shell=True)
