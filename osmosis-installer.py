@@ -2,6 +2,7 @@ import subprocess
 import os
 import platform
 import time
+import readline
 from os import remove
 from sys import argv
 
@@ -19,13 +20,20 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+def rlinput(prompt, prefill=''):
+   readline.set_startup_hook(lambda: readline.insert_text(prefill))
+   try:
+      return input(prompt)
+   finally:
+      readline.set_startup_hook()
+
 
 def completeCosmovisor():
     print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis full node!")
     print(bcolors.OKGREEN + "The cosmovisor service is currently running in the background")
     print(bcolors.OKGREEN + "To see the status of cosmovisor, run the following command: 'sudo systemctl status cosmovisor'")
     print(bcolors.OKGREEN + "To see the live logs from cosmovisor, run the following command: 'journalctl -u cosmovisor -f'")
-    print(bcolors.OKGREEN + "In order to use osmosisd from the cli, either reload your terminal or refresh you profile with: 'source ~/.profile'"+ bcolors.ENDC)
+    print(bcolors.OKGREEN + "In order to use osmosisd from the cli, either reload your terminal or refresh your profile with: 'source ~/.profile'"+ bcolors.ENDC)
     quit()
 
 
@@ -34,14 +42,14 @@ def completeOsmosisd():
     print(bcolors.OKGREEN + "The osmosisd service is currently running in the background")
     print(bcolors.OKGREEN + "To see the status of the osmosis daemon, run the following command: 'sudo systemctl status osmosisd'")
     print(bcolors.OKGREEN + "To see the live logs from the osmosis daemon, run the following command: 'journalctl -u osmosisd -f'")
-    print(bcolors.OKGREEN + "In order to use cosmovisor/osmosisd from the cli, either reload your terminal or refresh you profile with: 'source ~/.profile'"+ bcolors.ENDC)
+    print(bcolors.OKGREEN + "In order to use cosmovisor/osmosisd from the cli, either reload your terminal or refresh your profile with: 'source ~/.profile'"+ bcolors.ENDC)
     quit()
 
 
 def complete():
     print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis full node!")
     print(bcolors.OKGREEN + "The osmosisd service is NOT running in the background")
-    print(bcolors.OKGREEN + "In order to use osmosisd from the cli, either reload your terminal or refresh you profile with: 'source ~/.profile'")
+    print(bcolors.OKGREEN + "In order to use osmosisd from the cli, either reload your terminal or refresh your profile with: 'source ~/.profile'")
     print(bcolors.OKGREEN + "After reloading your terminal and/or profile, you can start osmosisd with: 'osmosisd start'"+ bcolors.ENDC)
     quit()
 
@@ -49,7 +57,7 @@ def complete():
 def partComplete():
     print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up the Osmosis daemon!")
     print(bcolors.OKGREEN + "The osmosisd service is NOT running in the background, and your data directory is empty")
-    print(bcolors.OKGREEN + "In order to use osmosisd from the cli, either reload your terminal or refresh you profile with: 'source ~/.profile'")
+    print(bcolors.OKGREEN + "In order to use osmosisd from the cli, either reload your terminal or refresh your profile with: 'source ~/.profile'")
     print(bcolors.OKGREEN + "If you intend to use osmosisd without syncing, you must include the '--node' flag after cli commands with the address of a public RPC node"+ bcolors.ENDC)
     quit()
 
@@ -148,14 +156,14 @@ WantedBy=multi-user.target
 
 def stateSyncInit ():
     print(bcolors.OKGREEN + "Replacing trust height, trust hash, and RPCs in config.toml" + bcolors.ENDC)
-    LATEST_HEIGHT= subprocess.run(["curl -s http://osmo-sync.blockpane.com:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True)
+    LATEST_HEIGHT= subprocess.run(["curl -s http://osmo-sync.blockpane.com:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True, env=my_env)
     TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 1000)
-    TRUST_HASH= subprocess.run(["curl -s \"http://osmo-sync.blockpane.com:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True)
+    TRUST_HASH= subprocess.run(["curl -s \"http://osmo-sync.blockpane.com:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True, env=my_env)
     RPCs = "osmo-sync.blockpane.com:26657,osmo-sync.blockpane.com:26657"
-    subprocess.run(["sed -i.bak -E 's/enable = false/enable = true/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
-    subprocess.run(["sed -i.bak -E 's/rpc_servers = \"\"/rpc_servers = \""+RPCs+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
-    subprocess.run(["sed -i.bak -E 's/trust_height = 0/trust_height = "+TRUST_HEIGHT+"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
-    subprocess.run(["sed -i.bak -E 's/trust_hash = \"\"/trust_hash = \""+TRUST_HASH.stdout.strip()+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    subprocess.run(["sed -i -E 's/enable = false/enable = true/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    subprocess.run(["sed -i -E 's/rpc_servers = \"\"/rpc_servers = \""+RPCs+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    subprocess.run(["sed -i -E 's/trust_height = 0/trust_height = "+TRUST_HEIGHT+"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    subprocess.run(["sed -i -E 's/trust_hash = \"\"/trust_hash = \""+TRUST_HASH.stdout.strip()+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     print(bcolors.OKGREEN + "OSMOSIS IS CURRENTLY STATESYNCING. THIS PROCESS CAN TAKE ANYWHERE FROM 5-15 MINUTES AND IN SOME CASES LONGER. PLEASE DO NOT CANCEL THIS PROCESS UNLESS IT HAS TAKEN LONGER THAN 30 MINUTES" + bcolors.ENDC)
     subprocess.run(["osmosisd start"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     print(bcolors.OKGREEN + "Statesync finished. Installing required patches for state sync fix" + bcolors.ENDC)
@@ -173,14 +181,14 @@ def stateSyncInit ():
 
 def testnetStateSyncInit ():
     print(bcolors.OKGREEN + "Replacing trust height, trust hash, and RPCs in config.toml" + bcolors.ENDC)
-    LATEST_HEIGHT= subprocess.run(["curl -s http://165.227.122.46:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True)
+    LATEST_HEIGHT= subprocess.run(["curl -s http://165.227.122.46:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True, env=my_env)
     TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 1000)
-    TRUST_HASH= subprocess.run(["curl -s \"http://165.227.122.46:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True)
+    TRUST_HASH= subprocess.run(["curl -s \"http://165.227.122.46:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True, env=my_env)
     RPCs = "165.227.122.46:26657,165.227.122.46:26657"
-    subprocess.run(["sed -i.bak -E 's/enable = false/enable = true/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
-    subprocess.run(["sed -i.bak -E 's/rpc_servers = \"\"/rpc_servers = \""+RPCs+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
-    subprocess.run(["sed -i.bak -E 's/trust_height = 0/trust_height = "+TRUST_HEIGHT+"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
-    subprocess.run(["sed -i.bak -E 's/trust_hash = \"\"/trust_hash = \""+TRUST_HASH.stdout.strip()+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    subprocess.run(["sed -i -E 's/enable = false/enable = true/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    subprocess.run(["sed -i -E 's/rpc_servers = \"\"/rpc_servers = \""+RPCs+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    subprocess.run(["sed -i -E 's/trust_height = 0/trust_height = "+TRUST_HEIGHT+"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    subprocess.run(["sed -i -E 's/trust_hash = \"\"/trust_hash = \""+TRUST_HASH.stdout.strip()+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     if os_name == "Linux":
         subprocess.run(["clear"], shell=True)
         cosmovisorInit()
@@ -191,11 +199,15 @@ def testnetStateSyncInit ():
 
 def snapshotInstall ():
     print(bcolors.OKGREEN + "Downloading Decompression Packages..." + bcolors.ENDC)
-    subprocess.run(["sudo apt-get install wget liblz4-tool aria2 -y"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+    if os_name == "Linux":
+        subprocess.run(["sudo apt-get install wget liblz4-tool aria2 -y"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+    else:
+        subprocess.run(["brew install aria2"], shell=True, env=my_env)
+        subprocess.run(["brew install lz4"], shell=True, env=my_env)
     print(bcolors.OKGREEN + "Downloading Snapshot..." + bcolors.ENDC)
     proc = subprocess.run(["curl https://quicksync.io/osmosis.json|jq -r '.[] |select(.file==\""+ fileName +"\")|select (.mirror==\""+ location +"\")|.url'"], capture_output=True, shell=True, text=True)
     os.chdir(os.path.expanduser(HOME.stdout.strip()+'/.osmosisd/'))
-    subprocess.run(["wget -O - "+proc.stdout.strip()+" | lz4 -d | tar -xvf -"], shell=True)
+    subprocess.run(["wget -O - "+proc.stdout.strip()+" | lz4 -d | tar -xvf -"], shell=True, env=my_env)
     subprocess.run(["clear"], shell=True)
     if os_name == "Linux":
         cosmovisorInit()
@@ -235,6 +247,7 @@ def testNetType ():
     global location
     print(bcolors.OKGREEN + """Please choose the node snapshot type:
 1) Pruned
+2) Archive
     """+ bcolors.ENDC)
     nodeTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
     if nodeTypeAns == "1":
@@ -242,11 +255,11 @@ def testNetType ():
         fileName = "osmotestnet-1-pruned"
         location = "Netherlands"
         snapshotInstall()
-    #elif nodeTypeAns == "2":
-        #subprocess.run(["clear"], shell=True)
-        #fileName = "osmotestnet-1-archive"
-        #location = "Netherlands"
-        #snapshotInstall()
+    elif nodeTypeAns == "2":
+        subprocess.run(["clear"], shell=True)
+        fileName = "osmotestnet-1-archive"
+        location = "Netherlands"
+        snapshotInstall()
     else:
         subprocess.run(["clear"], shell=True)
         print("Wrong selection, try again")
@@ -325,16 +338,101 @@ def dataSyncSelectionTest ():
         dataSyncSelectionTest()
 
 
+def pruningSettings ():
+    print(bcolors.OKGREEN + """Please choose your desired pruning settings:
+1) Default: (keep last 100,000 states to query the last week worth of data and prune at 100 block intervals)
+2) Nothing: (keep everything, select this if running an archive node)
+3) Everything: (modified prune everything due to bug, keep last 5,000 states and prune at 10 block intervals)
+    """+ bcolors.ENDC)
+    pruneAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+    if pruneAns == "1" and networkAns == "1":
+        subprocess.run(["clear"], shell=True)
+        dataSyncSelection()
+    elif pruneAns == "1" and networkAns == "2":
+        subprocess.run(["clear"], shell=True)
+        dataSyncSelectionTest()
+    elif pruneAns == "2" and networkAns == "1":
+        subprocess.run(["clear"], shell=True)
+        subprocess.run(["sed -i -E 's/pruning = \"default\"/pruning = \"nothing\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        dataSyncSelection()
+    elif pruneAns == "2" and networkAns == "2":
+        subprocess.run(["clear"], shell=True)
+        subprocess.run(["sed -i -E 's/pruning = \"default\"/pruning = \"nothing\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        dataSyncSelectionTest()
+    elif pruneAns == "3" and networkAns == "1":
+        subprocess.run(["clear"], shell=True)
+        subprocess.run(["sed -i -E 's/pruning = \"default\"/pruning = \"custom\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        subprocess.run(["sed -i -E 's/pruning-keep-recent = \"0\"/pruning-keep-recent = \"5000\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        subprocess.run(["sed -i -E 's/pruning-interval = \"0\"/pruning-interval = \"10\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        dataSyncSelection()
+    elif pruneAns == "3" and networkAns == "2":
+        subprocess.run(["clear"], shell=True)
+        subprocess.run(["sed -i -E 's/pruning = \"default\"/pruning = \"everything\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        subprocess.run(["sed -i -E 's/pruning-keep-recent = \"0\"/pruning-keep-recent = \"5000\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        subprocess.run(["sed -i -E 's/pruning-interval = \"0\"/pruning-interval = \"10\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        dataSyncSelectionTest()
+    else:
+        subprocess.run(["clear"], shell=True)
+        print("Wrong selection, try again")
+        pruningSettings()
+
+
+def customPortSelection ():
+    print(bcolors.OKGREEN + """Do you want to run Osmosis on default ports?:
+1) Yes, use default ports (recommended)
+2) No, specify custom ports
+    """+ bcolors.ENDC)
+    portChoice = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+    if portChoice == "1":
+        subprocess.run(["clear"], shell=True)
+        pruningSettings()
+    elif portChoice == "2":
+        subprocess.run(["clear"], shell=True)
+        print(bcolors.OKGREEN + "Input desired values. Press enter for default values" + bcolors.ENDC)
+        #app.toml
+        api_server_def = "tcp://0.0.0.0:1317"
+        grpc_server_def = "0.0.0.0:9090"
+        grpc_web_def = "0.0.0.0:9091"
+        #config.toml
+        abci_app_addr_def = "tcp://127.0.0.1:26658"
+        rpc_laddr_def = "tcp://127.0.0.1:26657"
+        p2p_laddr_def = "tcp://0.0.0.0:26656"
+        #user input
+        api_server = rlinput(bcolors.OKGREEN +"(1/6) API Server: "+ bcolors.ENDC, api_server_def)
+        grpc_server = rlinput(bcolors.OKGREEN +"(2/6) gRPC Server: "+ bcolors.ENDC, grpc_server_def)
+        grpc_web = rlinput(bcolors.OKGREEN +"(3/6) gRPC Web: "+ bcolors.ENDC, grpc_web_def)
+        abci_app_addr = rlinput(bcolors.OKGREEN +"(4/6) ABCI Application Address: "+ bcolors.ENDC, abci_app_addr_def)
+        rpc_laddr = rlinput(bcolors.OKGREEN +"(5/6) RPC Listening Address: "+ bcolors.ENDC, rpc_laddr_def)
+        p2p_laddr = rlinput(bcolors.OKGREEN +"(6/6) P2P Listening Address: "+ bcolors.ENDC, p2p_laddr_def)
+        #change app.toml values
+        subprocess.run(["sed -i -E 's|tcp://0.0.0.0:1317|"+api_server+"|g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        subprocess.run(["sed -i -E 's|0.0.0.0:9090|"+grpc_server+"|g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        subprocess.run(["sed -i -E 's|0.0.0.0:9091|"+grpc_web+"|g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        #change config.toml values
+        subprocess.run(["sed -i -E 's|tcp://127.0.0.1:26658|"+abci_app_addr+"|g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+        subprocess.run(["sed -i -E 's|tcp://127.0.0.1:26657|"+rpc_laddr+"|g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+        subprocess.run(["sed -i -E 's|tcp://0.0.0.0:26656|"+p2p_laddr+"|g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+        subprocess.run(["clear"], shell=True)
+        pruningSettings()
+    else:
+        subprocess.run(["clear"], shell=True)
+        print("Wrong selection, try again")
+        customPortSelection()
+
+
 def setupMainnet ():
     print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
     subprocess.run(["osmosisd unsafe-reset-all"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    subprocess.run(["rm "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["rm "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["rm "+HOME.stdout.strip()+"/.osmosisd/config/addrbook.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["osmosisd init " + nodeName + " -o"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL ,shell=True, env=my_env)
     print(bcolors.OKGREEN + "Downloading and Replacing Genesis..." + bcolors.ENDC)
-    subprocess.run(["wget -O "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.json https://github.com/osmosis-labs/networks/raw/main/osmosis-1/genesis.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+    subprocess.run(["wget -O "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.json https://github.com/osmosis-labs/networks/raw/main/osmosis-1/genesis.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    print(bcolors.OKGREEN + "Downloading and Replacing Addressbook..." + bcolors.ENDC)
+    subprocess.run(["wget -O "+ HOME.stdout.strip()+"/.osmosisd/config/addrbook.json https://quicksync.io/addrbook.osmosis.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["clear"], shell=True)
-    dataSyncSelection()
+    customPortSelection()
 
 
 def setupTestnet ():
@@ -345,15 +443,17 @@ def setupTestnet ():
     subprocess.run(["osmosisd init " + nodeName + " --chain-id=osmo-testnet-1 -o"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     print(bcolors.OKGREEN + "Downloading and Replacing Genesis..." + bcolors.ENDC)
     #os.chdir(os.path.expanduser(HOME.stdout.strip()+'/.osmosisd/config'))
-    subprocess.run(["wget -O "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.tar.bz2 https://github.com/osmosis-labs/networks/raw/adam/v2testnet/osmo-testnet-1/genesis.tar.bz2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+    subprocess.run(["wget -O "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.tar.bz2 https://github.com/osmosis-labs/networks/raw/adam/v2testnet/osmo-testnet-1/genesis.tar.bz2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     print(bcolors.OKGREEN + "Finding and Replacing Seeds..." + bcolors.ENDC)
     peers = "b894030ba5cf2dab4fbe092eb659004d70d7dc90@142.93.177.164:26656,e159391f00e8127d8e6ec1319b04633ffc33ed1a@165.227.122.46:26656"
-    subprocess.run(["sed -i.bak -E 's/persistent_peers = \"\"/persistent_peers = \""+peers+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    subprocess.run(["sed -i -E 's/persistent_peers = \"\"/persistent_peers = \""+peers+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["tar -xjf "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.tar.bz2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     subprocess.run(["rm "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.tar.bz2"], shell=True)
-    subprocess.run(["sed -i.bak -E 's/seeds = \"63aba59a7da5197c0fbcdc13e760d7561791dca8@162.55.132.230:2000,f515a8599b40f0e84dfad935ba414674ab11a668@osmosis.blockpane.com:26656\"/seeds = \"f5051996db0e0df69c55c36977407a9b8f94edb4@159.203.100.232:26656\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    subprocess.run(["sed -i -E 's/seeds = \"63aba59a7da5197c0fbcdc13e760d7561791dca8@162.55.132.230:2000,f515a8599b40f0e84dfad935ba414674ab11a668@osmosis.blockpane.com:26656\"/seeds = \"f5051996db0e0df69c55c36977407a9b8f94edb4@159.203.100.232:26656\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    print(bcolors.OKGREEN + "Downloading and Replacing Addressbook..." + bcolors.ENDC)
+    subprocess.run(["wget -O "+ HOME.stdout.strip()+"/.osmosisd/config/addrbook.json https://quicksync.io/addrbook.osmotestnet.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["clear"], shell=True)
-    dataSyncSelectionTest()
+    customPortSelection()
 
 
 def initNodeName():
@@ -398,33 +498,27 @@ def initSetup ():
     else:
         print(bcolors.OKGREEN + "Please wait while the following processes run:" + bcolors.ENDC)
         print(bcolors.OKGREEN + "(1/4) Installing brew and wget..." + bcolors.ENDC)
-        #subprocess.run(["ruby -e \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\""], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        #echo | /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-        #sudo chown -R $(whoami) /usr/local/var/homebrew
-        #echo | /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-        #brew install wget
-        #sudo chown -R $(whoami) /usr/local/share/zsh /usr/local/share/zsh/site-functions
-        #brew install wget
-        #subprocess.run(["brew install wget"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        subprocess.run(["sudo chown -R $(whoami) /usr/local/var/homebrew"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        subprocess.run(["echo | /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)\""], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        subprocess.run(["sudo chown -R $(whoami) /usr/local/share/zsh /usr/local/share/zsh/site-functions"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        subprocess.run(["brew install wget"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        print(bcolors.OKGREEN + "Installing Go..." + bcolors.ENDC)
-        #subprocess.run(["curl -OL https://git.io/vQhTU"], shell=True)
-        #subprocess.run(["bash vQhTU --version 1.17.2"], shell=True)
-        #subprocess.run(["rm vQhTU"], shell=True)
-        subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.17.2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        print(bcolors.OKGREEN + "Reloading Profile..." + bcolors.ENDC)
-        subprocess.run([". "+ HOME.stdout.strip()+"/.profile"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        print(bcolors.OKGREEN + "Installing Osmosis V6.2.0 Binary..." + bcolors.ENDC)
-        os.chdir(os.path.expanduser(HOME.stdout.strip()))
-        subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        os.chdir(os.path.expanduser(HOME.stdout.strip()+'/osmosis'))
-        subprocess.run(["git checkout v6.2.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        subprocess.run(["sudo chown -R $(whoami) /usr/local/var/homebrew"], shell=True)
+        subprocess.run(["echo | /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)\""], shell=True)
+        #subprocess.run(["sudo chown -R $(whoami) /usr/local/share/zsh /usr/local/share/zsh/site-functions"], shell=True)
+        subprocess.run(["echo 'eval \"$(/opt/homebrew/bin/brew shellenv)\"' >> "+HOME.stdout.strip()+"/.zprofile"], shell=True)
+        subprocess.run(["eval \"$(/opt/homebrew/bin/brew shellenv)\""], shell=True)
         my_env = os.environ.copy()
+        my_env["PATH"] = "/opt/homebrew/bin:/opt/homebrew/bin/brew:" + my_env["PATH"]
+        subprocess.run(["brew install wget"], shell=True, env=my_env)
+        print(bcolors.OKGREEN + "(2/4) Installing jq..." + bcolors.ENDC)
+        subprocess.run(["brew install jq"], shell=True, env=my_env)
+        print(bcolors.OKGREEN + "(3/4) Installing Go..." + bcolors.ENDC)
+        subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.17.2"], shell=True, env=my_env)
+        #print(bcolors.OKGREEN + "Reloading Profile..." + bcolors.ENDC)
+        #subprocess.run([". "+ HOME.stdout.strip()+"/.profile"], shell=True)
+        print(bcolors.OKGREEN + "(4/4) Installing Osmosis V6.2.0 Binary..." + bcolors.ENDC)
+        os.chdir(os.path.expanduser(HOME.stdout.strip()))
+        subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], shell=True)
+        os.chdir(os.path.expanduser(HOME.stdout.strip()+'/osmosis'))
+        subprocess.run(["git checkout v6.2.0"], shell=True)
         my_env["PATH"] = "/"+HOME.stdout.strip()+"/go/bin:/"+HOME.stdout.strip()+"/go/bin:/"+HOME.stdout.strip()+"/.go/bin:" + my_env["PATH"]
-        subprocess.run(["make install"], shell=True, env=my_env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["make install"], shell=True, env=my_env)
         subprocess.run(["clear"], shell=True)
     initNodeName()
 
@@ -469,8 +563,8 @@ You have less than the recommended 32GB of RAM. Would you like to set up a swap 
         print(bcolors.OKGREEN +"System Detected: Mac"+ bcolors.ENDC)
 
         #these two lines will prevent those with Macs from trying to use this script for now
-        print(bcolors.OKGREEN +"MAC NOT YET SUPPORTED, WILL BE SUPPORTED SOON"+ bcolors.ENDC)
-        quit()
+        #print(bcolors.OKGREEN +"MAC NOT YET SUPPORTED, WILL BE SUPPORTED SOON"+ bcolors.ENDC)
+        #quit()
 
         mem_bytes = subprocess.run(["sysctl hw.memsize"], capture_output=True, shell=True, text=True)
         mem_bytes = str(mem_bytes.stdout.strip())
@@ -541,8 +635,10 @@ Please choose a network to join:
         subprocess.run(["clear"], shell=True)
         initEnvironment()
     elif networkAns == '2':
-        subprocess.run(["clear"], shell=True)
-        initEnvironment()
+        #subprocess.run(["clear"], shell=True)
+        #initEnvironment()
+        print(bcolors.OKGREEN +"Testnet under maintenance, try again later. Exiting..."+ bcolors.ENDC)
+        quit()
     else:
         start()
 
