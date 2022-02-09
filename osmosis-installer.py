@@ -164,20 +164,36 @@ def stateSyncInit ():
     subprocess.run(["sed -i -E 's/rpc_servers = \"\"/rpc_servers = \""+RPCs+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["sed -i -E 's/trust_height = 0/trust_height = "+TRUST_HEIGHT+"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["sed -i -E 's/trust_hash = \"\"/trust_hash = \""+TRUST_HASH.stdout.strip()+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
-    print(bcolors.OKGREEN + "OSMOSIS IS CURRENTLY STATESYNCING. THIS PROCESS CAN TAKE ANYWHERE FROM 5-15 MINUTES AND IN SOME CASES LONGER. PLEASE DO NOT CANCEL THIS PROCESS UNLESS IT HAS TAKEN LONGER THAN 30 MINUTES" + bcolors.ENDC)
-    subprocess.run(["osmosisd start"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    print(bcolors.OKGREEN + "Statesync finished. Installing required patches for state sync fix" + bcolors.ENDC)
-    os.chdir(os.path.expanduser(HOME.stdout.strip()))
-    subprocess.run(["git clone https://github.com/tendermint/tendermint"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    os.chdir(os.path.expanduser(HOME.stdout.strip()+'/tendermint/'))
-    subprocess.run(["git checkout callum/app-version"], shell=True, env=my_env)
-    subprocess.run(["make install"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    subprocess.run(["tendermint set-app-version 1 --home "+HOME.stdout.strip()+"/.osmosisd"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    subprocess.run(["clear"], shell=True)
-    if os_name == "Linux":
-        cosmovisorInit()
+    print(bcolors.OKGREEN + """
+Osmosis is about to statesync. This process can take anywhere from 5-30 minutes.
+During this process, you will see many logs (to include many errors)
+As long as it continues to find/apply snapshot chunks, it is working.
+If it stops finding/applying snapshot chunks, you may cancel and try a different method.
+
+Continue?:
+1) Yes
+2) No
+    """+ bcolors.ENDC)
+    stateSyncAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+    if stateSyncAns == "1":
+        subprocess.run(["osmosisd start"], shell=True, env=my_env)
+        print(bcolors.OKGREEN + "Statesync finished. Installing required patches for state sync fix" + bcolors.ENDC)
+        os.chdir(os.path.expanduser(HOME.stdout.strip()))
+        subprocess.run(["git clone https://github.com/tendermint/tendermint"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+        os.chdir(os.path.expanduser(HOME.stdout.strip()+'/tendermint/'))
+        subprocess.run(["git checkout callum/app-version"], shell=True, env=my_env)
+        subprocess.run(["make install"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+        subprocess.run(["tendermint set-app-version 1 --home "+HOME.stdout.strip()+"/.osmosisd"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+        subprocess.run(["clear"], shell=True)
+        if os_name == "Linux":
+            cosmovisorInit()
+        else:
+            complete()
+    elif stateSyncAns == "2":
+        stateSyncInit()
     else:
-        complete()
+        subprocess.run(["clear"], shell=True)
+        stateSyncInit()
 
 def testnetStateSyncInit ():
     print(bcolors.OKGREEN + "Replacing trust height, trust hash, and RPCs in config.toml" + bcolors.ENDC)
@@ -220,7 +236,7 @@ def mainNetLocation ():
     print(bcolors.OKGREEN + """Please choose the location nearest to your node:
 1) Netherlands
 2) Singapore
-3) SanFrancisco
+3) SanFrancisco (WARNING: Usually slow)
     """+ bcolors.ENDC)
     nodeLocationAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
     if nodeLocationAns == "1":
