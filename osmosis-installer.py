@@ -635,8 +635,10 @@ Please choose a network to join:
         subprocess.run(["clear"], shell=True)
         initEnvironment()
     elif networkAns == '2':
-        subprocess.run(["clear"], shell=True)
-        initEnvironment()
+        #subprocess.run(["clear"], shell=True)
+        #initEnvironment()
+        print(bcolors.OKGREEN +"Testnet under maintenance, try again later. Exiting..."+ bcolors.ENDC)
+        quit()
     else:
         start()
 
