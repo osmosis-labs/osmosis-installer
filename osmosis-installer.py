@@ -157,7 +157,7 @@ WantedBy=multi-user.target
 def stateSyncInit ():
     print(bcolors.OKGREEN + "Replacing trust height, trust hash, and RPCs in config.toml" + bcolors.ENDC)
     LATEST_HEIGHT= subprocess.run(["curl -s http://osmo-sync.blockpane.com:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True, env=my_env)
-    TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 1000)
+    TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 2000)
     TRUST_HASH= subprocess.run(["curl -s \"http://osmo-sync.blockpane.com:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True, env=my_env)
     RPCs = "osmo-sync.blockpane.com:26657,osmo-sync.blockpane.com:26657"
     subprocess.run(["sed -i -E 's/enable = false/enable = true/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
@@ -182,7 +182,7 @@ def stateSyncInit ():
 def testnetStateSyncInit ():
     print(bcolors.OKGREEN + "Replacing trust height, trust hash, and RPCs in config.toml" + bcolors.ENDC)
     LATEST_HEIGHT= subprocess.run(["curl -s http://165.227.122.46:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True, env=my_env)
-    TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 1000)
+    TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 2000)
     TRUST_HASH= subprocess.run(["curl -s \"http://165.227.122.46:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True, env=my_env)
     RPCs = "165.227.122.46:26657,165.227.122.46:26657"
     subprocess.run(["sed -i -E 's/enable = false/enable = true/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
@@ -635,7 +635,7 @@ Please choose a network to join:
         subprocess.run(["clear"], shell=True)
         initEnvironment()
     elif networkAns == '2':
-        #subprocess.run(["clear"], shell=True)
+        subprocess.run(["clear"], shell=True)
         #initEnvironment()
         print(bcolors.OKGREEN +"Testnet under maintenance, try again later. Exiting..."+ bcolors.ENDC)
         quit()
