@@ -312,17 +312,17 @@ def mainNetType ():
 
 def dataSyncSelection ():
     print(bcolors.OKGREEN + """Please choose from the following options:
-1) Use statesync (recommended)
-2) Download a snapshot from ChainLayer
+1) Download a snapshot from ChainLayer (recommended)
+2) Use statesync
 3) Exit now, I only wanted to install the daemon
     """+ bcolors.ENDC)
     dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
-    if dataTypeAns == "1":
-        subprocess.run(["clear"], shell=True)
-        stateSyncInit ()
-    elif dataTypeAns == "2":
+    if dataTypeAns == "2":
         subprocess.run(["clear"], shell=True)
         mainNetType()
+    elif dataTypeAns == "1":
+        subprocess.run(["clear"], shell=True)
+        stateSyncInit ()
     elif dataTypeAns == "3":
         subprocess.run(["clear"], shell=True)
         partComplete()
@@ -334,17 +334,17 @@ def dataSyncSelection ():
 
 def dataSyncSelectionTest ():
     print(bcolors.OKGREEN + """Please choose from the following options:
-1) Use statesync (recommended)
-2) Download a snapshot from ChainLayer
+1) Download a snapshot from ChainLayer
+2) Use statesync (recommended)
 3) Exit now, I only wanted to install the daemon
     """+ bcolors.ENDC)
     dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
-    if dataTypeAns == "1":
-        subprocess.run(["clear"], shell=True)
-        testnetStateSyncInit()
-    elif dataTypeAns == "2":
+    if dataTypeAns == "2":
         subprocess.run(["clear"], shell=True)
         testNetType()
+    elif dataTypeAns == "1":
+        subprocess.run(["clear"], shell=True)
+        testnetStateSyncInit()
     elif dataTypeAns == "3":
         subprocess.run(["clear"], shell=True)
         partComplete()
