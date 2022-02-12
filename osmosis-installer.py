@@ -339,10 +339,10 @@ def dataSyncSelectionTest ():
 3) Exit now, I only wanted to install the daemon
     """+ bcolors.ENDC)
     dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
-    if dataTypeAns == "2":
+    if dataTypeAns == "1":
         subprocess.run(["clear"], shell=True)
         testNetType()
-    elif dataTypeAns == "1":
+    elif dataTypeAns == "2":
         subprocess.run(["clear"], shell=True)
         testnetStateSyncInit()
     elif dataTypeAns == "3":
