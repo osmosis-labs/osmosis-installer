@@ -61,6 +61,11 @@ def partComplete():
     print(bcolors.OKGREEN + "If you intend to use osmosisd without syncing, you must include the '--node' flag after cli commands with the address of a public RPC node"+ bcolors.ENDC)
     quit()
 
+def clientComplete():
+    print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis client node!")
+    print(bcolors.OKGREEN + "In order to use osmosisd from the cli, either reload your terminal or refresh your profile with: 'source ~/.profile'"+ bcolors.ENDC)
+    quit()
+
 
 def cosmovisorInit ():
     print(bcolors.OKGREEN + """Do you want to use Cosmovisor to automate future upgrades?
@@ -150,7 +155,6 @@ WantedBy=multi-user.target
         complete()
     else:
         subprocess.run(["clear"], shell=True)
-        print("Wrong selection, try again")
         cosmovisorInit()
 
 
@@ -253,7 +257,6 @@ def mainNetLocation ():
         snapshotInstall()
     else:
         subprocess.run(["clear"], shell=True)
-        print("Wrong selection, try again")
         mainNetLocation()
 
 
@@ -278,7 +281,6 @@ def testNetType ():
         snapshotInstall()
     else:
         subprocess.run(["clear"], shell=True)
-        print("Wrong selection, try again")
         testNetType()
 
 
@@ -306,7 +308,6 @@ def mainNetType ():
         snapshotInstall()
     else:
         subprocess.run(["clear"], shell=True)
-        print("Wrong selection, try again")
         mainNetType()
 
 
@@ -328,7 +329,6 @@ def dataSyncSelection ():
         partComplete()
     else:
         subprocess.run(["clear"], shell=True)
-        print("Wrong selection, try again")
         dataSyncSelection()
 
 
@@ -350,7 +350,6 @@ def dataSyncSelectionTest ():
         partComplete()
     else:
         subprocess.run(["clear"], shell=True)
-        print("Wrong selection, try again")
         dataSyncSelectionTest()
 
 
@@ -389,7 +388,6 @@ def pruningSettings ():
         dataSyncSelectionTest()
     else:
         subprocess.run(["clear"], shell=True)
-        print("Wrong selection, try again")
         pruningSettings()
 
 
@@ -432,7 +430,6 @@ def customPortSelection ():
         pruningSettings()
     else:
         subprocess.run(["clear"], shell=True)
-        print("Wrong selection, try again")
         customPortSelection()
 
 
@@ -472,16 +469,42 @@ def setupTestnet ():
     customPortSelection()
 
 
-def initNodeName():
+def clientSettings ():
+    if networkAns == "1":
+        print(bcolors.OKGREEN + "Initializing Osmosis Client Node " + nodeName + bcolors.ENDC)
+        subprocess.run(["osmosisd unsafe-reset-all"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+        subprocess.run(["rm "+HOME.stdout.strip()+"/.osmosisd/config/client.toml"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+        subprocess.run(["osmosisd init " + nodeName + " --chain-id=osmosis-1 -o"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+        print(bcolors.OKGREEN + "Changing Client Settings..." + bcolors.ENDC)
+        subprocess.run(["sed -i -E 's/chain-id = \"\"/chain-id = \"osmosis-1\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/client.toml"], shell=True)
+        subprocess.run(["sed -i -E 's|node = \"tcp://localhost:26657\"|node = \"https://rpc-osmosis.blockapsis.com:443\"|g' "+HOME.stdout.strip()+"/.osmosisd/config/client.toml"], shell=True)
+        subprocess.run(["clear"], shell=True)
+        clientComplete()
+    elif networkAns == "2":
+        print(bcolors.OKGREEN + "Initializing Osmosis Client Node " + nodeName + bcolors.ENDC)
+        subprocess.run(["osmosisd unsafe-reset-all"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+        subprocess.run(["rm "+HOME.stdout.strip()+"/.osmosisd/config/client.toml"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+        subprocess.run(["osmosisd init " + nodeName + " --chain-id=osmo-testnet-1 -o"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+        print(bcolors.OKGREEN + "Changing Client Settings..." + bcolors.ENDC)
+        subprocess.run(["sed -i -E 's/chain-id = \"\"/chain-id = \"osmo-testnet-1\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/client.toml"], shell=True)
+        subprocess.run(["sed -i -E 's|node = tcp://localhost:26657|node = \"https://osmosistest-rpc.quickapi.com:443\"|g' "+HOME.stdout.strip()+"/.osmosisd/config/client.toml"], shell=True)
+        subprocess.run(["clear"], shell=True)
+        clientComplete()
+
+
+def initNodeName ():
     global nodeName
     print(bcolors.OKGREEN + "AFTER INPUTING NODE NAME, ALL PREVIOUS OSMOSIS DATA WILL BE RESET" + bcolors.ENDC)
     nodeName= input(bcolors.OKGREEN + "Input desired node name (no quotes, cant be blank): "+ bcolors.ENDC)
-    if nodeName and networkAns == "1":
+    if nodeName and networkAns == "1" and node == "1":
         subprocess.run(["clear"], shell=True)
         setupMainnet()
-    elif nodeName and networkAns == "2":
+    elif nodeName and networkAns == "2" and node == "1":
         subprocess.run(["clear"], shell=True)
         setupTestnet()
+    elif nodeName and node == "2":
+        subprocess.run(["clear"], shell=True)
+        clientSettings()
     else:
         subprocess.run(["clear"], shell=True)
         print(bcolors.OKGREEN + "Please insert a non-blank node name" + bcolors.ENDC)
@@ -614,13 +637,44 @@ You have less than the recommended 32GB of RAM. Would you still like to continue
         initSetup()
 
 
+def networkSelect ():
+    global networkAns
+    print(bcolors.OKGREEN + """
+Please choose a network to join:
+1) Mainnet (osmosis-1)
+2) Testnet (osmo-testnet-1)
+    """+ bcolors.ENDC)
+
+    networkAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+
+    if networkAns == '1' and node == '1':
+        subprocess.run(["clear"], shell=True)
+        initEnvironment()
+    elif networkAns == '1' and node == '2':
+        subprocess.run(["clear"], shell=True)
+        initSetup()
+    elif networkAns == '2' and node == '1':
+        subprocess.run(["clear"], shell=True)
+        #initEnvironment()
+        print(bcolors.OKGREEN +"Testnet under maintenance, try again later..."+ bcolors.ENDC)
+        networkSelect()
+    elif networkAns == '2' and node == '2':
+        subprocess.run(["clear"], shell=True)
+        #initSetup()
+        print(bcolors.OKGREEN +"Testnet under maintenance, try again later..."+ bcolors.ENDC)
+        networkSelect()
+    else:
+        subprocess.run(["clear"], shell=True)
+        networkSelect()
+
+
 def start ():
     subprocess.run(["clear"], shell=True)
     global HOME
     global USER
-    global networkAns
     global GOPATH
     global os_name
+    global node
     os_name = platform.system()
     HOME = subprocess.run(["echo $HOME"], capture_output=True, shell=True, text=True)
     USER = subprocess.run(["echo $USER"], capture_output=True, shell=True, text=True)
@@ -640,21 +694,19 @@ Ensure no osmosis services are running in the background
 If running over an old osmosis installation, back up
 any important osmosis data before proceeding
 
-Please choose a network to join:
-1) Mainnet (osmosis-1)
-2) Testnet (osmo-testnet-1)
+Please choose a node type:
+1) Full Node (download chain data and run locally)
+2) Client Node (setup a daemon and query a public RPC)
     """+ bcolors.ENDC)
 
-    networkAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+    node = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
 
-    if networkAns == '1':
+    if node == '1':
         subprocess.run(["clear"], shell=True)
-        initEnvironment()
-    elif networkAns == '2':
+        networkSelect()
+    elif node == '2':
         subprocess.run(["clear"], shell=True)
-        #initEnvironment()
-        print(bcolors.OKGREEN +"Testnet under maintenance, try again later. Exiting..."+ bcolors.ENDC)
-        quit()
+        networkSelect()
     else:
         start()
 
