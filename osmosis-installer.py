@@ -195,7 +195,7 @@ Continue?:
         else:
             complete()
     elif stateSyncAns == "2":
-        stateSyncInit()
+        dataSyncSelection()
     else:
         subprocess.run(["clear"], shell=True)
         stateSyncInit()
