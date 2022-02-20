@@ -63,6 +63,7 @@ def partComplete():
 
 def clientComplete():
     print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis client node!")
+    print(bcolors.OKGREEN + "DO NOT start the osmosis daemon. You can query directly from the command line without starting the daemon!")
     print(bcolors.OKGREEN + "In order to use osmosisd from the cli, either reload your terminal or refresh your profile with: 'source ~/.profile'"+ bcolors.ENDC)
     quit()
 
@@ -201,10 +202,10 @@ Continue?:
 
 def testnetStateSyncInit ():
     print(bcolors.OKGREEN + "Replacing trust height, trust hash, and RPCs in config.toml" + bcolors.ENDC)
-    LATEST_HEIGHT= subprocess.run(["curl -s http://165.227.122.46:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True, env=my_env)
+    LATEST_HEIGHT= subprocess.run(["curl -s http://143.198.139.33:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True, env=my_env)
     TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 2000)
-    TRUST_HASH= subprocess.run(["curl -s \"http://165.227.122.46:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True, env=my_env)
-    RPCs = "165.227.122.46:26657,165.227.122.46:26657"
+    TRUST_HASH= subprocess.run(["curl -s \"http://143.198.139.33:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True, env=my_env)
+    RPCs = "143.198.139.33:26657,143.198.139.33:26657"
     subprocess.run(["sed -i -E 's/enable = false/enable = true/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["sed -i -E 's/rpc_servers = \"\"/rpc_servers = \""+RPCs+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["sed -i -E 's/trust_height = 0/trust_height = "+TRUST_HEIGHT+"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
@@ -260,7 +261,6 @@ def mainNetLocation ():
         mainNetLocation()
 
 
-
 def testNetType ():
     global fileName
     global location
@@ -271,12 +271,12 @@ def testNetType ():
     nodeTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
     if nodeTypeAns == "1":
         subprocess.run(["clear"], shell=True)
-        fileName = "osmotestnet-1-pruned"
+        fileName = "osmotestnet-3-pruned"
         location = "Netherlands"
         snapshotInstall()
     elif nodeTypeAns == "2":
         subprocess.run(["clear"], shell=True)
-        fileName = "osmotestnet-1-archive"
+        fileName = "osmotestnet-3-archive"
         location = "Netherlands"
         snapshotInstall()
     else:
@@ -314,7 +314,7 @@ def mainNetType ():
 def dataSyncSelection ():
     print(bcolors.OKGREEN + """Please choose from the following options:
 1) Download a snapshot from ChainLayer (recommended)
-2) Use statesync
+2) Use statesync (currently slower than snapshot)
 3) Exit now, I only wanted to install the daemon
     """+ bcolors.ENDC)
     dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
@@ -334,8 +334,8 @@ def dataSyncSelection ():
 
 def dataSyncSelectionTest ():
     print(bcolors.OKGREEN + """Please choose from the following options:
-1) Download a snapshot from ChainLayer
-2) Use statesync (recommended)
+1) Download a snapshot from ChainLayer (recommended)
+2) Use statesync (currently slower than snapshot)
 3) Exit now, I only wanted to install the daemon
     """+ bcolors.ENDC)
     dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
@@ -382,7 +382,7 @@ def pruningSettings ():
         dataSyncSelection()
     elif pruneAns == "3" and networkAns == "2":
         subprocess.run(["clear"], shell=True)
-        subprocess.run(["sed -i -E 's/pruning = \"default\"/pruning = \"everything\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        subprocess.run(["sed -i -E 's/pruning = \"default\"/pruning = \"custom\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
         subprocess.run(["sed -i -E 's/pruning-keep-recent = \"0\"/pruning-keep-recent = \"5000\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
         subprocess.run(["sed -i -E 's/pruning-interval = \"0\"/pruning-interval = \"10\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
         dataSyncSelectionTest()
@@ -411,13 +411,15 @@ def customPortSelection ():
         abci_app_addr_def = "tcp://127.0.0.1:26658"
         rpc_laddr_def = "tcp://127.0.0.1:26657"
         p2p_laddr_def = "tcp://0.0.0.0:26656"
+        pprof_laddr_def = "localhost:6060"
         #user input
-        api_server = rlinput(bcolors.OKGREEN +"(1/6) API Server: "+ bcolors.ENDC, api_server_def)
-        grpc_server = rlinput(bcolors.OKGREEN +"(2/6) gRPC Server: "+ bcolors.ENDC, grpc_server_def)
-        grpc_web = rlinput(bcolors.OKGREEN +"(3/6) gRPC Web: "+ bcolors.ENDC, grpc_web_def)
-        abci_app_addr = rlinput(bcolors.OKGREEN +"(4/6) ABCI Application Address: "+ bcolors.ENDC, abci_app_addr_def)
-        rpc_laddr = rlinput(bcolors.OKGREEN +"(5/6) RPC Listening Address: "+ bcolors.ENDC, rpc_laddr_def)
-        p2p_laddr = rlinput(bcolors.OKGREEN +"(6/6) P2P Listening Address: "+ bcolors.ENDC, p2p_laddr_def)
+        api_server = rlinput(bcolors.OKGREEN +"(1/7) API Server: "+ bcolors.ENDC, api_server_def)
+        grpc_server = rlinput(bcolors.OKGREEN +"(2/7) gRPC Server: "+ bcolors.ENDC, grpc_server_def)
+        grpc_web = rlinput(bcolors.OKGREEN +"(3/7) gRPC Web: "+ bcolors.ENDC, grpc_web_def)
+        abci_app_addr = rlinput(bcolors.OKGREEN +"(4/7) ABCI Application Address: "+ bcolors.ENDC, abci_app_addr_def)
+        rpc_laddr = rlinput(bcolors.OKGREEN +"(5/7) RPC Listening Address: "+ bcolors.ENDC, rpc_laddr_def)
+        p2p_laddr = rlinput(bcolors.OKGREEN +"(6/7) P2P Listening Address: "+ bcolors.ENDC, p2p_laddr_def)
+        pprof_laddr = rlinput(bcolors.OKGREEN +"(7/7) pprof Listening Address: "+ bcolors.ENDC, pprof_laddr_def)
         #change app.toml values
         subprocess.run(["sed -i -E 's|tcp://0.0.0.0:1317|"+api_server+"|g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
         subprocess.run(["sed -i -E 's|0.0.0.0:9090|"+grpc_server+"|g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
@@ -426,6 +428,7 @@ def customPortSelection ():
         subprocess.run(["sed -i -E 's|tcp://127.0.0.1:26658|"+abci_app_addr+"|g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
         subprocess.run(["sed -i -E 's|tcp://127.0.0.1:26657|"+rpc_laddr+"|g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
         subprocess.run(["sed -i -E 's|tcp://0.0.0.0:26656|"+p2p_laddr+"|g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+        subprocess.run(["sed -i -E 's|localhost:6060|"+pprof_laddr+"|g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
         subprocess.run(["clear"], shell=True)
         pruningSettings()
     else:
@@ -452,17 +455,17 @@ def setupTestnet ():
     print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
     subprocess.run(["osmosisd unsafe-reset-all"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["rm "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    #subprocess.run(["rm "+HOME.stdout.strip()+"/.osmosisd/config/addrbook.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    subprocess.run(["osmosisd init " + nodeName + " --chain-id=osmo-testnet-1 -o"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    subprocess.run(["rm "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    subprocess.run(["rm "+HOME.stdout.strip()+"/.osmosisd/config/addrbook.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    subprocess.run(["osmosisd init " + nodeName + " --chain-id=osmo-test-3 -o"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     print(bcolors.OKGREEN + "Downloading and Replacing Genesis..." + bcolors.ENDC)
-    #os.chdir(os.path.expanduser(HOME.stdout.strip()+'/.osmosisd/config'))
-    subprocess.run(["wget -O "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.tar.bz2 https://github.com/osmosis-labs/networks/raw/adam/v2testnet/osmo-testnet-1/genesis.tar.bz2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    subprocess.run(["wget -O "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.tar.bz2 https://github.com/osmosis-labs/networks/raw/adam/osmo-test-3/osmo-test-3/genesis.tar.bz2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     print(bcolors.OKGREEN + "Finding and Replacing Seeds..." + bcolors.ENDC)
-    peers = "b894030ba5cf2dab4fbe092eb659004d70d7dc90@142.93.177.164:26656,e159391f00e8127d8e6ec1319b04633ffc33ed1a@165.227.122.46:26656"
+    peers = "4ab030b7fd75ed895c48bcc899b99c17a396736b@137.184.190.127:26656,3dbffa30baab16cc8597df02945dcee0aa0a4581@143.198.139.33:26656"
     subprocess.run(["sed -i -E 's/persistent_peers = \"\"/persistent_peers = \""+peers+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     subprocess.run(["tar -xjf "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.tar.bz2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     subprocess.run(["rm "+ HOME.stdout.strip()+"/.osmosisd/config/genesis.tar.bz2"], shell=True)
-    subprocess.run(["sed -i -E 's/seeds = \"63aba59a7da5197c0fbcdc13e760d7561791dca8@162.55.132.230:2000,f515a8599b40f0e84dfad935ba414674ab11a668@osmosis.blockpane.com:26656\"/seeds = \"f5051996db0e0df69c55c36977407a9b8f94edb4@159.203.100.232:26656\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    subprocess.run(["sed -i -E 's/seeds = \"21d7539792ee2e0d650b199bf742c56ae0cf499e@162.55.132.230:2000,295b417f995073d09ff4c6c141bd138a7f7b5922@65.21.141.212:2000,ec4d3571bf709ab78df61716e47b5ac03d077a1a@65.108.43.26:2000,4cb8e1e089bdf44741b32638591944dc15b7cce3@65.108.73.18:2000,f515a8599b40f0e84dfad935ba414674ab11a668@osmosis.blockpane.com:26656,6bcdbcfd5d2c6ba58460f10dbcfde58278212833@osmosis.artifact-staking.io:26656\"/seeds = \"0f9a9c694c46bd28ad9ad6126e923993fc6c56b1@137.184.181.105:26656\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
     print(bcolors.OKGREEN + "Downloading and Replacing Addressbook..." + bcolors.ENDC)
     subprocess.run(["wget -O "+ HOME.stdout.strip()+"/.osmosisd/config/addrbook.json https://quicksync.io/addrbook.osmotestnet.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["clear"], shell=True)
@@ -484,10 +487,10 @@ def clientSettings ():
         print(bcolors.OKGREEN + "Initializing Osmosis Client Node " + nodeName + bcolors.ENDC)
         subprocess.run(["osmosisd unsafe-reset-all"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         subprocess.run(["rm "+HOME.stdout.strip()+"/.osmosisd/config/client.toml"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-        subprocess.run(["osmosisd init " + nodeName + " --chain-id=osmo-testnet-1 -o"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+        subprocess.run(["osmosisd init " + nodeName + " --chain-id=osmo-test-3 -o"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         print(bcolors.OKGREEN + "Changing Client Settings..." + bcolors.ENDC)
-        subprocess.run(["sed -i -E 's/chain-id = \"\"/chain-id = \"osmo-testnet-1\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/client.toml"], shell=True)
-        subprocess.run(["sed -i -E 's|node = tcp://localhost:26657|node = \"https://osmosistest-rpc.quickapi.com:443\"|g' "+HOME.stdout.strip()+"/.osmosisd/config/client.toml"], shell=True)
+        subprocess.run(["sed -i -E 's/chain-id = \"\"/chain-id = \"osmo-test-3\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/client.toml"], shell=True)
+        subprocess.run(["sed -i -E 's|node = tcp://localhost:26657|node = \"http://143.198.139.33:26657\"|g' "+HOME.stdout.strip()+"/.osmosisd/config/client.toml"], shell=True)
         subprocess.run(["clear"], shell=True)
         clientComplete()
 
@@ -583,6 +586,8 @@ You have less than the recommended 32GB of RAM. Would you like to set up a swap 
                 subprocess.run(["sudo chmod 600 /swapfile"], shell=True)
                 subprocess.run(["sudo mkswap /swapfile"], shell=True)
                 subprocess.run(["sudo swapon /swapfile"], shell=True)
+                subprocess.run(["sudo cp /etc/fstab /etc/fstab.bak"], shell=True)
+                subprocess.run(["echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab"], shell=True)
                 subprocess.run(["clear"], shell=True)
                 print(bcolors.OKGREEN +str(swapNeeded)+"GB swap file set"+ bcolors.ENDC)
                 initSetup()
@@ -642,7 +647,7 @@ def networkSelect ():
     print(bcolors.OKGREEN + """
 Please choose a network to join:
 1) Mainnet (osmosis-1)
-2) Testnet (osmo-testnet-1)
+2) Testnet (osmo-test-3)
     """+ bcolors.ENDC)
 
     networkAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
@@ -655,14 +660,10 @@ Please choose a network to join:
         initSetup()
     elif networkAns == '2' and node == '1':
         subprocess.run(["clear"], shell=True)
-        #initEnvironment()
-        print(bcolors.OKGREEN +"Testnet under maintenance, try again later..."+ bcolors.ENDC)
-        networkSelect()
+        initEnvironment()
     elif networkAns == '2' and node == '2':
         subprocess.run(["clear"], shell=True)
-        #initSetup()
-        print(bcolors.OKGREEN +"Testnet under maintenance, try again later..."+ bcolors.ENDC)
-        networkSelect()
+        initSetup()
     else:
         subprocess.run(["clear"], shell=True)
         networkSelect()
