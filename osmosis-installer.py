@@ -3,6 +3,7 @@ import os
 import platform
 import time
 import readline
+import random
 from os import remove
 from sys import argv
 
@@ -357,7 +358,7 @@ def pruningSettings ():
     print(bcolors.OKGREEN + """Please choose your desired pruning settings:
 1) Default: (keep last 100,000 states to query the last week worth of data and prune at 100 block intervals)
 2) Nothing: (keep everything, select this if running an archive node)
-3) Everything: (modified prune everything due to bug, keep last 5,000 states and prune at 10 block intervals)
+3) Everything: (modified prune everything due to bug, keep last 10,000 states and prune at a random prime block interval)
     """+ bcolors.ENDC)
     pruneAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
     if pruneAns == "1" and networkAns == "1":
@@ -375,16 +376,18 @@ def pruningSettings ():
         subprocess.run(["sed -i -E 's/pruning = \"default\"/pruning = \"nothing\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
         dataSyncSelectionTest()
     elif pruneAns == "3" and networkAns == "1":
+        primeNum = random.choice([x for x in range(11, 97) if not [t for t in range(2, x) if not x % t]])
         subprocess.run(["clear"], shell=True)
         subprocess.run(["sed -i -E 's/pruning = \"default\"/pruning = \"custom\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
-        subprocess.run(["sed -i -E 's/pruning-keep-recent = \"0\"/pruning-keep-recent = \"5000\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
-        subprocess.run(["sed -i -E 's/pruning-interval = \"0\"/pruning-interval = \"10\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        subprocess.run(["sed -i -E 's/pruning-keep-recent = \"0\"/pruning-keep-recent = \"10000\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        subprocess.run(["sed -i -E 's/pruning-interval = \"0\"/pruning-interval = \""+str(primeNum)+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
         dataSyncSelection()
     elif pruneAns == "3" and networkAns == "2":
+        primeNum = random.choice([x for x in range(11, 97) if not [t for t in range(2, x) if not x % t]])
         subprocess.run(["clear"], shell=True)
         subprocess.run(["sed -i -E 's/pruning = \"default\"/pruning = \"custom\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
-        subprocess.run(["sed -i -E 's/pruning-keep-recent = \"0\"/pruning-keep-recent = \"5000\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
-        subprocess.run(["sed -i -E 's/pruning-interval = \"0\"/pruning-interval = \"10\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        subprocess.run(["sed -i -E 's/pruning-keep-recent = \"0\"/pruning-keep-recent = \"10000\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
+        subprocess.run(["sed -i -E 's/pruning-interval = \"0\"/pruning-interval = \""+str(primeNum)+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/app.toml"], shell=True)
         dataSyncSelectionTest()
     else:
         subprocess.run(["clear"], shell=True)
@@ -527,11 +530,11 @@ def initSetup ():
         subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.17.2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         print(bcolors.OKGREEN + "(4/5) Reloading Profile..." + bcolors.ENDC)
         subprocess.run([". "+ HOME.stdout.strip()+"/.profile"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        print(bcolors.OKGREEN + "(5/5) Installing Osmosis V6.3.1 Binary..." + bcolors.ENDC)
+        print(bcolors.OKGREEN + "(5/5) Installing Osmosis V6.4.0 Binary..." + bcolors.ENDC)
         os.chdir(os.path.expanduser(HOME.stdout.strip()))
         subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         os.chdir(os.path.expanduser(HOME.stdout.strip()+'/osmosis'))
-        subprocess.run(["git checkout v6.3.1"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        subprocess.run(["git checkout v6.4.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         my_env = os.environ.copy()
         #my_env["PATH"] = "/root/go/bin:/root/go/bin:/root/.go/bin:" + my_env["PATH"]
         my_env["PATH"] = "/"+HOME.stdout.strip()+"/go/bin:/"+HOME.stdout.strip()+"/go/bin:/"+HOME.stdout.strip()+"/.go/bin:" + my_env["PATH"]
@@ -554,11 +557,11 @@ def initSetup ():
         subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.17.2"], shell=True, env=my_env)
         #print(bcolors.OKGREEN + "Reloading Profile..." + bcolors.ENDC)
         #subprocess.run([". "+ HOME.stdout.strip()+"/.profile"], shell=True)
-        print(bcolors.OKGREEN + "(4/4) Installing Osmosis V6.3.1 Binary..." + bcolors.ENDC)
+        print(bcolors.OKGREEN + "(4/4) Installing Osmosis V6.4.0 Binary..." + bcolors.ENDC)
         os.chdir(os.path.expanduser(HOME.stdout.strip()))
         subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], shell=True)
         os.chdir(os.path.expanduser(HOME.stdout.strip()+'/osmosis'))
-        subprocess.run(["git checkout v6.3.1"], shell=True)
+        subprocess.run(["git checkout v6.4.0"], shell=True)
         my_env["PATH"] = "/"+HOME.stdout.strip()+"/go/bin:/"+HOME.stdout.strip()+"/go/bin:/"+HOME.stdout.strip()+"/.go/bin:" + my_env["PATH"]
         subprocess.run(["make install"], shell=True, env=my_env)
         subprocess.run(["clear"], shell=True)
