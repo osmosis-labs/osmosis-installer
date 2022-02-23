@@ -201,22 +201,22 @@ Continue?:
         subprocess.run(["clear"], shell=True)
         stateSyncInit()
 
-def testnetStateSyncInit ():
-    print(bcolors.OKGREEN + "Replacing trust height, trust hash, and RPCs in config.toml" + bcolors.ENDC)
-    LATEST_HEIGHT= subprocess.run(["curl -s http://143.198.139.33:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True, env=my_env)
-    TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 2000)
-    TRUST_HASH= subprocess.run(["curl -s \"http://143.198.139.33:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True, env=my_env)
-    RPCs = "143.198.139.33:26657,143.198.139.33:26657"
-    subprocess.run(["sed -i -E 's/enable = false/enable = true/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
-    subprocess.run(["sed -i -E 's/rpc_servers = \"\"/rpc_servers = \""+RPCs+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
-    subprocess.run(["sed -i -E 's/trust_height = 0/trust_height = "+TRUST_HEIGHT+"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
-    subprocess.run(["sed -i -E 's/trust_hash = \"\"/trust_hash = \""+TRUST_HASH.stdout.strip()+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
-    if os_name == "Linux":
-        subprocess.run(["clear"], shell=True)
-        cosmovisorInit()
-    else:
-        subprocess.run(["clear"], shell=True)
-        complete()
+#def testnetStateSyncInit ():
+    #print(bcolors.OKGREEN + "Replacing trust height, trust hash, and RPCs in config.toml" + bcolors.ENDC)
+    #LATEST_HEIGHT= subprocess.run(["curl -s http://143.198.139.33:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True, env=my_env)
+    #TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 2000)
+    #TRUST_HASH= subprocess.run(["curl -s \"http://143.198.139.33:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True, env=my_env)
+    #RPCs = "143.198.139.33:26657,143.198.139.33:26657"
+    #subprocess.run(["sed -i -E 's/enable = false/enable = true/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    #subprocess.run(["sed -i -E 's/rpc_servers = \"\"/rpc_servers = \""+RPCs+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    #subprocess.run(["sed -i -E 's/trust_height = 0/trust_height = "+TRUST_HEIGHT+"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    #subprocess.run(["sed -i -E 's/trust_hash = \"\"/trust_hash = \""+TRUST_HASH.stdout.strip()+"\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/config.toml"], shell=True)
+    #if os_name == "Linux":
+        #subprocess.run(["clear"], shell=True)
+        #cosmovisorInit()
+    #else:
+        #subprocess.run(["clear"], shell=True)
+        #complete()
 
 
 def snapshotInstall ():
@@ -336,17 +336,16 @@ def dataSyncSelection ():
 def dataSyncSelectionTest ():
     print(bcolors.OKGREEN + """Please choose from the following options:
 1) Download a snapshot from ChainLayer (recommended)
-2) Use statesync (currently slower than snapshot)
-3) Exit now, I only wanted to install the daemon
+2) Exit now, I only wanted to install the daemon
     """+ bcolors.ENDC)
     dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
     if dataTypeAns == "1":
         subprocess.run(["clear"], shell=True)
         testNetType()
+    #elif dataTypeAns == "2":
+        #subprocess.run(["clear"], shell=True)
+        #testnetStateSyncInit()
     elif dataTypeAns == "2":
-        subprocess.run(["clear"], shell=True)
-        testnetStateSyncInit()
-    elif dataTypeAns == "3":
         subprocess.run(["clear"], shell=True)
         partComplete()
     else:
