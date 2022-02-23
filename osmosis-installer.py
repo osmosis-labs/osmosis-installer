@@ -492,7 +492,7 @@ def clientSettings ():
         subprocess.run(["osmosisd init " + nodeName + " --chain-id=osmo-test-3 -o"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         print(bcolors.OKGREEN + "Changing Client Settings..." + bcolors.ENDC)
         subprocess.run(["sed -i -E 's/chain-id = \"\"/chain-id = \"osmo-test-3\"/g' "+HOME.stdout.strip()+"/.osmosisd/config/client.toml"], shell=True)
-        subprocess.run(["sed -i -E 's|node = tcp://localhost:26657|node = \"http://143.198.139.33:26657\"|g' "+HOME.stdout.strip()+"/.osmosisd/config/client.toml"], shell=True)
+        subprocess.run(["sed -i -E 's|node = tcp://localhost:26657|node = \"https://osmosistest-rpc.quickapi.com:443\"|g' "+HOME.stdout.strip()+"/.osmosisd/config/client.toml"], shell=True)
         subprocess.run(["clear"], shell=True)
         clientComplete()
 
