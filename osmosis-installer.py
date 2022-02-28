@@ -523,6 +523,28 @@ def initNodeName ():
         initNodeName()
 
 
+def installLocationHandler ():
+    global osmo_home
+    print(bcolors.OKGREEN + "Input desired installation location. Press enter for default location" + bcolors.ENDC)
+    #app.toml
+    location_def = subprocess.run(["echo $HOME/.osmosisd"], capture_output=True, shell=True, text=True).stdout.strip()
+    #user input
+    osmo_home = rlinput(bcolors.OKGREEN +"Installation Location: "+ bcolors.ENDC, location_def)
+    if osmo_home.endswith("/"):
+        print(bcolors.FAIL + "Please ensure your path does not end with `/`" + bcolors.FAIL)
+        installLocationHandler()
+    elif not osmo_home.startswith("/") and not osmo_home.startswith("$"):
+        print(bcolors.FAIL + "Please ensure your path begin with a `/`" + bcolors.FAIL)
+        installLocationHandler()
+    elif osmo_home == "":
+        print(bcolors.FAIL + "Please ensure your path is not blank" + bcolors.FAIL)
+        installLocationHandler()
+    else:
+        osmo_home = subprocess.run(["echo "+osmo_home], capture_output=True, shell=True, text=True).stdout.strip()
+        subprocess.run(["clear"], shell=True)
+        initNodeName()
+
+
 def installLocation ():
     global osmo_home
     print(bcolors.OKGREEN + """Do you want to install Osmosis in the default location?:
@@ -536,16 +558,11 @@ def installLocation ():
         initNodeName()
     elif locationChoice == "2":
         subprocess.run(["clear"], shell=True)
-        print(bcolors.OKGREEN + "Input desired installation location. Press enter for default location" + bcolors.ENDC)
-        #app.toml
-        location_def = subprocess.run(["echo $HOME/.osmosisd"], capture_output=True, shell=True, text=True).stdout.strip()
-        #user input
-        osmo_home = rlinput(bcolors.OKGREEN +"Installation Location: "+ bcolors.ENDC, location_def)
-        subprocess.run(["clear"], shell=True)
-        initNodeName()
+        installLocationHandler()
     else:
         subprocess.run(["clear"], shell=True)
         installLocation()
+
 
 
 def initSetup ():
@@ -620,13 +637,13 @@ You have less than the recommended 32GB of RAM. Would you like to set up a swap 
             if swapAns == "1":
                 swapNeeded = 32 - round(mem_gib)
                 print(bcolors.OKGREEN +"Setting up "+ str(swapNeeded)+ "GB swap file..."+ bcolors.ENDC)
-                subprocess.run(["sudo swapoff -a"], shell=True)
-                subprocess.run(["sudo fallocate -l " +str(swapNeeded)+"G /swapfile"], shell=True)
-                subprocess.run(["sudo chmod 600 /swapfile"], shell=True)
-                subprocess.run(["sudo mkswap /swapfile"], shell=True)
-                subprocess.run(["sudo swapon /swapfile"], shell=True)
-                subprocess.run(["sudo cp /etc/fstab /etc/fstab.bak"], shell=True)
-                subprocess.run(["echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab"], shell=True)
+                subprocess.run(["sudo swapoff -a"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+                subprocess.run(["sudo fallocate -l " +str(swapNeeded)+"G /swapfile"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+                subprocess.run(["sudo chmod 600 /swapfile"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+                subprocess.run(["sudo mkswap /swapfile"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+                subprocess.run(["sudo swapon /swapfile"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+                subprocess.run(["sudo cp /etc/fstab /etc/fstab.bak"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+                subprocess.run(["echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
                 subprocess.run(["clear"], shell=True)
                 print(bcolors.OKGREEN +str(swapNeeded)+"GB swap file set"+ bcolors.ENDC)
                 initSetup()
