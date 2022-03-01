@@ -582,9 +582,9 @@ def initSetup ():
         subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         os.chdir(os.path.expanduser(HOME+'/osmosis'))
         if networkAns == "1":
-            print(bcolors.OKGREEN + "(5/5) Installing Osmosis V6.4.0 Binary..." + bcolors.ENDC)
+            print(bcolors.OKGREEN + "(5/5) Installing Osmosis V7.0.2 Binary..." + bcolors.ENDC)
             subprocess.run(["git pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-            subprocess.run(["git checkout v6.4.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            subprocess.run(["git checkout v7.0.2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         if networkAns == "2":
             print(bcolors.OKGREEN + "(5/5) Installing Osmosis V7.0.2 Binary..." + bcolors.ENDC)
             subprocess.run(["git pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
@@ -608,13 +608,11 @@ def initSetup ():
         subprocess.run(["brew install jq"], shell=True, env=my_env)
         print(bcolors.OKGREEN + "(3/4) Installing Go..." + bcolors.ENDC)
         subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.17.2"], shell=True, env=my_env)
-        #print(bcolors.OKGREEN + "Reloading Profile..." + bcolors.ENDC)
-        #subprocess.run([". "+HOME+"/.profile"], shell=True)
-        print(bcolors.OKGREEN + "(4/4) Installing Osmosis V6.4.0 Binary..." + bcolors.ENDC)
+        print(bcolors.OKGREEN + "(4/4) Installing Osmosis V7.0.2 Binary..." + bcolors.ENDC)
         os.chdir(os.path.expanduser(HOME))
         subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], shell=True)
         os.chdir(os.path.expanduser(HOME+'/osmosis'))
-        subprocess.run(["git checkout v6.4.0"], shell=True)
+        subprocess.run(["git checkout v7.0.2"], shell=True)
         my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME+"/go/bin:/"+HOME+"/.go/bin:" + my_env["PATH"]
         subprocess.run(["make install"], shell=True, env=my_env)
         subprocess.run(["clear"], shell=True)
