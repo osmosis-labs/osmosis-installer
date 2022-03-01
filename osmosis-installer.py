@@ -161,46 +161,46 @@ WantedBy=multi-user.target
         cosmovisorInit()
 
 
-def stateSyncInit ():
-    print(bcolors.OKGREEN + "Replacing trust height, trust hash, and RPCs in config.toml" + bcolors.ENDC)
-    LATEST_HEIGHT= subprocess.run(["curl -s http://osmo-sync.blockpane.com:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True, env=my_env)
-    TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 2000)
-    TRUST_HASH= subprocess.run(["curl -s \"http://osmo-sync.blockpane.com:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True, env=my_env)
-    RPCs = "osmo-sync.blockpane.com:26657,osmo-sync.blockpane.com:26657"
-    subprocess.run(["sed -i -E 's/enable = false/enable = true/g' "+osmo_home+"/config/config.toml"], shell=True)
-    subprocess.run(["sed -i -E 's/rpc_servers = \"\"/rpc_servers = \""+RPCs+"\"/g' "+osmo_home+"/config/config.toml"], shell=True)
-    subprocess.run(["sed -i -E 's/trust_height = 0/trust_height = "+TRUST_HEIGHT+"/g' "+osmo_home+"/config/config.toml"], shell=True)
-    subprocess.run(["sed -i -E 's/trust_hash = \"\"/trust_hash = \""+TRUST_HASH.stdout.strip()+"\"/g' "+osmo_home+"/config/config.toml"], shell=True)
-    print(bcolors.OKGREEN + """
-Osmosis is about to statesync. This process can take anywhere from 5-30 minutes.
-During this process, you will see many logs (to include many errors)
-As long as it continues to find/apply snapshot chunks, it is working.
-If it stops finding/applying snapshot chunks, you may cancel and try a different method.
+# def stateSyncInit ():
+#     print(bcolors.OKGREEN + "Replacing trust height, trust hash, and RPCs in config.toml" + bcolors.ENDC)
+#     LATEST_HEIGHT= subprocess.run(["curl -s http://osmo-sync.blockpane.com:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True, env=my_env)
+#     TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 2000)
+#     TRUST_HASH= subprocess.run(["curl -s \"http://osmo-sync.blockpane.com:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True, env=my_env)
+#     RPCs = "osmo-sync.blockpane.com:26657,osmo-sync.blockpane.com:26657"
+#     subprocess.run(["sed -i -E 's/enable = false/enable = true/g' "+osmo_home+"/config/config.toml"], shell=True)
+#     subprocess.run(["sed -i -E 's/rpc_servers = \"\"/rpc_servers = \""+RPCs+"\"/g' "+osmo_home+"/config/config.toml"], shell=True)
+#     subprocess.run(["sed -i -E 's/trust_height = 0/trust_height = "+TRUST_HEIGHT+"/g' "+osmo_home+"/config/config.toml"], shell=True)
+#     subprocess.run(["sed -i -E 's/trust_hash = \"\"/trust_hash = \""+TRUST_HASH.stdout.strip()+"\"/g' "+osmo_home+"/config/config.toml"], shell=True)
+#     print(bcolors.OKGREEN + """
+# Osmosis is about to statesync. This process can take anywhere from 5-30 minutes.
+# During this process, you will see many logs (to include many errors)
+# As long as it continues to find/apply snapshot chunks, it is working.
+# If it stops finding/applying snapshot chunks, you may cancel and try a different method.
 
-Continue?:
-1) Yes
-2) No
-    """+ bcolors.ENDC)
-    stateSyncAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
-    if stateSyncAns == "1":
-        subprocess.run(["osmosisd start"], shell=True, env=my_env)
-        print(bcolors.OKGREEN + "Statesync finished. Installing required patches for state sync fix" + bcolors.ENDC)
-        os.chdir(os.path.expanduser(HOME))
-        subprocess.run(["git clone https://github.com/tendermint/tendermint"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-        os.chdir(os.path.expanduser(HOME+'/tendermint/'))
-        subprocess.run(["git checkout callum/app-version"], shell=True, env=my_env)
-        subprocess.run(["make install"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-        subprocess.run(["tendermint set-app-version 1 --home "+osmo_home], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-        subprocess.run(["clear"], shell=True)
-        if os_name == "Linux":
-            cosmovisorInit()
-        else:
-            complete()
-    elif stateSyncAns == "2":
-        dataSyncSelection()
-    else:
-        subprocess.run(["clear"], shell=True)
-        stateSyncInit()
+# Continue?:
+# 1) Yes
+# 2) No
+#     """+ bcolors.ENDC)
+#     stateSyncAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+#     if stateSyncAns == "1":
+#         subprocess.run(["osmosisd start"], shell=True, env=my_env)
+#         print(bcolors.OKGREEN + "Statesync finished. Installing required patches for state sync fix" + bcolors.ENDC)
+#         os.chdir(os.path.expanduser(HOME))
+#         subprocess.run(["git clone https://github.com/tendermint/tendermint"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+#         os.chdir(os.path.expanduser(HOME+'/tendermint/'))
+#         subprocess.run(["git checkout callum/app-version"], shell=True, env=my_env)
+#         subprocess.run(["make install"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+#         subprocess.run(["tendermint set-app-version 1 --home "+osmo_home], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+#         subprocess.run(["clear"], shell=True)
+#         if os_name == "Linux":
+#             cosmovisorInit()
+#         else:
+#             complete()
+#     elif stateSyncAns == "2":
+#         dataSyncSelection()
+#     else:
+#         subprocess.run(["clear"], shell=True)
+#         stateSyncInit()
 
 #def testnetStateSyncInit ():
     #print(bcolors.OKGREEN + "Replacing trust height, trust hash, and RPCs in config.toml" + bcolors.ENDC)
@@ -316,17 +316,16 @@ def mainNetType ():
 def dataSyncSelection ():
     print(bcolors.OKGREEN + """Please choose from the following options:
 1) Download a snapshot from ChainLayer (recommended)
-2) Use statesync (currently slower than snapshot)
-3) Exit now, I only wanted to install the daemon
+2) Exit now, I only wanted to install the daemon
     """+ bcolors.ENDC)
     dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
     if dataTypeAns == "1":
         subprocess.run(["clear"], shell=True)
         mainNetType()
+    #elif dataTypeAns == "2":
+        #subprocess.run(["clear"], shell=True)
+        #stateSyncInit ()
     elif dataTypeAns == "2":
-        subprocess.run(["clear"], shell=True)
-        stateSyncInit ()
-    elif dataTypeAns == "3":
         subprocess.run(["clear"], shell=True)
         partComplete()
     else:
