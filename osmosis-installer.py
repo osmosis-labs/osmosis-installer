@@ -68,6 +68,12 @@ def clientComplete():
     print(bcolors.OKGREEN + "In order to use osmosisd from the cli, either reload your terminal or refresh your profile with: 'source ~/.profile'"+ bcolors.ENDC)
     quit()
 
+def replayComplete():
+    print(bcolors.OKGREEN + "Congratulations! You have are currently replaying from genesis in a background tmux session!")
+    print(bcolors.OKGREEN + "To attach the the tmux session, type `tmux a -t replay` and press enter")
+    print(bcolors.OKGREEN + "In order to use osmosisd from the cli, either reload your terminal or refresh your profile with: 'source ~/.profile'")
+    quit()
+
 
 def cosmovisorInit ():
     print(bcolors.OKGREEN + """Do you want to use Cosmovisor to automate future upgrades?
@@ -159,6 +165,45 @@ WantedBy=multi-user.target
     else:
         subprocess.run(["clear"], shell=True)
         cosmovisorInit()
+
+
+def replayFromGenesis ():
+    print(bcolors.OKGREEN + "Setting Up Cosmovisor..." + bcolors.ENDC)
+    os.chdir(os.path.expanduser(HOME))
+    subprocess.run(["go install github.com/cosmos/cosmos-sdk/cosmovisor/cmd/cosmovisor@v1.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    subprocess.run(["mkdir -p "+osmo_home+"/cosmovisor"], shell=True, env=my_env)
+    subprocess.run(["mkdir -p "+osmo_home+"/cosmovisor/genesis"], shell=True, env=my_env)
+    subprocess.run(["mkdir -p "+osmo_home+"/cosmovisor/genesis/bin"], shell=True, env=my_env)
+    subprocess.run(["mkdir -p "+osmo_home+"/cosmovisor/upgrades"], shell=True, env=my_env)
+    subprocess.run(["mkdir -p "+osmo_home+"/cosmovisor/upgrades/v4/bin"], shell=True, env=my_env)
+    subprocess.run(["mkdir -p "+osmo_home+"/cosmovisor/upgrades/v5/bin"], shell=True, env=my_env)
+    subprocess.run(["mkdir -p "+osmo_home+"/cosmovisor/upgrades/v7/bin"], shell=True, env=my_env)
+    os.chdir(os.path.expanduser(HOME+'/osmosis'))
+    print(bcolors.OKGREEN + "Preparing v4 Upgrade..." + bcolors.ENDC)
+    subprocess.run(["git checkout v4.2.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    subprocess.run(["make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v4/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    print(bcolors.OKGREEN + "Preparing v5/v6 Upgrade..." + bcolors.ENDC)
+    subprocess.run(["git checkout v6.4.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    subprocess.run(["make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v5/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    print(bcolors.OKGREEN + "Preparing v7 Upgrade..." + bcolors.ENDC)
+    subprocess.run(["git checkout v7.0.2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    subprocess.run(["make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v7/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    subprocess.run(["echo '# Setup Cosmovisor' >> "+HOME+"/.profile"], shell=True, env=my_env)
+    subprocess.run(["echo 'export DAEMON_NAME=osmosisd' >> "+HOME+"/.profile"], shell=True, env=my_env)
+    subprocess.run(["echo 'export DAEMON_HOME="+osmo_home+"' >> "+HOME+"/.profile"], shell=True, env=my_env)
+    subprocess.run(["echo 'export DAEMON_ALLOW_DOWNLOAD_BINARIES=false' >> "+HOME+"/.profile"], shell=True, env=my_env)
+    subprocess.run(["echo 'export DAEMON_LOG_BUFFER_SIZE=512' >> "+HOME+"/.profile"], shell=True, env=my_env)
+    subprocess.run(["echo 'export DAEMON_RESTART_AFTER_UPGRADE=true' >> "+HOME+"/.profile"], shell=True, env=my_env)
+    subprocess.run(["echo 'export UNSAFE_SKIP_BACKUP=true' >> "+HOME+"/.profile"], shell=True, env=my_env)
+    subprocess.run(["git checkout v3.1.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    subprocess.run(["make install"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    subprocess.run([". "+HOME+"/.profile"], shell=True, env=my_env)
+    subprocess.run(["cp "+ GOPATH +"/bin/osmosisd "+osmo_home+"/cosmovisor/genesis/bin"], shell=True, env=my_env)
+    subprocess.run(["tmux new -s replay -d osmosisd start --home="+osmo_home], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    replayComplete()
 
 
 # def stateSyncInit ():
@@ -316,16 +361,20 @@ def mainNetType ():
 def dataSyncSelection ():
     print(bcolors.OKGREEN + """Please choose from the following options:
 1) Download a snapshot from ChainLayer (recommended)
-2) Exit now, I only wanted to install the daemon
+2) Start a block 1 and automatically upgrade at upgrade heights (replay from genesis)
+3) Exit now, I only wanted to install the daemon
     """+ bcolors.ENDC)
     dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
     if dataTypeAns == "1":
         subprocess.run(["clear"], shell=True)
         mainNetType()
+    elif dataTypeAns == "2":
+        subprocess.run(["clear"], shell=True)
+        replayFromGenesis()
     #elif dataTypeAns == "2":
         #subprocess.run(["clear"], shell=True)
         #stateSyncInit ()
-    elif dataTypeAns == "2":
+    elif dataTypeAns == "3":
         subprocess.run(["clear"], shell=True)
         partComplete()
     else:
