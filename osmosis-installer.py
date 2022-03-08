@@ -718,16 +718,19 @@ def networkSelect ():
 
 def start ():
     subprocess.run(["clear"], shell=True)
-    global HOME
-    global USER
-    global GOPATH
-    global os_name
-    global node
-    os_name = platform.system()
-    HOME = subprocess.run(["echo $HOME"], capture_output=True, shell=True, text=True).stdout.strip()
-    USER = subprocess.run(["echo $USER"], capture_output=True, shell=True, text=True).stdout.strip()
-    GOPATH = HOME+"/go"
-    print(bcolors.OKGREEN + """
+    def restart ():
+        global HOME
+        global USER
+        global GOPATH
+        global machine
+        global os_name
+        global node
+        os_name = platform.system()
+        machine =  platform.machine()
+        HOME = subprocess.run(["echo $HOME"], capture_output=True, shell=True, text=True).stdout.strip()
+        USER = subprocess.run(["echo $USER"], capture_output=True, shell=True, text=True).stdout.strip()
+        GOPATH = HOME+"/go"
+        print(bcolors.OKGREEN + """
  ██████╗ ███████╗███╗   ███╗ ██████╗ ███████╗██╗███████╗
 ██╔═══██╗██╔════╝████╗ ████║██╔═══██╗██╔════╝██║██╔════╝
 ██║   ██║███████╗██╔████╔██║██║   ██║███████╗██║███████╗
@@ -745,18 +748,24 @@ any important osmosis data before proceeding
 Please choose a node type:
 1) Full Node (download chain data and run locally)
 2) Client Node (setup a daemon and query a public RPC)
-    """+ bcolors.ENDC)
+        """+ bcolors.ENDC)
 
-    node = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+        node = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
 
-    if node == '1':
-        subprocess.run(["clear"], shell=True)
-        networkSelect()
-    elif node == '2':
-        subprocess.run(["clear"], shell=True)
-        networkSelect()
-    else:
-        start()
-
+        if node == '1' and machine != "arm64":
+            subprocess.run(["clear"], shell=True)
+            networkSelect()
+        if node == '1' and machine == "arm64":
+            subprocess.run(["clear"], shell=True)
+            print(bcolors.FAIL +"You are on an arm64 based machine"+ bcolors.ENDC)
+            print(bcolors.FAIL +"Only client nodes can be run on arm64 machines at this time"+ bcolors.ENDC)
+            restart()
+        elif node == '2':
+            subprocess.run(["clear"], shell=True)
+            networkSelect()
+        else:
+            subprocess.run(["clear"], shell=True)
+            restart()
+    restart()
 
 start()
