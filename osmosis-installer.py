@@ -167,7 +167,7 @@ def cosmovisorInit ():
         subprocess.run(["mkdir -p "+osmo_home+"/cosmovisor/upgrades"], shell=True, env=my_env)
         subprocess.run(["mkdir -p "+osmo_home+"/cosmovisor/upgrades/v7/bin"], shell=True, env=my_env)
         os.chdir(os.path.expanduser(HOME+'/osmosis'))
-        subprocess.run(["git checkout v7.0.3"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+        subprocess.run(["git checkout v7.0.4"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         subprocess.run(["make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v7/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         subprocess.run([". "+HOME+"/.profile"], shell=True, env=my_env)
@@ -229,7 +229,7 @@ def replayFromGenesisLevelDb ():
     subprocess.run(["make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v5/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     print(bcolors.OKGREEN + "Preparing v7 Upgrade..." + bcolors.ENDC)
-    subprocess.run(["git checkout v7.0.3"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    subprocess.run(["git checkout v7.0.4"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v7/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["git checkout v3.1.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -252,13 +252,11 @@ def replayFromGenesisRocksDb ():
     subprocess.run(["sudo apt-get install -y libgflags-dev libsnappy-dev zlib1g-dev libbz2-dev liblz4-dev libzstd-dev"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     subprocess.run(["git clone https://github.com/facebook/rocksdb.git"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     os.chdir(os.path.expanduser(HOME+"/rocksdb"))
-    # originally used v6.27.3
     subprocess.run(["git checkout v6.29.3"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     subprocess.run(["export CXXFLAGS='-Wno-error=deprecated-copy -Wno-error=pessimizing-move -Wno-error=class-memaccess'"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     subprocess.run(["sudo make shared_lib"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     subprocess.run(["sudo make install-shared INSTALL_PATH=/usr"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     subprocess.run(["sudo echo 'export LD_LIBRARY_PATH=/usr/local/lib' >> $HOME/.bashrc"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-    # subprocess.run(["source $HOME/.bashrc"], shell=True)
     my_env["LD_LIBRARY_PATH"] = "/usr/local/lib"
     print(bcolors.OKGREEN + "Setting Up Cosmovisor..." + bcolors.ENDC)
     os.chdir(os.path.expanduser(HOME))
@@ -286,7 +284,7 @@ def replayFromGenesisRocksDb ():
     subprocess.run(["BUILD_TAGS=rocksdb make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v5/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     print(bcolors.OKGREEN + "Preparing v7 Upgrade..." + bcolors.ENDC)
-    subprocess.run(["git checkout v7.0.3"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    subprocess.run(["git checkout v7.0.4"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["BUILD_TAGS=rocksdb make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v7/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -321,6 +319,44 @@ def replayFromGenesisDb ():
         subprocess.run(["clear"], shell=True)
         replayFromGenesisRocksDb()
     else:
+        subprocess.run(["clear"], shell=True)
+        replayFromGenesisDb()
+
+
+def extraSwap():
+    mem_bytes = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
+    mem_gib = mem_bytes/(1024.**3)
+    print(bcolors.OKGREEN +"RAM Detected: "+str(round(mem_gib))+"GB"+ bcolors.ENDC)
+    swapNeeded = 64 - round(mem_gib)
+    if round(mem_gib) < 64:
+        print(bcolors.OKGREEN +"""
+There have been reports of replay from genesis needing extra swap (up to 64GB) to prevent OOM errors.
+Would you like to overwrite any previous swap file and instead set a """+str(swapNeeded)+"""GB swap file?
+1) Yes, set up extra swap (recommended)
+2) No, do not set up extra swap
+        """+ bcolors.ENDC)
+        swapAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+        if swapAns == "1":
+            print(bcolors.OKGREEN +"Setting up "+ str(swapNeeded)+ "GB swap file..."+ bcolors.ENDC)
+            subprocess.run(["sudo swapoff -a"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            subprocess.run(["sudo fallocate -l " +str(swapNeeded)+"G /swapfile"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            subprocess.run(["sudo chmod 600 /swapfile"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            subprocess.run(["sudo mkswap /swapfile"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            subprocess.run(["sudo swapon /swapfile"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            subprocess.run(["sudo cp /etc/fstab /etc/fstab.bak"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            subprocess.run(["echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            subprocess.run(["clear"], shell=True)
+            print(bcolors.OKGREEN +str(swapNeeded)+"GB swap file set"+ bcolors.ENDC)
+            replayFromGenesisDb()
+        elif swapAns == "2":
+            subprocess.run(["clear"], shell=True)
+            replayFromGenesisDb()
+        else:
+            subprocess.run(["clear"], shell=True)
+            extraSwap()
+    else:
+        print(bcolors.OKGREEN +"You have enough RAM to meet the 64GB minimum requirement, moving on to system setup..."+ bcolors.ENDC)
+        time.sleep(3)
         subprocess.run(["clear"], shell=True)
         replayFromGenesisDb()
 
@@ -489,7 +525,7 @@ def dataSyncSelection ():
         mainNetType()
     elif dataTypeAns == "2":
         subprocess.run(["clear"], shell=True)
-        replayFromGenesisDb()
+        extraSwap()
     #elif dataTypeAns == "2":
         #subprocess.run(["clear"], shell=True)
         #stateSyncInit ()
@@ -749,15 +785,15 @@ def initSetup ():
         subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         os.chdir(os.path.expanduser(HOME+'/osmosis'))
         if networkAns == "1":
-            print(bcolors.OKGREEN + "(5/5) Installing Osmosis V7.0.3 Binary..." + bcolors.ENDC)
+            print(bcolors.OKGREEN + "(5/5) Installing Osmosis V7.0.4 Binary..." + bcolors.ENDC)
             subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
             subprocess.run(["git pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-            subprocess.run(["git checkout v7.0.3"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            subprocess.run(["git checkout v7.0.4"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         if networkAns == "2":
-            print(bcolors.OKGREEN + "(5/5) Installing Osmosis V7.0.3 Binary..." + bcolors.ENDC)
+            print(bcolors.OKGREEN + "(5/5) Installing Osmosis V7.0.4 Binary..." + bcolors.ENDC)
             subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
             subprocess.run(["git pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-            subprocess.run(["git checkout v7.0.3"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            subprocess.run(["git checkout v7.0.4"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         my_env = os.environ.copy()
         my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME+"/go/bin:/"+HOME+"/.go/bin:" + my_env["PATH"]
         subprocess.run(["make install"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -777,12 +813,12 @@ def initSetup ():
         subprocess.run(["brew install jq"], shell=True, env=my_env)
         print(bcolors.OKGREEN + "(3/4) Installing Go..." + bcolors.ENDC)
         subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.17.2"], shell=True, env=my_env)
-        print(bcolors.OKGREEN + "(4/4) Installing Osmosis V7.0.3 Binary..." + bcolors.ENDC)
+        print(bcolors.OKGREEN + "(4/4) Installing Osmosis V7.0.4 Binary..." + bcolors.ENDC)
         os.chdir(os.path.expanduser(HOME))
         subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], shell=True)
         os.chdir(os.path.expanduser(HOME+'/osmosis'))
         subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        subprocess.run(["git checkout v7.0.3"], shell=True)
+        subprocess.run(["git checkout v7.0.4"], shell=True)
         my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME+"/go/bin:/"+HOME+"/.go/bin:" + my_env["PATH"]
         subprocess.run(["make install"], shell=True, env=my_env)
         subprocess.run(["clear"], shell=True)
@@ -795,15 +831,15 @@ def initEnvironment():
         mem_bytes = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
         mem_gib = mem_bytes/(1024.**3)
         print(bcolors.OKGREEN +"RAM Detected: "+str(round(mem_gib))+"GB"+ bcolors.ENDC)
-        if round(mem_gib) < 64:
+        if round(mem_gib) < 32:
             print(bcolors.OKGREEN +"""
-You have less than the recommended 64GB of RAM. Would you like to set up a swap file?
+You have less than the recommended 32GB of RAM. Would you like to set up a swap file?
 1) Yes, set up swap file
 2) No, do not set up swap file
             """+ bcolors.ENDC)
             swapAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
             if swapAns == "1":
-                swapNeeded = 64 - round(mem_gib)
+                swapNeeded = 32 - round(mem_gib)
                 print(bcolors.OKGREEN +"Setting up "+ str(swapNeeded)+ "GB swap file..."+ bcolors.ENDC)
                 subprocess.run(["sudo swapoff -a"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
                 subprocess.run(["sudo fallocate -l " +str(swapNeeded)+"G /swapfile"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
@@ -822,7 +858,7 @@ You have less than the recommended 64GB of RAM. Would you like to set up a swap 
                 subprocess.run(["clear"], shell=True)
                 initEnvironment()
         else:
-            print(bcolors.OKGREEN +"You have enough RAM to meet the 64GB minimum requirement, moving on to system setup..."+ bcolors.ENDC)
+            print(bcolors.OKGREEN +"You have enough RAM to meet the 32GB minimum requirement, moving on to system setup..."+ bcolors.ENDC)
             time.sleep(3)
             subprocess.run(["clear"], shell=True)
             initSetup()
@@ -834,9 +870,9 @@ You have less than the recommended 64GB of RAM. Would you like to set up a swap 
         mem_bytes = mem_bytes[11:]
         mem_gib = int(mem_bytes)/(1024.**3)
         print(bcolors.OKGREEN +"RAM Detected: "+str(round(mem_gib))+"GB"+ bcolors.ENDC)
-        if round(mem_gib) < 64:
+        if round(mem_gib) < 32:
             print(bcolors.OKGREEN +"""
-You have less than the recommended 64GB of RAM. Would you still like to continue?
+You have less than the recommended 32GB of RAM. Would you still like to continue?
 1) Yes, continue
 2) No, quit
             """+ bcolors.ENDC)
@@ -851,7 +887,7 @@ You have less than the recommended 64GB of RAM. Would you still like to continue
                 subprocess.run(["clear"], shell=True)
                 initEnvironment()
         else:
-            print(bcolors.OKGREEN +"You have enough RAM to meet the 64GB minimum requirement, moving on to system setup..."+ bcolors.ENDC)
+            print(bcolors.OKGREEN +"You have enough RAM to meet the 32GB minimum requirement, moving on to system setup..."+ bcolors.ENDC)
             time.sleep(3)
             subprocess.run(["clear"], shell=True)
             initSetup()
@@ -910,7 +946,7 @@ def start ():
  ╚═════╝ ╚══════╝╚═╝     ╚═╝ ╚═════╝ ╚══════╝╚═╝╚══════╝
 
 
-Welcome to the Osmosis node installer V1.1.0!
+Welcome to the Osmosis node installer V2.0.0!
 For more information, please visit docs.osmosis.zone
 Ensure no osmosis services are running in the background
 If running over an old osmosis installation, back up
