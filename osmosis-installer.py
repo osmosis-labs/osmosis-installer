@@ -959,14 +959,9 @@ Please choose a node type:
 
         node = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
 
-        if node == '1' and machine != "arm64":
+        if node == '1':
             subprocess.run(["clear"], shell=True)
             networkSelect()
-        if node == '1' and machine == "arm64":
-            subprocess.run(["clear"], shell=True)
-            print(bcolors.FAIL +"You are on an arm64 based machine"+ bcolors.ENDC)
-            print(bcolors.FAIL +"Only client nodes can be run on arm64 machines at this time"+ bcolors.ENDC)
-            restart()
         elif node == '2':
             subprocess.run(["clear"], shell=True)
             networkSelect()
