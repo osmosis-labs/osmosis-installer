@@ -467,7 +467,7 @@ def testNetType ():
     global fileName
     global location
     print(bcolors.OKGREEN + """Please choose the node snapshot type:
-1) Pruned
+1) Pruned (recommended)
 2) Archive
     """+ bcolors.ENDC)
     nodeTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
@@ -490,7 +490,7 @@ def mainNetType ():
     global fileName
     global location
     print(bcolors.OKGREEN + """Please choose the node snapshot type:
-1) Pruned
+1) Pruned (recommended)
 2) Default
 3) Archive
     """+ bcolors.ENDC)
