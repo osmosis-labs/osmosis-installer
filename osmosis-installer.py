@@ -686,6 +686,7 @@ def clientSettings ():
         subprocess.run(["osmosisd init " + nodeName + " --chain-id=osmosis-1 -o --home "+osmo_home], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         print(bcolors.OKGREEN + "Changing Client Settings..." + bcolors.ENDC)
         subprocess.run(["sed -i -E 's/chain-id = \"\"/chain-id = \"osmosis-1\"/g' "+osmo_home+"/config/client.toml"], shell=True)
+        #subprocess.run(["sed -i -E 's|node = \"tcp://localhost:26657\"|node = \"https://rpc-osmosis.blockapsis.com:443\"|g' "+osmo_home+"/config/client.toml"], shell=True)
         subprocess.run(["sed -i -E 's|node = \"tcp://localhost:26657\"|node = \"http://osmosis.artifact-staking.io:26657\"|g' "+osmo_home+"/config/client.toml"], shell=True)
         subprocess.run(["clear"], shell=True)
         clientComplete()
