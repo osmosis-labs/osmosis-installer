@@ -4,11 +4,17 @@ import platform
 import time
 import readline
 import random
+import argparse
 from os import remove
 from sys import argv
 
 remove(argv[0])
 
+parser = argparse.ArgumentParser(description="Use default settings")
+parser.add_argument('-m', action='store_true', help='use default settings with no input for mainnet')
+parser.add_argument('-t', action='store_true', help='use default settings with no input for mainnet')
+
+args = parser.parse_args()
 
 class bcolors:
     HEADER = '\033[95m'
@@ -152,10 +158,14 @@ WantedBy=multi-user.target
 def cosmovisorInit ():
     print(bcolors.OKGREEN + """Do you want to use Cosmovisor to automate future upgrades?
 1) Yes, install cosmovisor and set up background service
-2) No, just set up an osmosisd background service
+2) No, just set up an osmosisd background service (recommended)
 3) Don't install cosmovisor and don't set up a background service
     """+ bcolors.ENDC)
-    useCosmovisor = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+    if args.m == True :
+        useCosmovisor = '2'
+    else:
+        useCosmovisor = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+
     if useCosmovisor == "1":
         subprocess.run(["clear"], shell=True)
         print(bcolors.OKGREEN + "Setting Up Cosmovisor..." + bcolors.ENDC)
@@ -519,7 +529,13 @@ def dataSyncSelection ():
 2) Start at block 1 and automatically upgrade at upgrade heights (replay from genesis, can also select rocksdb here)
 3) Exit now, I only wanted to install the daemon
     """+ bcolors.ENDC)
-    dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+    if args.m == True :
+        global location; location = "Netherlands"
+        global fileName; fileName = "osmosis-1-pruned"
+        snapshotInstall()
+    else:
+        dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+
     if dataTypeAns == "1":
         subprocess.run(["clear"], shell=True)
         mainNetType()
@@ -542,7 +558,13 @@ def dataSyncSelectionTest ():
 1) Download a snapshot from ChainLayer (recommended)
 2) Exit now, I only wanted to install the daemon
     """+ bcolors.ENDC)
-    dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+    if args.t == True :
+        global fileName; fileName = "osmotestnet-4-pruned"
+        global location; location = "Netherlands"
+        snapshotInstall()
+    else:
+        dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+
     if dataTypeAns == "1":
         subprocess.run(["clear"], shell=True)
         testNetType()
@@ -563,7 +585,11 @@ def pruningSettings ():
 2) Nothing: (keep everything, select this if running an archive node)
 3) Everything: (modified prune everything due to bug, keep last 10,000 states and prune at a random prime block interval)
     """+ bcolors.ENDC)
-    pruneAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+    if args.m == True :
+        pruneAns = '3'
+    else:
+        pruneAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+
     if pruneAns == "1" and networkAns == "1":
         subprocess.run(["clear"], shell=True)
         dataSyncSelection()
@@ -654,7 +680,11 @@ def setupMainnet ():
     print(bcolors.OKGREEN + "Downloading and Replacing Addressbook..." + bcolors.ENDC)
     subprocess.run(["wget -O "+osmo_home+"/config/addrbook.json https://quicksync.io/addrbook.osmosis.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["clear"], shell=True)
-    customPortSelection()
+
+    if args.m == True :
+        pruningSettings()
+    else:
+        customPortSelection()
 
 
 def setupTestnet ():
@@ -675,7 +705,11 @@ def setupTestnet ():
     print(bcolors.OKGREEN + "Downloading and Replacing Addressbook..." + bcolors.ENDC)
     subprocess.run(["wget -O "+osmo_home+"/config/addrbook.json https://quicksync.io/addrbook.osmotestnet.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["clear"], shell=True)
-    customPortSelection()
+
+    if args.m == True :
+        pruningSettings()
+    else:
+        customPortSelection()
 
 
 def clientSettings ():
@@ -705,7 +739,11 @@ def clientSettings ():
 def initNodeName ():
     global nodeName
     print(bcolors.OKGREEN + "AFTER INPUTING NODE NAME, ALL PREVIOUS OSMOSIS DATA WILL BE RESET" + bcolors.ENDC)
-    nodeName= input(bcolors.OKGREEN + "Input desired node name (no quotes, cant be blank): "+ bcolors.ENDC)
+    if args.m == True :
+        nodeName = 'defaultNode'
+    else:
+        nodeName= input(bcolors.OKGREEN + "Input desired node name (no quotes, cant be blank): "+ bcolors.ENDC)
+
     if nodeName and networkAns == "1" and node == "1":
         subprocess.run(["clear"], shell=True)
         subprocess.run(["rm -r "+osmo_home], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -755,7 +793,11 @@ def installLocation ():
 1) Yes, use default location (recommended)
 2) No, specify custom location
     """+ bcolors.ENDC)
-    locationChoice = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+    if args.m == True :
+        locationChoice = '1'
+    else:
+        locationChoice = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+
     if locationChoice == "1":
         subprocess.run(["clear"], shell=True)
         osmo_home = subprocess.run(["echo $HOME/.osmosisd"], capture_output=True, shell=True, text=True).stdout.strip()
@@ -838,7 +880,11 @@ You have less than the recommended 32GB of RAM. Would you like to set up a swap 
 1) Yes, set up swap file
 2) No, do not set up swap file
             """+ bcolors.ENDC)
-            swapAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+            if args.m == True :
+                swapAns = '1'
+            else:
+                swapAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+
             if swapAns == "1":
                 swapNeeded = 32 - round(mem_gib)
                 print(bcolors.OKGREEN +"Setting up "+ str(swapNeeded)+ "GB swap file..."+ bcolors.ENDC)
@@ -904,8 +950,12 @@ def networkSelect ():
 1) Mainnet (osmosis-1)
 2) Testnet (osmo-test-4)
     """+ bcolors.ENDC)
-
-    networkAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+    if args.m == True and args.t != True:
+        networkAns = '1'
+    elif args.t == True :
+        networkAns = '2'
+    else:
+        networkAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
 
     if networkAns == '1' and node == '1':
         subprocess.run(["clear"], shell=True)
@@ -957,8 +1007,13 @@ Please choose a node type:
 1) Full Node (download chain data and run locally)
 2) Client Node (setup a daemon and query a public RPC)
         """+ bcolors.ENDC)
-
-        node = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+        if args.m == True and args.t == False:
+            node = '1'
+        elif args.t == True and args.m == False :
+            args.m = True
+            node = '1'
+        else:
+            node = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
 
         if node == '1':
             subprocess.run(["clear"], shell=True)
