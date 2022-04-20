@@ -5,10 +5,11 @@ import time
 import readline
 import random
 import argparse
+import sys
 from os import remove
-from sys import argv
 
-remove(argv[0])
+
+#remove(argv[0])
 
 class CustomHelpFormatter(argparse.HelpFormatter):
     def _format_action_invocation(self, action):
@@ -26,41 +27,40 @@ osmo_home = subprocess.run(["echo $HOME/.osmosisd"], capture_output=True, shell=
 
 parser = argparse.ArgumentParser(description="Osmosis Installer",formatter_class=fmt)
 auto = parser.add_argument_group('Automated')
-auto.add_argument('-m', '--mainnet-default', action='store_true', help='R|Use all default settings with no input for mainnet\nEquivalent to running these flags: -ty -n -s -i -na -p -pr -ds -st -sl -cvs\n ', dest="m")
-auto.add_argument('-t', '--testnet-default', action='store_true', help='R|Use all default settings with no input for testnet\nEquivalent to running these flags: -ty -n -s -i -na -p -pr -dst -stt -cvs\n ', dest="t")
+auto.add_argument('-m', '--mainnet-default', action='store_true', help='R|Use all default settings with no input for mainnet\n ', dest="m")
+auto.add_argument('-t', '--testnet-default', action='store_true', help='R|Use all default settings with no input for testnet\n ', dest="t")
 
 both = parser.add_argument_group('Mainnet and Testnet')
 # mainnet and testnet
-both.add_argument('-s', '--swap', type = bool, nargs='?', const=True, help='R|Use swap if less than 32Gb RAM are detected \nDefault (bool): True\n ', dest="s")
-both.add_argument('-i', '--install-home', type = str, nargs='?', const=osmo_home, help='R|Osmosis installation location \nDefault: "'+osmo_home+'"\n ', dest="i")
-both.add_argument('-na', '--name', type = str, nargs='?', const="defaultNode", help='R|Node name \nDefault: "defaultNode"\n ', dest="na")
-args = 'tcp://0.0.0.0:1317,0.0.0.0:9090,0.0.0.0:9091,tcp://127.0.0.1:26658,tcp://127.0.0.1:26657,tcp://0.0.0.0:26656,localhost:6060'; both.add_argument('-p', '--ports', type=lambda s: [str(item) for item in s.split(',')], nargs='?', const=args, help='R|Single string seperated by commas of ports. Order must be api, grpc server, grpc web, abci app addr, rpc laddr, p2p laddr, and pprof laddr \nDefault: \"'+args+'\"\n ', dest="p")
-args = ['full', 'client']; both.add_argument('-ty', '--type', type = str, choices=args, nargs='?', const='full', help='R|Node type \nDefault: "full" '+str(args)+'\n ', dest="ty")
-args = ['osmosis-1', 'osmo-test-4']; both.add_argument('-n', '--network', type = str, choices=args, nargs='?', const='osmosis-1', help='R|Network to join \nDefault: "osmosis-1" '+str(args)+'\n ', dest="n")
-args = ['default', 'nothing', 'everything']; both.add_argument('-pr', '--prune', type = str, choices=args, nargs='?', const='everything', help='R|Pruning settings \nDefault: "everything" '+str(args)+'\n ', dest="pr")
-args = ['cosmoservice', 'osmoservice', 'noservice']; both.add_argument('-cvs', '--cosmovisor-service', type = str, choices=args, nargs='?', const='osmoservice', help='R|Start with cosmovisor systemctl service, osmosisd systemctl service, or exit without creating or starting a service \nDefault: "osmoservice" '+str(args), dest="cvs")
+both.add_argument('-s', '--swap', type = bool, default=True, help='R|Use swap if less than 32Gb RAM are detected \nDefault (bool): True\n ', dest="s")
+both.add_argument('-i', '--install-home', type = str, default=osmo_home, help='R|Osmosis installation location \nDefault: "'+osmo_home+'"\n ', dest="i")
+both.add_argument('-na', '--name', type = str, default="defaultNode", help='R|Node name \nDefault: "defaultNode"\n ', dest="na")
+args = 'tcp://0.0.0.0:1317;0.0.0.0:9090;0.0.0.0:9091;tcp://127.0.0.1:26658;tcp://127.0.0.1:26657;tcp://0.0.0.0:26656;localhost:6060'; both.add_argument('-p', '--ports', type=lambda s: [str(item) for item in s.split(';')], default=args, help='R|Single string seperated by semicolons of ports. Order must be api, grpc server, grpc web, abci app addr, rpc laddr, p2p laddr, and pprof laddr \nDefault: \"'+args+'\"\n ', dest="p")
+args = ['full', 'client']; both.add_argument('-ty', '--type', type = str, choices=args, default='full', help='R|Node type \nDefault: "full" '+str(args)+'\n ', dest="ty")
+args = ['osmosis-1', 'osmo-test-4']; both.add_argument('-n', '--network', type = str, choices=args, default='osmosis-1', help='R|Network to join \nDefault: "osmosis-1" '+str(args)+'\n ', dest="n")
+args = ['default', 'nothing', 'everything']; both.add_argument('-pr', '--prune', type = str, choices=args, default='everything', help='R|Pruning settings \nDefault: "everything" '+str(args)+'\n ', dest="pr")
+args = ['cosmoservice', 'osmoservice', 'noservice']; both.add_argument('-cvs', '--cosmovisor-service', type = str, choices=args, default='osmoservice', help='R|Start with cosmovisor systemctl service, osmosisd systemctl service, or exit without creating or starting a service \nDefault: "osmoservice" '+str(args), dest="cvs")
 testnet = parser.add_argument_group('Testnet only')
 #testnet
-args = ['snapshot', 'exit']; testnet.add_argument('-dst', '--data-sync-test', type = str, choices=args, nargs='?', const='snapshot', help='R|Data sync options \nDefault: "snapshot" '+str(args)+'\n ', dest="dst")
-args = ['pruned', 'archive']; testnet.add_argument('-stt', '--snapshot-type-test', type = str, choices=args, nargs='?', const='pruned', help='R|Snapshot type \nDefault: "pruned" '+str(args)+'\n ', dest="stt")
+args = ['snapshot', 'exit']; testnet.add_argument('-dst', '--data-sync-test', type = str, choices=args, default='snapshot', help='R|Data sync options \nDefault: "snapshot" '+str(args)+'\n ', dest="dst")
+args = ['pruned', 'archive']; testnet.add_argument('-stt', '--snapshot-type-test', type = str, choices=args, default='pruned', help='R|Snapshot type \nDefault: "pruned" '+str(args)+'\n ', dest="stt")
 
 mainnet = parser.add_argument_group('Mainnet only')
 #mainnet
-args = ['snapshot', 'genesis', 'exit']; mainnet.add_argument('-ds', '--data-sync', type = str, choices=args, nargs='?', const='snapshot', help='R|Data sync options \nDefault: "snapshot" '+str(args)+'\n ', dest="ds")
-args = ['pruned', 'default', 'archive']; mainnet.add_argument('-st', '--snapshot-type', type = str, choices=args, nargs='?', const='pruned', help='R|Snapshot type \nDefault: "pruned" '+str(args)+'\n ', dest="st")
-args = ['netherlands', 'singapore', 'sanfrancisco']; mainnet.add_argument('-sl', '--snapshot-location', type = str, choices=args, nargs='?', const='netherlands', help='R|Snapshot location \nDefault: "netherlands" '+str(args)+'\n ', dest="sl")
-args = ['goleveldb', 'rocksdb']; mainnet.add_argument('-rdb', '--replay-db-backend', type = str, choices=args, nargs='?', const='goleveldb', help='R|Database backend when replaying from genesis\nDefault: "goleveldb" '+str(args)+'\n ', dest="rdb")
-mainnet.add_argument('-es', '--extra-swap', type = bool, nargs='?', const=True, help='R|Use extra swap if less than 64Gb RAM are detected when syncing from genesis\nDefault (bool): True\n ', dest="es")
-mainnet.add_argument('-sr', '--start-replay', type = bool, nargs='?', const=True, help='R|Immediately start replay on completion\nDefault (bool): True\n ', dest="sr")
+args = ['snapshot', 'genesis', 'exit']; mainnet.add_argument('-ds', '--data-sync', type = str, choices=args, default='snapshot', help='R|Data sync options \nDefault: "snapshot" '+str(args)+'\n ', dest="ds")
+args = ['pruned', 'default', 'archive']; mainnet.add_argument('-st', '--snapshot-type', type = str, choices=args, default='pruned', help='R|Snapshot type \nDefault: "pruned" '+str(args)+'\n ', dest="st")
+args = ['netherlands', 'singapore', 'sanfrancisco']; mainnet.add_argument('-sl', '--snapshot-location', type = str, choices=args, default='netherlands', help='R|Snapshot location \nDefault: "netherlands" '+str(args)+'\n ', dest="sl")
+args = ['goleveldb', 'rocksdb']; mainnet.add_argument('-rdb', '--replay-db-backend', type = str, choices=args, default='goleveldb', help='R|Database backend when replaying from genesis\nDefault: "goleveldb" '+str(args)+'\n ', dest="rdb")
+mainnet.add_argument('-es', '--extra-swap', type = bool, default=True, help='R|Use extra swap if less than 64Gb RAM are detected when syncing from genesis\nDefault (bool): True\n ', dest="es")
+mainnet.add_argument('-sr', '--start-replay', type = bool, default=True, help='R|Immediately start replay on completion\nDefault (bool): True\n ', dest="sr")
 
 parser._optionals.title = 'Optional Arguments'
+if not len(sys.argv) > 1:
+    parser.set_defaults(m=False, t=False, s=None, i=None, na=None, p=None, ty=None, n=None, pr=None, cvs=None, dst=None, stt=None, ds=None, st=None, sl=None, rdb=None, es=None, sr=None)
 args = parser.parse_args()
 
-if args.m == True:
-    args.ty = 'full'; args.n = 'osmosis-1'; args.s = True; args.i = osmo_home; args.na = 'defaultNode'; args.p = ['tcp://0.0.0.0:1317','0.0.0.0:9090','0.0.0.0:9091','tcp://127.0.0.1:26658','tcp://127.0.0.1:26657','tcp://0.0.0.0:26656','localhost:6060']; args.pr = 'everything'; args.ds = 'snapshot'; args.st = 'pruned'; args.sl = 'netherlands'; args.cvs = 'osmoservice'
-elif args.t == True:
-    args.ty = 'full'; args.n = 'osmo-test-4'; args.s = True; args.i = osmo_home; args.na = 'defaultNode'; args.p = ['tcp://0.0.0.0:1317','0.0.0.0:9090','0.0.0.0:9091','tcp://127.0.0.1:26658','tcp://127.0.0.1:26657','tcp://0.0.0.0:26656','localhost:6060']; args.pr = 'everything'; args.dst = 'snapshot'; args.stt = 'pruned'; args.cvs = 'osmoservice'
-
+if args.t == True:
+    args.n = 'osmo-test-4'
 
 class bcolors:
     HEADER = '\033[95m'
