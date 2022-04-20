@@ -10,11 +10,57 @@ from sys import argv
 
 remove(argv[0])
 
-parser = argparse.ArgumentParser(description="Use default settings")
-parser.add_argument('-m', action='store_true', help='use default settings with no input for mainnet')
-parser.add_argument('-t', action='store_true', help='use default settings with no input for mainnet')
+class CustomHelpFormatter(argparse.HelpFormatter):
+    def _format_action_invocation(self, action):
+        if not action.option_strings or action.nargs == 0:
+            return super()._format_action_invocation(action)
+        return ', '.join(action.option_strings)
+    def _split_lines(self, text, width):
+        if text.startswith('R|'):
+            return text[2:].splitlines()
+        # this is the RawTextHelpFormatter._split_lines
+        return argparse.HelpFormatter._split_lines(self, text, width)
+fmt = lambda prog: CustomHelpFormatter(prog,max_help_position=30)
 
+osmo_home = subprocess.run(["echo $HOME/.osmosisd"], capture_output=True, shell=True, text=True).stdout.strip()
+
+parser = argparse.ArgumentParser(description="Osmosis Installer",formatter_class=fmt)
+auto = parser.add_argument_group('Automated')
+auto.add_argument('-m', '--mainnet-default', action='store_true', help='R|Use all default settings with no input for mainnet\nEquivalent to running these flags: -ty -n -s -i -na -p -pr -ds -st -sl -cvs\n ', dest="m")
+auto.add_argument('-t', '--testnet-default', action='store_true', help='R|Use all default settings with no input for testnet\nEquivalent to running these flags: -ty -n -s -i -na -p -pr -dst -stt -cvs\n ', dest="t")
+
+both = parser.add_argument_group('Mainnet and Testnet')
+# mainnet and testnet
+both.add_argument('-s', '--swap', type = bool, nargs='?', const=True, help='R|Use swap if less than 32Gb RAM are detected \nDefault (bool): True\n ', dest="s")
+both.add_argument('-i', '--install-home', type = str, nargs='?', const=osmo_home, help='R|Osmosis installation location \nDefault: "'+osmo_home+'"\n ', dest="i")
+both.add_argument('-na', '--name', type = str, nargs='?', const="defaultNode", help='R|Node name \nDefault: "defaultNode"\n ', dest="na")
+args = 'tcp://0.0.0.0:1317,0.0.0.0:9090,0.0.0.0:9091,tcp://127.0.0.1:26658,tcp://127.0.0.1:26657,tcp://0.0.0.0:26656,localhost:6060'; both.add_argument('-p', '--ports', type=lambda s: [str(item) for item in s.split(',')], nargs='?', const=args, help='R|Single string seperated by commas of ports. Order must be api, grpc server, grpc web, abci app addr, rpc laddr, p2p laddr, and pprof laddr \nDefault: \"'+args+'\"\n ', dest="p")
+args = ['full', 'client']; both.add_argument('-ty', '--type', type = str, choices=args, nargs='?', const='full', help='R|Node type \nDefault: "full" '+str(args)+'\n ', dest="ty")
+args = ['osmosis-1', 'osmo-test-4']; both.add_argument('-n', '--network', type = str, choices=args, nargs='?', const='osmosis-1', help='R|Network to join \nDefault: "osmosis-1" '+str(args)+'\n ', dest="n")
+args = ['default', 'nothing', 'everything']; both.add_argument('-pr', '--prune', type = str, choices=args, nargs='?', const='everything', help='R|Pruning settings \nDefault: "everything" '+str(args)+'\n ', dest="pr")
+args = ['cosmoservice', 'osmoservice', 'noservice']; both.add_argument('-cvs', '--cosmovisor-service', type = str, choices=args, nargs='?', const='osmoservice', help='R|Start with cosmovisor systemctl service, osmosisd systemctl service, or exit without creating or starting a service \nDefault: "osmoservice" '+str(args), dest="cvs")
+testnet = parser.add_argument_group('Testnet only')
+#testnet
+args = ['snapshot', 'exit']; testnet.add_argument('-dst', '--data-sync-test', type = str, choices=args, nargs='?', const='snapshot', help='R|Data sync options \nDefault: "snapshot" '+str(args)+'\n ', dest="dst")
+args = ['pruned', 'archive']; testnet.add_argument('-stt', '--snapshot-type-test', type = str, choices=args, nargs='?', const='pruned', help='R|Snapshot type \nDefault: "pruned" '+str(args)+'\n ', dest="stt")
+
+mainnet = parser.add_argument_group('Mainnet only')
+#mainnet
+args = ['snapshot', 'genesis', 'exit']; mainnet.add_argument('-ds', '--data-sync', type = str, choices=args, nargs='?', const='snapshot', help='R|Data sync options \nDefault: "snapshot" '+str(args)+'\n ', dest="ds")
+args = ['pruned', 'default', 'archive']; mainnet.add_argument('-st', '--snapshot-type', type = str, choices=args, nargs='?', const='pruned', help='R|Snapshot type \nDefault: "pruned" '+str(args)+'\n ', dest="st")
+args = ['netherlands', 'singapore', 'sanfrancisco']; mainnet.add_argument('-sl', '--snapshot-location', type = str, choices=args, nargs='?', const='netherlands', help='R|Snapshot location \nDefault: "netherlands" '+str(args)+'\n ', dest="sl")
+args = ['goleveldb', 'rocksdb']; mainnet.add_argument('-rdb', '--replay-db-backend', type = str, choices=args, nargs='?', const='goleveldb', help='R|Database backend when replaying from genesis\nDefault: "goleveldb" '+str(args)+'\n ', dest="rdb")
+mainnet.add_argument('-es', '--extra-swap', type = bool, nargs='?', const=True, help='R|Use extra swap if less than 64Gb RAM are detected when syncing from genesis\nDefault (bool): True\n ', dest="es")
+mainnet.add_argument('-sr', '--start-replay', type = bool, nargs='?', const=True, help='R|Immediately start replay on completion\nDefault (bool): True\n ', dest="sr")
+
+parser._optionals.title = 'Optional Arguments'
 args = parser.parse_args()
+
+if args.m == True:
+    args.ty = 'full'; args.n = 'osmosis-1'; args.s = True; args.i = osmo_home; args.na = 'defaultNode'; args.p = ['tcp://0.0.0.0:1317','0.0.0.0:9090','0.0.0.0:9091','tcp://127.0.0.1:26658','tcp://127.0.0.1:26657','tcp://0.0.0.0:26656','localhost:6060']; args.pr = 'everything'; args.ds = 'snapshot'; args.st = 'pruned'; args.sl = 'netherlands'; args.cvs = 'osmoservice'
+elif args.t == True:
+    args.ty = 'full'; args.n = 'osmo-test-4'; args.s = True; args.i = osmo_home; args.na = 'defaultNode'; args.p = ['tcp://0.0.0.0:1317','0.0.0.0:9090','0.0.0.0:9091','tcp://127.0.0.1:26658','tcp://127.0.0.1:26657','tcp://0.0.0.0:26656','localhost:6060']; args.pr = 'everything'; args.dst = 'snapshot'; args.stt = 'pruned'; args.cvs = 'osmoservice'
+
 
 class bcolors:
     HEADER = '\033[95m'
@@ -161,8 +207,12 @@ def cosmovisorInit ():
 2) No, just set up an osmosisd background service (recommended)
 3) Don't install cosmovisor and don't set up a background service
     """+ bcolors.ENDC)
-    if args.m == True :
+    if args.cvs == "cosmoservice" :
+        useCosmovisor = '1'
+    elif args.cvs == "osmoservice" :
         useCosmovisor = '2'
+    elif args.cvs == "noservice" :
+        useCosmovisor = '3'
     else:
         useCosmovisor = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
 
@@ -204,7 +254,13 @@ def startReplayNow():
 1) Yes, start cosmovisor as a background service and begin replay
 2) No, exit and start on my own (will still auto update at upgrade heights)
     """+ bcolors.ENDC)
-    startNow = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+    if args.sr == True :
+        startNow = '1'
+    elif args.sr == False :
+        startNow = '2'
+    else:
+        startNow = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+
     if startNow == "1":
         subprocess.run(["clear"], shell=True)
         cosmovisorService()
@@ -321,7 +377,13 @@ def replayFromGenesisDb ():
 1) goleveldb (Default)
 2) rocksdb (faster but less support)
     """+ bcolors.ENDC)
-    databaseType = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+    if args.rdb == "goleveldb":
+        databaseType = '1'
+    elif args.rdb == "rocksdb":
+        databaseType = '2'
+    else:
+        databaseType = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+
     if databaseType == "1":
         subprocess.run(["clear"], shell=True)
         replayFromGenesisLevelDb()
@@ -345,7 +407,13 @@ Would you like to overwrite any previous swap file and instead set a """+str(swa
 1) Yes, set up extra swap (recommended)
 2) No, do not set up extra swap
         """+ bcolors.ENDC)
-        swapAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+        if args.es == True :
+            swapAns = '1'
+        elif args.es == False :
+            swapAns = '2'
+        else:
+            swapAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+
         if swapAns == "1":
             print(bcolors.OKGREEN +"Setting up "+ str(swapNeeded)+ "GB swap file..."+ bcolors.ENDC)
             subprocess.run(["sudo swapoff -a"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
@@ -455,7 +523,15 @@ def mainNetLocation ():
 2) Singapore
 3) SanFrancisco (WARNING: Location usually slow)
     """+ bcolors.ENDC)
-    nodeLocationAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+    if args.sl == "netherlands":
+        nodeLocationAns = "1"
+    elif args.sl == "singapore":
+        nodeLocationAns = "2"
+    elif args.sl == "sanfrancisco":
+        nodeLocationAns = "3"
+    else:
+        nodeLocationAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+
     if nodeLocationAns == "1":
         subprocess.run(["clear"], shell=True)
         location = "Netherlands"
@@ -480,7 +556,13 @@ def testNetType ():
 1) Pruned (recommended)
 2) Archive
     """+ bcolors.ENDC)
-    nodeTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+    if args.stt == "pruned":
+        nodeTypeAns = "1"
+    elif args.stt == "archive":
+        nodeTypeAns = "2"
+    else:
+        nodeTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+
     if nodeTypeAns == "1":
         subprocess.run(["clear"], shell=True)
         fileName = "osmotestnet-4-pruned"
@@ -504,7 +586,15 @@ def mainNetType ():
 2) Default
 3) Archive
     """+ bcolors.ENDC)
-    nodeTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+    if args.st == "pruned":
+        nodeTypeAns = "1"
+    elif args.st == "default":
+        nodeTypeAns = "2"
+    elif args.st == "archive":
+        nodeTypeAns = "3"
+    else:
+        nodeTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+
     if nodeTypeAns == "1":
         subprocess.run(["clear"], shell=True)
         fileName = "osmosis-1-pruned"
@@ -529,10 +619,12 @@ def dataSyncSelection ():
 2) Start at block 1 and automatically upgrade at upgrade heights (replay from genesis, can also select rocksdb here)
 3) Exit now, I only wanted to install the daemon
     """+ bcolors.ENDC)
-    if args.m == True :
-        global location; location = "Netherlands"
-        global fileName; fileName = "osmosis-1-pruned"
-        snapshotInstall()
+    if args.ds == "snapshot":
+        dataTypeAns = "1"
+    elif args.ds == "genesis":
+        dataTypeAns = "2"
+    elif args.ds == "exit":
+        dataTypeAns = "3"
     else:
         dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
 
@@ -558,10 +650,10 @@ def dataSyncSelectionTest ():
 1) Download a snapshot from ChainLayer (recommended)
 2) Exit now, I only wanted to install the daemon
     """+ bcolors.ENDC)
-    if args.t == True :
-        global fileName; fileName = "osmotestnet-4-pruned"
-        global location; location = "Netherlands"
-        snapshotInstall()
+    if args.dst == "snapshot":
+        dataTypeAns = "1"
+    elif args.dst == "exit":
+        dataTypeAns = "2"
     else:
         dataTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
 
@@ -585,7 +677,11 @@ def pruningSettings ():
 2) Nothing: (keep everything, select this if running an archive node)
 3) Everything: (modified prune everything due to bug, keep last 10,000 states and prune at a random prime block interval)
     """+ bcolors.ENDC)
-    if args.m == True :
+    if args.pr == "default":
+        pruneAns = '1'
+    elif args.pr == "nothing":
+        pruneAns = '2'
+    elif args.pr == "everything":
         pruneAns = '3'
     else:
         pruneAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
@@ -628,45 +724,54 @@ def customPortSelection ():
 1) Yes, use default ports (recommended)
 2) No, specify custom ports
     """+ bcolors.ENDC)
-    portChoice = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
-    if portChoice == "1":
-        subprocess.run(["clear"], shell=True)
-        pruningSettings()
-    elif portChoice == "2":
-        subprocess.run(["clear"], shell=True)
-        print(bcolors.OKGREEN + "Input desired values. Press enter for default values" + bcolors.ENDC)
-        #app.toml
-        api_server_def = "tcp://0.0.0.0:1317"
-        grpc_server_def = "0.0.0.0:9090"
-        grpc_web_def = "0.0.0.0:9091"
-        #config.toml
-        abci_app_addr_def = "tcp://127.0.0.1:26658"
-        rpc_laddr_def = "tcp://127.0.0.1:26657"
-        p2p_laddr_def = "tcp://0.0.0.0:26656"
-        pprof_laddr_def = "localhost:6060"
-        #user input
-        api_server = rlinput(bcolors.OKGREEN +"(1/7) API Server: "+ bcolors.ENDC, api_server_def)
-        grpc_server = rlinput(bcolors.OKGREEN +"(2/7) gRPC Server: "+ bcolors.ENDC, grpc_server_def)
-        grpc_web = rlinput(bcolors.OKGREEN +"(3/7) gRPC Web: "+ bcolors.ENDC, grpc_web_def)
-        abci_app_addr = rlinput(bcolors.OKGREEN +"(4/7) ABCI Application Address: "+ bcolors.ENDC, abci_app_addr_def)
-        rpc_laddr = rlinput(bcolors.OKGREEN +"(5/7) RPC Listening Address: "+ bcolors.ENDC, rpc_laddr_def)
-        p2p_laddr = rlinput(bcolors.OKGREEN +"(6/7) P2P Listening Address: "+ bcolors.ENDC, p2p_laddr_def)
-        pprof_laddr = rlinput(bcolors.OKGREEN +"(7/7) pprof Listening Address: "+ bcolors.ENDC, pprof_laddr_def)
-        #change app.toml values
-        subprocess.run(["sed -i -E 's|tcp://0.0.0.0:1317|"+api_server+"|g' "+osmo_home+"/config/app.toml"], shell=True)
-        subprocess.run(["sed -i -E 's|0.0.0.0:9090|"+grpc_server+"|g' "+osmo_home+"/config/app.toml"], shell=True)
-        subprocess.run(["sed -i -E 's|0.0.0.0:9091|"+grpc_web+"|g' "+osmo_home+"/config/app.toml"], shell=True)
-        #change config.toml values
-        subprocess.run(["sed -i -E 's|tcp://127.0.0.1:26658|"+abci_app_addr+"|g' "+osmo_home+"/config/config.toml"], shell=True)
-        subprocess.run(["sed -i -E 's|tcp://127.0.0.1:26657|"+rpc_laddr+"|g' "+osmo_home+"/config/config.toml"], shell=True)
-        subprocess.run(["sed -i -E 's|tcp://0.0.0.0:26656|"+p2p_laddr+"|g' "+osmo_home+"/config/config.toml"], shell=True)
-        subprocess.run(["sed -i -E 's|localhost:6060|"+pprof_laddr+"|g' "+osmo_home+"/config/config.toml"], shell=True)
-        subprocess.run(["clear"], shell=True)
-        pruningSettings()
+    if args.p:
+        api_server = args.p[0]
+        grpc_server = args.p[1]
+        grpc_web = args.p[2]
+        abci_app_addr = args.p[3]
+        rpc_laddr = args.p[4]
+        p2p_laddr = args.p[5]
+        pprof_laddr = args.p[6]
     else:
-        subprocess.run(["clear"], shell=True)
-        customPortSelection()
+        portChoice = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
 
+        if portChoice == "1":
+            subprocess.run(["clear"], shell=True)
+            pruningSettings()
+        elif portChoice == "2":
+            subprocess.run(["clear"], shell=True)
+            print(bcolors.OKGREEN + "Input desired values. Press enter for default values" + bcolors.ENDC)
+            #app.toml
+            api_server_def = "tcp://0.0.0.0:1317"
+            grpc_server_def = "0.0.0.0:9090"
+            grpc_web_def = "0.0.0.0:9091"
+            #config.toml
+            abci_app_addr_def = "tcp://127.0.0.1:26658"
+            rpc_laddr_def = "tcp://127.0.0.1:26657"
+            p2p_laddr_def = "tcp://0.0.0.0:26656"
+            pprof_laddr_def = "localhost:6060"
+            #user input
+            api_server = rlinput(bcolors.OKGREEN +"(1/7) API Server: "+ bcolors.ENDC, api_server_def)
+            grpc_server = rlinput(bcolors.OKGREEN +"(2/7) gRPC Server: "+ bcolors.ENDC, grpc_server_def)
+            grpc_web = rlinput(bcolors.OKGREEN +"(3/7) gRPC Web: "+ bcolors.ENDC, grpc_web_def)
+            abci_app_addr = rlinput(bcolors.OKGREEN +"(4/7) ABCI Application Address: "+ bcolors.ENDC, abci_app_addr_def)
+            rpc_laddr = rlinput(bcolors.OKGREEN +"(5/7) RPC Listening Address: "+ bcolors.ENDC, rpc_laddr_def)
+            p2p_laddr = rlinput(bcolors.OKGREEN +"(6/7) P2P Listening Address: "+ bcolors.ENDC, p2p_laddr_def)
+            pprof_laddr = rlinput(bcolors.OKGREEN +"(7/7) pprof Listening Address: "+ bcolors.ENDC, pprof_laddr_def)
+        elif portChoice and portChoice != "1" or portChoice != "2":
+            subprocess.run(["clear"], shell=True)
+            customPortSelection()
+    #change app.toml values
+    subprocess.run(["sed -i -E 's|tcp://0.0.0.0:1317|"+api_server+"|g' "+osmo_home+"/config/app.toml"], shell=True)
+    subprocess.run(["sed -i -E 's|0.0.0.0:9090|"+grpc_server+"|g' "+osmo_home+"/config/app.toml"], shell=True)
+    subprocess.run(["sed -i -E 's|0.0.0.0:9091|"+grpc_web+"|g' "+osmo_home+"/config/app.toml"], shell=True)
+    #change config.toml values
+    subprocess.run(["sed -i -E 's|tcp://127.0.0.1:26658|"+abci_app_addr+"|g' "+osmo_home+"/config/config.toml"], shell=True)
+    subprocess.run(["sed -i -E 's|tcp://127.0.0.1:26657|"+rpc_laddr+"|g' "+osmo_home+"/config/config.toml"], shell=True)
+    subprocess.run(["sed -i -E 's|tcp://0.0.0.0:26656|"+p2p_laddr+"|g' "+osmo_home+"/config/config.toml"], shell=True)
+    subprocess.run(["sed -i -E 's|localhost:6060|"+pprof_laddr+"|g' "+osmo_home+"/config/config.toml"], shell=True)
+    subprocess.run(["clear"], shell=True)
+    pruningSettings()
 
 def setupMainnet ():
     print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
@@ -680,11 +785,7 @@ def setupMainnet ():
     print(bcolors.OKGREEN + "Downloading and Replacing Addressbook..." + bcolors.ENDC)
     subprocess.run(["wget -O "+osmo_home+"/config/addrbook.json https://quicksync.io/addrbook.osmosis.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["clear"], shell=True)
-
-    if args.m == True :
-        pruningSettings()
-    else:
-        customPortSelection()
+    customPortSelection()
 
 
 def setupTestnet ():
@@ -705,11 +806,7 @@ def setupTestnet ():
     print(bcolors.OKGREEN + "Downloading and Replacing Addressbook..." + bcolors.ENDC)
     subprocess.run(["wget -O "+osmo_home+"/config/addrbook.json https://quicksync.io/addrbook.osmotestnet.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["clear"], shell=True)
-
-    if args.m == True :
-        pruningSettings()
-    else:
-        customPortSelection()
+    customPortSelection()
 
 
 def clientSettings ():
@@ -739,8 +836,8 @@ def clientSettings ():
 def initNodeName ():
     global nodeName
     print(bcolors.OKGREEN + "AFTER INPUTING NODE NAME, ALL PREVIOUS OSMOSIS DATA WILL BE RESET" + bcolors.ENDC)
-    if args.m == True :
-        nodeName = 'defaultNode'
+    if args.na:
+        nodeName = args.na
     else:
         nodeName= input(bcolors.OKGREEN + "Input desired node name (no quotes, cant be blank): "+ bcolors.ENDC)
 
@@ -768,10 +865,12 @@ def initNodeName ():
 def installLocationHandler ():
     global osmo_home
     print(bcolors.OKGREEN + "Input desired installation location. Press enter for default location" + bcolors.ENDC)
-    #app.toml
     location_def = subprocess.run(["echo $HOME/.osmosisd"], capture_output=True, shell=True, text=True).stdout.strip()
-    #user input
-    osmo_home = rlinput(bcolors.OKGREEN +"Installation Location: "+ bcolors.ENDC, location_def)
+    if args.i:
+        osmo_home = args.i
+    else:
+        osmo_home = rlinput(bcolors.OKGREEN +"Installation Location: "+ bcolors.ENDC, location_def)
+
     if osmo_home.endswith("/"):
         print(bcolors.FAIL + "Please ensure your path does not end with `/`" + bcolors.FAIL)
         installLocationHandler()
@@ -793,8 +892,8 @@ def installLocation ():
 1) Yes, use default location (recommended)
 2) No, specify custom location
     """+ bcolors.ENDC)
-    if args.m == True :
-        locationChoice = '1'
+    if args.i:
+        locationChoice = '2'
     else:
         locationChoice = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
 
@@ -880,8 +979,10 @@ You have less than the recommended 32GB of RAM. Would you like to set up a swap 
 1) Yes, set up swap file
 2) No, do not set up swap file
             """+ bcolors.ENDC)
-            if args.m == True :
+            if args.s == True :
                 swapAns = '1'
+            elif args.s == False :
+                swapAns = '2'
             else:
                 swapAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
 
@@ -923,7 +1024,13 @@ You have less than the recommended 32GB of RAM. Would you still like to continue
 1) Yes, continue
 2) No, quit
             """+ bcolors.ENDC)
-            warnAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+            if args.s == True :
+                warnAns = '1'
+            elif args.s == False :
+                warnAns = '1'
+            else:
+                warnAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+
             if warnAns == "1":
                 subprocess.run(["clear"], shell=True)
                 initSetup()
@@ -950,9 +1057,9 @@ def networkSelect ():
 1) Mainnet (osmosis-1)
 2) Testnet (osmo-test-4)
     """+ bcolors.ENDC)
-    if args.m == True and args.t != True:
+    if args.n == "osmosis-1":
         networkAns = '1'
-    elif args.t == True :
+    elif args.n == "osmo-test-4":
         networkAns = '2'
     else:
         networkAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
@@ -1007,11 +1114,10 @@ Please choose a node type:
 1) Full Node (download chain data and run locally)
 2) Client Node (setup a daemon and query a public RPC)
         """+ bcolors.ENDC)
-        if args.m == True and args.t == False:
+        if args.ty == 'full':
             node = '1'
-        elif args.t == True and args.m == False :
-            args.m = True
-            node = '1'
+        elif args.ty == 'client':
+            node = '2'
         else:
             node = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
 
