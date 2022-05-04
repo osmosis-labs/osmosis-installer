@@ -158,7 +158,7 @@ mainnet.add_argument(
     help='R|Data sync options \nDefault: "snapshot" '+str(dataSyncTypeChoices)+'\n ',
     dest="dataSync")
 
-snapshotTypeChoices = ['pruned', 'default', 'archive']
+snapshotTypeChoices = ['pruned', 'default', 'archive', 'infra']
 mainnet.add_argument(
     '-st',
     '--snapshot-type',
@@ -648,7 +648,22 @@ Would you like to overwrite any previous swap file and instead set a """+str(swa
     #else:
         #subprocess.run(["clear"], shell=True)
         #complete()
-
+def infraSnapshotInstall ():
+    print(bcolors.OKGREEN + "Downloading Decompression Packages..." + bcolors.ENDC)
+    if os_name == "Linux":
+        subprocess.run(["sudo apt-get install wget liblz4-tool aria2 -y"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+    else:
+        subprocess.run(["brew install aria2"], shell=True, env=my_env)
+        subprocess.run(["brew install lz4"], shell=True, env=my_env)
+    print(bcolors.OKGREEN + "Downloading Snapshot..." + bcolors.ENDC)
+    proc = subprocess.run(["curl https://osmosis-snapshot.sfo3.cdn.digitaloceanspaces.com/osmosis.json|jq -r '.[] |select(.file==\"osmosis-1-pruned\")|.url'"], capture_output=True, shell=True, text=True)
+    os.chdir(os.path.expanduser(osmo_home))
+    subprocess.run(["wget -O - "+proc.stdout.strip()+" | lz4 -d | tar -xvf -"], shell=True, env=my_env)
+    subprocess.run(["clear"], shell=True)
+    if os_name == "Linux":
+        cosmovisorInit()
+    else:
+        complete()
 
 def snapshotInstall ():
     print(bcolors.OKGREEN + "Downloading Decompression Packages..." + bcolors.ENDC)
@@ -744,6 +759,9 @@ def mainNetType ():
         nodeTypeAns = "2"
     elif args.snapshotType == "archive":
         nodeTypeAns = "3"
+    elif args.snapshotType == "infra":
+        subprocess.run(["clear"], shell=True)
+        infraSnapshotInstall()
     else:
         nodeTypeAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
 
