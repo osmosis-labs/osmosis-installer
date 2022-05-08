@@ -972,7 +972,7 @@ def clientSettings ():
         #subprocess.run(["sed -i -E 's|node = \"tcp://localhost:26657\"|node = \"https://rpc-osmosis.blockapsis.com:443\"|g' "+osmo_home+"/config/client.toml"], shell=True)
         subprocess.run(["sed -i -E 's|node = \"tcp://localhost:26657\"|node = \"http://osmosis.artifact-staking.io:26657\"|g' "+osmo_home+"/config/client.toml"], shell=True)
         subprocess.run(["clear"], shell=True)
-        clientComplete()
+        clientComplete() 
     elif networkAns == "2":
         print(bcolors.OKGREEN + "Initializing Osmosis Client Node " + nodeName + bcolors.ENDC)
         #subprocess.run(["osmosisd unsafe-reset-all"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -983,7 +983,16 @@ def clientSettings ():
         subprocess.run(["sed -i -E 's|node = \"tcp://localhost:26657\"|node = \"https://testnet-rpc.osmosis.zone:443\"|g' "+osmo_home+"/config/client.toml"], shell=True)
         subprocess.run(["clear"], shell=True)
         clientComplete()
-
+    elif networkAns == "3":
+        print(bcolors.OKGREEN + "Initializing LocalOsmosis Node " + nodeName + bcolors.ENDC)
+        #subprocess.run(["osmosisd unsafe-reset-all"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+        subprocess.run(["rm "+osmo_home+"/config/client.toml"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+        subprocess.run(["osmosisd init " + nodeName + " --chain-id=localosmosis -o --home "+osmo_home], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+        print(bcolors.OKGREEN + "Changing Client Settings..." + bcolors.ENDC)
+        subprocess.run(["sed -i -E 's/chain-id = \"\"/chain-id = \"localosmosis\"/g' "+osmo_home+"/config/client.toml"], shell=True)
+        subprocess.run(["sed -i -E 's|node = \"tcp://localhost:26657\"|node = \"tcp://127.0.0.1:26657\"|g' "+osmo_home+"/config/client.toml"], shell=True)
+        subprocess.run(["clear"], shell=True)
+        clientComplete()
 
 def initNodeName ():
     global nodeName
@@ -992,7 +1001,6 @@ def initNodeName ():
         nodeName = args.nodeName
     else:
         nodeName= input(bcolors.OKGREEN + "Input desired node name (no quotes, cant be blank): "+ bcolors.ENDC)
-
     if nodeName and networkAns == "1" and node == "1":
         subprocess.run(["clear"], shell=True)
         subprocess.run(["rm -r "+osmo_home], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -1007,6 +1015,11 @@ def initNodeName ():
         subprocess.run(["clear"], shell=True)
         subprocess.run(["rm -r "+osmo_home], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         subprocess.run(["rm -r "+HOME+"/.osmosisd"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+        clientSettings()
+    elif nodeName and node == "3" and networkAns == "3":
+        subprocess.run(["clear"], shell=True)
+        subprocess.run(["rm -r "+osmo_home], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+        subprocess.run(["rm -r "+HOME+"/.osmosisd"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)       
         clientSettings()
     else:
         subprocess.run(["clear"], shell=True)
@@ -1207,13 +1220,16 @@ You have less than the recommended 32GB of RAM. Would you still like to continue
 def networkSelect ():
     global networkAns
     print(bcolors.OKGREEN + """Please choose a network to join:
-1) Mainnet (osmosis-1)
+1) Mainnet (osmosis-1) 
 2) Testnet (osmo-test-4)
-    """+ bcolors.ENDC)
+3) Local (localosmosis)
+    """+ bcolors.ENDC) 
     if args.network == "osmosis-1":
         networkAns = '1'
     elif args.network == "osmo-test-4":
         networkAns = '2'
+    elif args.network == "localosmosis":
+        networkAns = '3'
     else:
         networkAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
 
@@ -1227,6 +1243,9 @@ def networkSelect ():
         subprocess.run(["clear"], shell=True)
         initEnvironment()
     elif networkAns == '2' and node == '2':
+        subprocess.run(["clear"], shell=True)
+        initSetup()
+    elif networkAns == '3' and node == '3':
         subprocess.run(["clear"], shell=True)
         initSetup()
     else:
@@ -1266,11 +1285,14 @@ any important osmosis data before proceeding
 Please choose a node type:
 1) Full Node (download chain data and run locally)
 2) Client Node (setup a daemon and query a public RPC)
+3) LocalOsmosis Node (setup a daemon and query a localOsmosis development RPC)
         """+ bcolors.ENDC)
         if args.nodeType == 'full':
             node = '1'
         elif args.nodeType == 'client':
             node = '2'
+        elif args.nodeType == 'local':
+            node = '3'
         else:
             node = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
 
@@ -1278,6 +1300,9 @@ Please choose a node type:
             subprocess.run(["clear"], shell=True)
             networkSelect()
         elif node == '2':
+            subprocess.run(["clear"], shell=True)
+            networkSelect()
+        elif node == '3':
             subprocess.run(["clear"], shell=True)
             networkSelect()
         else:
