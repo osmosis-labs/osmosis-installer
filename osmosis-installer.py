@@ -1141,13 +1141,17 @@ def initSetup ():
         subprocess.run(["brew install jq"], shell=True, env=my_env)
         print(bcolors.OKGREEN + "(3/4) Installing Go..." + bcolors.ENDC)
         subprocess.run(["brew install go@1.18"], shell=True, env=my_env)
-        print(bcolors.OKGREEN + "(4/4) Installing Osmosis V7.3.0 Binary..." + bcolors.ENDC)
         os.chdir(os.path.expanduser(HOME))
         subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], shell=True)
         os.chdir(os.path.expanduser(HOME+'/osmosis'))
         subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         subprocess.run(["git pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        subprocess.run(["git checkout v7.3.0"], shell=True)
+        if machine == 'arm64':
+            print(bcolors.OKGREEN + "(4/4) Installing Osmosis Binary..." + bcolors.ENDC)
+            subprocess.run(["git checkout main"], shell=True)
+        else:
+            print(bcolors.OKGREEN + "(4/4) Installing Osmosis V7.3.0 Binary..." + bcolors.ENDC)
+            subprocess.run(["git checkout v7.3.0"], shell=True)
         my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME+"/go/bin:/"+HOME+"/.go/bin:" + my_env["PATH"]
         subprocess.run(["make install"], shell=True, env=my_env)
         if node == "3":
