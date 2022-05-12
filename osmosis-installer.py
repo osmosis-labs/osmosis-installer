@@ -939,7 +939,7 @@ def customPortSelection ():
 def setupLocalnet ():
     print(bcolors.OKGREEN + "Initializing LocalOsmosis " + nodeName + bcolors.ENDC)
     os.chdir(os.path.expanduser(HOME))
-    subprocess.run(["git clone https://github.com/osmosis-labs/LocalOsmosis.git"], shell=True)
+    subprocess.run(["git clone https://github.com/osmosis-labs/LocalOsmosis.git --depth 1"], shell=True)
     localOsmosisComplete()
 
 def setupMainnet ():
