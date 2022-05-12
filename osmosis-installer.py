@@ -1324,7 +1324,7 @@ Please choose a node type:
             subprocess.run(["clear"], shell=True)
             networkSelect()
         elif node == '3':
-            networkAns == '0'
+            networkAns = '0'
             subprocess.run(["clear"], shell=True)
             initSetup()
         else:
