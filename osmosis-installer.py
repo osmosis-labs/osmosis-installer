@@ -1282,7 +1282,7 @@ def start ():
         global machine
         global os_name
         global node
-        global networkans
+        global networkAns
         os_name = platform.system()
         machine =  platform.machine()
         HOME = subprocess.run(["echo $HOME"], capture_output=True, shell=True, text=True).stdout.strip()
