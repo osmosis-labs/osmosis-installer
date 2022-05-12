@@ -1282,6 +1282,7 @@ def start ():
         global machine
         global os_name
         global node
+        global networkans
         os_name = platform.system()
         machine =  platform.machine()
         HOME = subprocess.run(["echo $HOME"], capture_output=True, shell=True, text=True).stdout.strip()
@@ -1323,6 +1324,7 @@ Please choose a node type:
             subprocess.run(["clear"], shell=True)
             networkSelect()
         elif node == '3':
+            networkAns == '0'
             subprocess.run(["clear"], shell=True)
             initSetup()
         else:
