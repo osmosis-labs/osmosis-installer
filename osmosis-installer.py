@@ -297,7 +297,7 @@ def localOsmosisComplete():
     print(bcolors.OKGREEN + "To start the local network")
     print(bcolors.OKGREEN + "Run 'source ~/.profile'")
     print(bcolors.OKGREEN + "Ensure docker is running in the background if on linux or start the Docker application if on Mac")
-    print(bcolors.OKGREEN + "Find the installed LocalOsmosis folder and cd into it")
+    print(bcolors.OKGREEN + "Go to your $HOME directory and find the installed LocalOsmosis folder and cd into it")
     print(bcolors.OKGREEN + "Run 'docker-compose up'")
     print(bcolors.OKGREEN + "Run 'osmosisd status' to check that you are now creating blocks"+ bcolors.ENDC)
     quit()
@@ -1297,7 +1297,8 @@ def start ():
  ╚═════╝ ╚══════╝╚═╝     ╚═╝ ╚═════╝ ╚══════╝╚═╝╚══════╝
 
 
-Welcome to the Osmosis node installer V2.0.0!
+Welcome to the Osmosis node installer V7.3.0!
+ARM ARCHITECTURE NOT SUPPORTED UNTIL V8
 For more information, please visit docs.osmosis.zone
 Ensure no osmosis services are running in the background
 If running over an old osmosis installation, back up
@@ -1324,7 +1325,7 @@ Please choose a node type:
             subprocess.run(["clear"], shell=True)
             networkSelect()
         elif node == '3':
-            networkAns = '0'
+            networkAns = '3'
             subprocess.run(["clear"], shell=True)
             initSetup()
         else:
