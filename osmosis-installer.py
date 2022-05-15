@@ -82,7 +82,7 @@ both.add_argument(
     help='R|Single string seperated by semicolons of ports. Order must be api, grpc server, grpc web, abci app addr, rpc laddr, p2p laddr, and pprof laddr \nDefault: \"'+portDefault+'\"\n ',
     dest="ports")
 
-nodeTypeChoices = ['full', 'client']
+nodeTypeChoices = ['full', 'client', 'local']
 both.add_argument(
     '-ty',
     '--type',
@@ -289,6 +289,17 @@ def replayDelay():
     print(bcolors.OKGREEN + "Once reloaded, use the command `cosmosvisor start` to start the replay from genesis process")
     print(bcolors.OKGREEN + "It is recommended to run this in a tmux session if not running in a background service")
     print(bcolors.OKGREEN + "You must use `cosmosvisor start` and not `osmosisd start` in order to upgrade automatically"+ bcolors.ENDC)
+    quit()
+
+
+def localOsmosisComplete():
+    print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up a LocalOsmosis node!")
+    print(bcolors.OKGREEN + "To start the local network")
+    print(bcolors.OKGREEN + "Run 'source ~/.profile'")
+    print(bcolors.OKGREEN + "Ensure docker is running in the background if on linux or start the Docker application if on Mac")
+    print(bcolors.OKGREEN + "Go to your $HOME directory and find the installed LocalOsmosis folder and cd into it")
+    print(bcolors.OKGREEN + "Run 'docker-compose up'")
+    print(bcolors.OKGREEN + "Run 'osmosisd status' to check that you are now creating blocks"+ bcolors.ENDC)
     quit()
 
 
@@ -925,6 +936,12 @@ def customPortSelection ():
     subprocess.run(["clear"], shell=True)
     pruningSettings()
 
+def setupLocalnet ():
+    print(bcolors.OKGREEN + "Initializing LocalOsmosis " + nodeName + bcolors.ENDC)
+    os.chdir(os.path.expanduser(HOME))
+    subprocess.run(["git clone https://github.com/osmosis-labs/LocalOsmosis.git --depth 1"], shell=True)
+    localOsmosisComplete()
+
 def setupMainnet ():
     print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
     #subprocess.run(["osmosisd unsafe-reset-all"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -983,6 +1000,15 @@ def clientSettings ():
         subprocess.run(["sed -i -E 's|node = \"tcp://localhost:26657\"|node = \"https://testnet-rpc.osmosis.zone:443\"|g' "+osmo_home+"/config/client.toml"], shell=True)
         subprocess.run(["clear"], shell=True)
         clientComplete()
+    elif networkAns == "3":
+        print(bcolors.OKGREEN + "Initializing LocalOsmosis Node " + nodeName + bcolors.ENDC)
+        subprocess.run(["rm "+osmo_home+"/config/client.toml"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+        subprocess.run(["osmosisd init " + nodeName + " --chain-id=localosmosis -o --home "+osmo_home], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+        print(bcolors.OKGREEN + "Changing Client Settings..." + bcolors.ENDC)
+        subprocess.run(["sed -i -E 's/chain-id = \"\"/chain-id = \"localosmosis\"/g' "+osmo_home+"/config/client.toml"], shell=True)
+        subprocess.run(["sed -i -E 's|node = \"tcp://localhost:26657\"|node = \"tcp://127.0.0.1:26657\"|g' "+osmo_home+"/config/client.toml"], shell=True)
+        subprocess.run(["clear"], shell=True)
+        setupLocalnet()
 
 
 def initNodeName ():
@@ -1003,7 +1029,7 @@ def initNodeName ():
         subprocess.run(["rm -r "+osmo_home], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         subprocess.run(["rm -r "+HOME+"/.osmosisd"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         setupTestnet()
-    elif nodeName and node == "2":
+    elif nodeName and node == "2" or node == "3":
         subprocess.run(["clear"], shell=True)
         subprocess.run(["rm -r "+osmo_home], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         subprocess.run(["rm -r "+HOME+"/.osmosisd"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -1092,6 +1118,13 @@ def initSetup ():
         my_env = os.environ.copy()
         my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME+"/go/bin:/"+HOME+"/.go/bin:" + my_env["PATH"]
         subprocess.run(["make install"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+        if node == "3":
+            print(bcolors.OKGREEN + "Installing Docker..." + bcolors.ENDC)
+            subprocess.run(["sudo apt-get remove docker docker-engine docker.io"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            subprocess.run(["sudo apt-get update"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            subprocess.run(["sudo apt install docker.io -y"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            print(bcolors.OKGREEN + "Installing Docker-Compose..." + bcolors.ENDC)
+            subprocess.run(["sudo apt install docker-compose -y"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         subprocess.run(["clear"], shell=True)
     else:
         print(bcolors.OKGREEN + "Please wait while the following processes run:" + bcolors.ENDC)
@@ -1112,6 +1145,7 @@ def initSetup ():
         subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], shell=True)
         os.chdir(os.path.expanduser(HOME+'/osmosis'))
         subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        subprocess.run(["git pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         if machine == 'arm64':
             print(bcolors.OKGREEN + "(4/4) Installing Osmosis Binary..." + bcolors.ENDC)
             subprocess.run(["git checkout main"], shell=True)
@@ -1120,6 +1154,11 @@ def initSetup ():
             subprocess.run(["git checkout v7.3.0"], shell=True)
         my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME+"/go/bin:/"+HOME+"/.go/bin:" + my_env["PATH"]
         subprocess.run(["make install"], shell=True, env=my_env)
+        if node == "3":
+            print(bcolors.OKGREEN + "Installing Docker..." + bcolors.ENDC)
+            subprocess.run(["brew install docker"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            print(bcolors.OKGREEN + "Installing Docker-Compose..." + bcolors.ENDC)
+            subprocess.run(["brew install docker-compose"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         subprocess.run(["clear"], shell=True)
     installLocation()
 
@@ -1247,6 +1286,7 @@ def start ():
         global machine
         global os_name
         global node
+        global networkAns
         os_name = platform.system()
         machine =  platform.machine()
         HOME = subprocess.run(["echo $HOME"], capture_output=True, shell=True, text=True).stdout.strip()
@@ -1261,7 +1301,8 @@ def start ():
  ╚═════╝ ╚══════╝╚═╝     ╚═╝ ╚═════╝ ╚══════╝╚═╝╚══════╝
 
 
-Welcome to the Osmosis node installer V2.0.0!
+Welcome to the Osmosis node installer V7.3.0!
+ARM ARCHITECTURE NOT SUPPORTED UNTIL V8
 For more information, please visit docs.osmosis.zone
 Ensure no osmosis services are running in the background
 If running over an old osmosis installation, back up
@@ -1270,11 +1311,14 @@ any important osmosis data before proceeding
 Please choose a node type:
 1) Full Node (download chain data and run locally)
 2) Client Node (setup a daemon and query a public RPC)
+3) LocalOsmosis Node (setup a daemon and query a localOsmosis development RPC)
         """+ bcolors.ENDC)
         if args.nodeType == 'full':
             node = '1'
         elif args.nodeType == 'client':
             node = '2'
+        elif args.nodeType == 'local':
+            node = '3'
         else:
             node = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
 
@@ -1284,6 +1328,10 @@ Please choose a node type:
         elif node == '2':
             subprocess.run(["clear"], shell=True)
             networkSelect()
+        elif node == '3':
+            networkAns = '3'
+            subprocess.run(["clear"], shell=True)
+            initSetup()
         else:
             subprocess.run(["clear"], shell=True)
             restart()
