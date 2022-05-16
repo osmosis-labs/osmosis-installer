@@ -1106,15 +1106,15 @@ def initSetup ():
         subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         os.chdir(os.path.expanduser(HOME+'/osmosis'))
         if networkAns == "1":
-            print(bcolors.OKGREEN + "(5/5) Installing Osmosis v7.3.0 Binary..." + bcolors.ENDC)
+            print(bcolors.OKGREEN + "(5/5) Installing Osmosis v8.0.0 Binary..." + bcolors.ENDC)
             subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
             subprocess.run(["git pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-            subprocess.run(["git checkout v7.3.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         if networkAns == "2":
-            print(bcolors.OKGREEN + "(5/5) Installing Osmosis v7.3.0 Binary..." + bcolors.ENDC)
+            print(bcolors.OKGREEN + "(5/5) Installing Osmosis v8.0.0 Binary..." + bcolors.ENDC)
             subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
             subprocess.run(["git pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-            subprocess.run(["git checkout v7.3.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         my_env = os.environ.copy()
         my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME+"/go/bin:/"+HOME+"/.go/bin:" + my_env["PATH"]
         subprocess.run(["make install"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -1150,8 +1150,8 @@ def initSetup ():
             print(bcolors.OKGREEN + "(4/4) Installing Osmosis Binary..." + bcolors.ENDC)
             subprocess.run(["git checkout main"], shell=True)
         else:
-            print(bcolors.OKGREEN + "(4/4) Installing Osmosis V7.3.0 Binary..." + bcolors.ENDC)
-            subprocess.run(["git checkout v7.3.0"], shell=True)
+            print(bcolors.OKGREEN + "(4/4) Installing Osmosis V8.0.0 Binary..." + bcolors.ENDC)
+            subprocess.run(["git checkout v8.0.0"], shell=True)
         my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME+"/go/bin:/"+HOME+"/.go/bin:" + my_env["PATH"]
         subprocess.run(["make install"], shell=True, env=my_env)
         if node == "3":
@@ -1301,8 +1301,8 @@ def start ():
  ╚═════╝ ╚══════╝╚═╝     ╚═╝ ╚═════╝ ╚══════╝╚═╝╚══════╝
 
 
-Welcome to the Osmosis node installer V7.3.0!
-ARM ARCHITECTURE NOT SUPPORTED UNTIL V8
+Welcome to the Osmosis node installer V8.0.0!
+ARM ARCHITECTURE NOT SUPPORTED UNTIL V9
 For more information, please visit docs.osmosis.zone
 Ensure no osmosis services are running in the background
 If running over an old osmosis installation, back up
