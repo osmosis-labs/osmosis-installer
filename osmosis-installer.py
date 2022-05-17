@@ -1176,7 +1176,7 @@ def initSetup ():
             subprocess.run(["brew install docker"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
             print(bcolors.OKGREEN + "Installing Docker-Compose..." + bcolors.ENDC)
             subprocess.run(["brew install docker-compose"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        #subprocess.run(["clear"], shell=True)
+        subprocess.run(["clear"], shell=True)
     installLocation()
 
 
