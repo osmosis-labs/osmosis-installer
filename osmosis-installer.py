@@ -10,7 +10,7 @@ from sys import argv
 from os import remove
 
 # self-destruct file after first call
-#remove(argv[0])
+remove(argv[0])
 
 class CustomHelpFormatter(argparse.HelpFormatter):
     def _format_action_invocation(self, action):
