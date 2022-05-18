@@ -297,7 +297,7 @@ def localOsmosisComplete():
     print(bcolors.OKGREEN + "To start the local network")
     print(bcolors.OKGREEN + "Run 'source ~/.profile'")
     print(bcolors.OKGREEN + "Ensure docker is running in the background if on linux or start the Docker application if on Mac")
-    print(bcolors.OKGREEN + "Go to your $HOME directory and find the installed LocalOsmosis folder and cd into it")
+    print(bcolors.OKGREEN + "Run 'cd $HOME/LocalOsmosis'")
     print(bcolors.OKGREEN + "Run 'docker-compose up'")
     print(bcolors.OKGREEN + "Run 'osmosisd status' to check that you are now creating blocks"+ bcolors.ENDC)
     quit()
@@ -390,7 +390,7 @@ def cosmovisorInit ():
         subprocess.run(["mkdir -p "+osmo_home+"/cosmovisor/upgrades"], shell=True, env=my_env)
         subprocess.run(["mkdir -p "+osmo_home+"/cosmovisor/upgrades/v7/bin"], shell=True, env=my_env)
         os.chdir(os.path.expanduser(HOME+'/osmosis'))
-        subprocess.run(["git checkout v7.3.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+        subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         subprocess.run(["make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v7/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         subprocess.run([". "+HOME+"/.profile"], shell=True, env=my_env)
@@ -457,8 +457,8 @@ def replayFromGenesisLevelDb ():
     subprocess.run(["git checkout v6.4.1"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v5/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    print(bcolors.OKGREEN + "Preparing v7 Upgrade..." + bcolors.ENDC)
-    subprocess.run(["git checkout v7.3.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    print(bcolors.OKGREEN + "Preparing v7/v8 Upgrade..." + bcolors.ENDC)
+    subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v7/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["git checkout v3.1.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -512,8 +512,8 @@ def replayFromGenesisRocksDb ():
     subprocess.run(["git checkout v6.4.1"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["BUILD_TAGS=rocksdb make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v5/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    print(bcolors.OKGREEN + "Preparing v7 Upgrade..." + bcolors.ENDC)
-    subprocess.run(["git checkout v7.3.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    print(bcolors.OKGREEN + "Preparing v7/v8 Upgrade..." + bcolors.ENDC)
+    subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["BUILD_TAGS=rocksdb make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v7/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -939,7 +939,11 @@ def customPortSelection ():
 def setupLocalnet ():
     print(bcolors.OKGREEN + "Initializing LocalOsmosis " + nodeName + bcolors.ENDC)
     os.chdir(os.path.expanduser(HOME))
-    subprocess.run(["git clone https://github.com/osmosis-labs/LocalOsmosis.git --depth 1"], shell=True)
+    subprocess.run(["git clone https://github.com/osmosis-labs/LocalOsmosis.git --depth 1"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+    os.chdir(os.path.expanduser(HOME+'/LocalOsmosis'))
+    subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+    subprocess.run(["git pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+    subprocess.run(["clear"], shell=True)
     localOsmosisComplete()
 
 def setupMainnet ():
@@ -1013,7 +1017,7 @@ def clientSettings ():
 
 def initNodeName ():
     global nodeName
-    print(bcolors.OKGREEN + "AFTER INPUTING NODE NAME, ALL PREVIOUS OSMOSIS DATA WILL BE RESET" + bcolors.ENDC)
+    print(bcolors.OKGREEN + "AFTER INPUTTING NODE NAME, ALL PREVIOUS OSMOSIS DATA WILL BE RESET" + bcolors.ENDC)
     if args.nodeName:
         nodeName = args.nodeName
     else:
@@ -1105,15 +1109,19 @@ def initSetup ():
         os.chdir(os.path.expanduser(HOME))
         subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         os.chdir(os.path.expanduser(HOME+'/osmosis'))
+        subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        subprocess.run(["git pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         if networkAns == "1":
             print(bcolors.OKGREEN + "(5/5) Installing Osmosis v8.0.0 Binary..." + bcolors.ENDC)
-            subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-            subprocess.run(["git pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
             subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         if networkAns == "2":
             print(bcolors.OKGREEN + "(5/5) Installing Osmosis v8.0.0 Binary..." + bcolors.ENDC)
-            subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-            subprocess.run(["git pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        if networkAns == "3" and machine == 'arm64':
+            print(bcolors.OKGREEN + "(5/5) Installing Osmosis Binary..." + bcolors.ENDC)
+            subprocess.run(["git checkout main"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        if networkAns == "3" and machine != 'arm64':
+            print(bcolors.OKGREEN + "(5/5) Installing Osmosis Binary..." + bcolors.ENDC)
             subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         my_env = os.environ.copy()
         my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME+"/go/bin:/"+HOME+"/.go/bin:" + my_env["PATH"]
@@ -1126,7 +1134,7 @@ def initSetup ():
             print(bcolors.OKGREEN + "Installing Docker-Compose..." + bcolors.ENDC)
             subprocess.run(["sudo apt install docker-compose -y"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         subprocess.run(["clear"], shell=True)
-    else:
+    elif os_name == "Darwin":
         print(bcolors.OKGREEN + "Please wait while the following processes run:" + bcolors.ENDC)
         print(bcolors.OKGREEN + "(1/4) Installing brew and wget..." + bcolors.ENDC)
         subprocess.run(["sudo chown -R $(whoami) /usr/local/var/homebrew"], shell=True)
@@ -1140,18 +1148,31 @@ def initSetup ():
         print(bcolors.OKGREEN + "(2/4) Installing jq..." + bcolors.ENDC)
         subprocess.run(["brew install jq"], shell=True, env=my_env)
         print(bcolors.OKGREEN + "(3/4) Installing Go..." + bcolors.ENDC)
-        subprocess.run(["brew install go@1.18"], shell=True, env=my_env)
+        subprocess.run(["brew install coreutils"], shell=True, env=my_env)
+        subprocess.run(["asdf plugin-add golang https://github.com/kennyp/asdf-golang.git"], shell=True, env=my_env)
+        subprocess.run(["asdf install golang 1.18"], shell=True, env=my_env)
+        #subprocess.run(["brew install go@1.18"], shell=True, env=my_env)
+
         os.chdir(os.path.expanduser(HOME))
         subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], shell=True)
         os.chdir(os.path.expanduser(HOME+'/osmosis'))
         subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         subprocess.run(["git pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        if machine == 'arm64':
+        if networkAns == "1" and machine != 'arm64':
+            print(bcolors.OKGREEN + "(4/4) Installing Osmosis v8.0.0 Binary..." + bcolors.ENDC)
+            subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        elif networkAns == "2" and machine != 'arm64':
+            print(bcolors.OKGREEN + "(4/4) Installing Osmosis v8.0.0 Binary..." + bcolors.ENDC)
+            subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        elif networkAns == "3" and machine == 'arm64':
             print(bcolors.OKGREEN + "(4/4) Installing Osmosis Binary..." + bcolors.ENDC)
-            subprocess.run(["git checkout main"], shell=True)
+            subprocess.run(["git checkout main"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        elif networkAns == "3" and machine != 'arm64':
+            print(bcolors.OKGREEN + "(4/4) Installing Osmosis v8.0.0 Binary..." + bcolors.ENDC)
+            subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         else:
-            print(bcolors.OKGREEN + "(4/4) Installing Osmosis V8.0.0 Binary..." + bcolors.ENDC)
-            subprocess.run(["git checkout v8.0.0"], shell=True)
+            print(bcolors.OKGREEN + "Platform not supported" + bcolors.ENDC)
+            exit()
         my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME+"/go/bin:/"+HOME+"/.go/bin:" + my_env["PATH"]
         subprocess.run(["make install"], shell=True, env=my_env)
         if node == "3":
