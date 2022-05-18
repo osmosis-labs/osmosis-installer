@@ -10,7 +10,7 @@ from sys import argv
 from os import remove
 
 # self-destruct file after first call
-remove(argv[0])
+#remove(argv[0])
 
 class CustomHelpFormatter(argparse.HelpFormatter):
     def _format_action_invocation(self, action):
@@ -297,7 +297,7 @@ def localOsmosisComplete():
     print(bcolors.OKGREEN + "To start the local network")
     print(bcolors.OKGREEN + "Run 'source ~/.profile'")
     print(bcolors.OKGREEN + "Ensure docker is running in the background if on linux or start the Docker application if on Mac")
-    print(bcolors.OKGREEN + "Go to your $HOME directory and find the installed LocalOsmosis folder and cd into it")
+    print(bcolors.OKGREEN + "Run 'cd $HOME/LocalOsmosis'")
     print(bcolors.OKGREEN + "Run 'docker-compose up'")
     print(bcolors.OKGREEN + "Run 'osmosisd status' to check that you are now creating blocks"+ bcolors.ENDC)
     quit()
@@ -390,7 +390,7 @@ def cosmovisorInit ():
         subprocess.run(["mkdir -p "+osmo_home+"/cosmovisor/upgrades"], shell=True, env=my_env)
         subprocess.run(["mkdir -p "+osmo_home+"/cosmovisor/upgrades/v7/bin"], shell=True, env=my_env)
         os.chdir(os.path.expanduser(HOME+'/osmosis'))
-        subprocess.run(["git checkout v7.3.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+        subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         subprocess.run(["make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v7/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         subprocess.run([". "+HOME+"/.profile"], shell=True, env=my_env)
@@ -457,8 +457,8 @@ def replayFromGenesisLevelDb ():
     subprocess.run(["git checkout v6.4.1"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v5/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    print(bcolors.OKGREEN + "Preparing v7 Upgrade..." + bcolors.ENDC)
-    subprocess.run(["git checkout v7.3.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    print(bcolors.OKGREEN + "Preparing v7/v8 Upgrade..." + bcolors.ENDC)
+    subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v7/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["git checkout v3.1.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -512,8 +512,8 @@ def replayFromGenesisRocksDb ():
     subprocess.run(["git checkout v6.4.1"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["BUILD_TAGS=rocksdb make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v5/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    print(bcolors.OKGREEN + "Preparing v7 Upgrade..." + bcolors.ENDC)
-    subprocess.run(["git checkout v7.3.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
+    print(bcolors.OKGREEN + "Preparing v7/v8 Upgrade..." + bcolors.ENDC)
+    subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["BUILD_TAGS=rocksdb make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v7/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -939,7 +939,11 @@ def customPortSelection ():
 def setupLocalnet ():
     print(bcolors.OKGREEN + "Initializing LocalOsmosis " + nodeName + bcolors.ENDC)
     os.chdir(os.path.expanduser(HOME))
-    subprocess.run(["git clone https://github.com/osmosis-labs/LocalOsmosis.git --depth 1"], shell=True)
+    subprocess.run(["git clone https://github.com/osmosis-labs/LocalOsmosis.git --depth 1"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+    os.chdir(os.path.expanduser(HOME+'/LocalOsmosis'))
+    subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+    subprocess.run(["git pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+    subprocess.run(["clear"], shell=True)
     localOsmosisComplete()
 
 def setupMainnet ():
