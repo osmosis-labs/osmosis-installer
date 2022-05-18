@@ -1115,7 +1115,7 @@ def initSetup ():
             subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         if networkAns == "3" and machine == 'arm64':
             print(bcolors.OKGREEN + "(5/5) Installing Osmosis Binary..." + bcolors.ENDC)
-            subprocess.run(["git checkout adam/temp-v9"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            subprocess.run(["git checkout main"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         if networkAns == "3" and machine != 'arm64':
             print(bcolors.OKGREEN + "(5/5) Installing Osmosis Binary..." + bcolors.ENDC)
             subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
@@ -1162,7 +1162,7 @@ def initSetup ():
             subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         elif networkAns == "3" and machine == 'arm64':
             print(bcolors.OKGREEN + "(4/4) Installing Osmosis Binary..." + bcolors.ENDC)
-            subprocess.run(["git checkout adam/temp-v9"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            subprocess.run(["git checkout main"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         elif networkAns == "3" and machine != 'arm64':
             print(bcolors.OKGREEN + "(4/4) Installing Osmosis v8.0.0 Binary..." + bcolors.ENDC)
             subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
