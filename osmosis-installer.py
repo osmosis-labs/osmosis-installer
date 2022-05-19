@@ -939,10 +939,12 @@ def customPortSelection ():
 def setupLocalnet ():
     print(bcolors.OKGREEN + "Initializing LocalOsmosis " + nodeName + bcolors.ENDC)
     os.chdir(os.path.expanduser(HOME))
-    subprocess.run(["git clone https://github.com/osmosis-labs/LocalOsmosis.git --depth 1"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+    subprocess.run(["git clone https://github.com/osmosis-labs/LocalOsmosis.git"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     os.chdir(os.path.expanduser(HOME+"/LocalOsmosis"))
     subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     subprocess.run(["git pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+    if versionAns == "1":
+        subprocess.run(["git checkout "+localVersion], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     subprocess.run(["clear"], shell=True)
     localOsmosisComplete()
 
@@ -1117,12 +1119,12 @@ def initSetup ():
         if networkAns == "2":
             print(bcolors.OKGREEN + "(5/5) Installing Osmosis v8.0.0 Binary..." + bcolors.ENDC)
             subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        if networkAns == "3" and machine == 'arm64':
+        if networkAns == "3" and versionAns == "1":
             print(bcolors.OKGREEN + "(5/5) Installing Osmosis Binary..." + bcolors.ENDC)
-            subprocess.run(["git checkout main"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        if networkAns == "3" and machine != 'arm64':
+            subprocess.run(["git checkout "+osmoVersion], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        if networkAns == "3" and versionAns == "2":
             print(bcolors.OKGREEN + "(5/5) Installing Osmosis Binary..." + bcolors.ENDC)
-            subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            subprocess.run(["git checkout "+osmoVersion], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         my_env = os.environ.copy()
         my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME+"/go/bin:/"+HOME+"/.go/bin:" + my_env["PATH"]
         subprocess.run(["make install"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -1152,7 +1154,6 @@ def initSetup ():
         subprocess.run(["asdf plugin-add golang https://github.com/kennyp/asdf-golang.git"], shell=True, env=my_env)
         subprocess.run(["asdf install golang 1.18"], shell=True, env=my_env)
         #subprocess.run(["brew install go@1.18"], shell=True, env=my_env)
-
         os.chdir(os.path.expanduser(HOME))
         subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], shell=True)
         os.chdir(os.path.expanduser(HOME+"/osmosis"))
@@ -1164,12 +1165,12 @@ def initSetup ():
         elif networkAns == "2" and machine != 'arm64':
             print(bcolors.OKGREEN + "(4/4) Installing Osmosis v8.0.0 Binary..." + bcolors.ENDC)
             subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        elif networkAns == "3" and machine == 'arm64':
+        elif networkAns == "3" and versionAns == "1":
             print(bcolors.OKGREEN + "(4/4) Installing Osmosis Binary..." + bcolors.ENDC)
-            subprocess.run(["git checkout main"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        elif networkAns == "3" and machine != 'arm64':
+            subprocess.run(["git checkout "+osmoVersion], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        elif networkAns == "3" and versionAns == "2":
             print(bcolors.OKGREEN + "(4/4) Installing Osmosis v8.0.0 Binary..." + bcolors.ENDC)
-            subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            subprocess.run(["git checkout "+osmoVersion], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         else:
             print(bcolors.OKGREEN + "Platform not supported" + bcolors.ENDC)
             exit()
@@ -1297,6 +1298,34 @@ def networkSelect ():
         subprocess.run(["clear"], shell=True)
         networkSelect()
 
+def localVersionSelect ():
+    global versionAns
+    global localVersion
+    global osmoVersion
+    print(bcolors.OKGREEN + """Please choose a network to join:
+1) v9.0.0-rc0
+2) v8.0.0
+    """+ bcolors.ENDC)
+    if args.network == "osmosis-1":
+        networkAns = '1'
+    elif args.network == "osmo-test-4":
+        networkAns = '2'
+    else:
+        versionAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+
+    if versionAns == '1':
+        localVersion = "adam/v9-testnet"
+        osmoVersion = "v9.0.0-rc0"
+        subprocess.run(["clear"], shell=True)
+        initSetup()
+    elif versionAns == '2':
+        localVersion = "main"
+        osmoVersion = "v8.0.0"
+        subprocess.run(["clear"], shell=True)
+        initSetup()
+    else:
+        subprocess.run(["clear"], shell=True)
+        localVersionSelect()
 
 def start ():
     subprocess.run(["clear"], shell=True)
@@ -1352,7 +1381,7 @@ Please choose a node type:
         elif node == '3':
             networkAns = '3'
             subprocess.run(["clear"], shell=True)
-            initSetup()
+            localVersionSelect()
         else:
             subprocess.run(["clear"], shell=True)
             restart()
