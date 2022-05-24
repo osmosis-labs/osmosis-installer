@@ -1165,6 +1165,9 @@ def initSetup ():
         elif networkAns == "2" and machine != 'arm64':
             print(bcolors.OKGREEN + "(4/4) Installing Osmosis v7.3.0 Binary..." + bcolors.ENDC)
             subprocess.run(["git checkout v7.3.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        elif node == "2" and machine == 'arm64':
+            print(bcolors.OKGREEN + "(4/4) Installing Osmosis Binary..." + bcolors.ENDC)
+            subprocess.run(["git checkout main"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         elif networkAns == "3" and versionAns == "1":
             print(bcolors.OKGREEN + "(4/4) Installing Osmosis Binary..." + bcolors.ENDC)
             subprocess.run(["git checkout "+osmoVersion], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
