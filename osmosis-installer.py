@@ -1141,8 +1141,8 @@ def initSetup ():
             print(bcolors.OKGREEN + "(5/5) Installing Osmosis v10.0.0 Binary..." + bcolors.ENDC)
             subprocess.run(["git checkout v10.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         if networkAns == "2":
-            print(bcolors.OKGREEN + "(5/5) Installing Osmosis v10.0.0 Binary..." + bcolors.ENDC)
-            subprocess.run(["git checkout v10.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            print(bcolors.OKGREEN + "(5/5) Installing Osmosis v10.0.0-testnet Binary..." + bcolors.ENDC)
+            subprocess.run(["git checkout v10.0.0-testnet"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         if networkAns == "3":
             print(bcolors.OKGREEN + "(5/5) Installing Osmosis Binary..." + bcolors.ENDC)
             subprocess.run(["git checkout v10.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
@@ -1179,21 +1179,15 @@ def initSetup ():
         os.chdir(os.path.expanduser(HOME+"/osmosis"))
         subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         subprocess.run(["git pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        if networkAns == "1" and machine != 'arm64':
+        if networkAns == "1":
             print(bcolors.OKGREEN + "(4/4) Installing Osmosis 10.0.0 Binary..." + bcolors.ENDC)
             subprocess.run(["git checkout v10.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        elif networkAns == "2" and machine != 'arm64':
-            print(bcolors.OKGREEN + "(4/4) Installing Osmosis v10.0.0 Binary..." + bcolors.ENDC)
-            subprocess.run(["git checkout v10.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        elif node == "2" and machine == 'arm64':
-            print(bcolors.OKGREEN + "(4/4) Installing Osmosis Binary..." + bcolors.ENDC)
-            subprocess.run(["git checkout main"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        elif networkAns == "2":
+            print(bcolors.OKGREEN + "(4/4) Installing Osmosis v10.0.0-testnet Binary..." + bcolors.ENDC)
+            subprocess.run(["git checkout v10.0.0-testnet"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         elif networkAns == "3":
             print(bcolors.OKGREEN + "(4/4) Installing Osmosis Binary..." + bcolors.ENDC)
             subprocess.run(["git checkout v10.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        else:
-            print(bcolors.OKGREEN + "Platform not supported" + bcolors.ENDC)
-            exit()
         my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME+"/go/bin:/"+HOME+"/.go/bin:" + my_env["PATH"]
         subprocess.run(["make install"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=my_env)
         if node == "3":
