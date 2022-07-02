@@ -692,7 +692,7 @@ def snapshotInstall ():
         subprocess.run(["brew install aria2"], shell=True, env=my_env)
         subprocess.run(["brew install lz4"], shell=True, env=my_env)
     print(bcolors.OKGREEN + "Downloading Snapshot..." + bcolors.ENDC)
-    proc = subprocess.run(["curl https://quicksync.io/osmosis.json|jq -r '.[] |select(.file==\""+ fileName +"\")|select (.mirror==\""+ location +"\")|.url'"], capture_output=True, shell=True, text=True)
+    proc = subprocess.run(["curl -L https://quicksync.io/osmosis.json|jq -r '.[] |select(.file==\""+ fileName +"\")|select (.mirror==\""+ location +"\")|.url'"], capture_output=True, shell=True, text=True)
     os.chdir(os.path.expanduser(osmo_home))
     subprocess.run(["wget -O - "+proc.stdout.strip()+" | lz4 -d | tar -xvf -"], shell=True, env=my_env)
     subprocess.run(["clear"], shell=True)
