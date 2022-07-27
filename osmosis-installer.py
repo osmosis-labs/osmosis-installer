@@ -1150,12 +1150,15 @@ def initSetup ():
         my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME+"/go/bin:/"+HOME+"/.go/bin:" + my_env["PATH"]
         subprocess.run(["make install"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         if node == "3":
+            subprocess.run(["clear"], shell=True)
             print(bcolors.OKGREEN + "Installing Docker..." + bcolors.ENDC)
             subprocess.run(["sudo apt-get remove docker docker-engine docker.io"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
             subprocess.run(["sudo apt-get update"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
             subprocess.run(["sudo apt install docker.io -y"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
             print(bcolors.OKGREEN + "Installing Docker-Compose..." + bcolors.ENDC)
             subprocess.run(["sudo apt install docker-compose -y"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            print(bcolors.OKGREEN + "Adding Wallet Keys to Keyring..." + bcolors.ENDC)
+            subprocess.run(["make localnet-keys"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         subprocess.run(["clear"], shell=True)
     elif os_name == "Darwin":
         print(bcolors.OKGREEN + "Please wait while the following processes run:" + bcolors.ENDC)
@@ -1191,10 +1194,13 @@ def initSetup ():
         my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME+"/go/bin:/"+HOME+"/.go/bin:" + my_env["PATH"]
         subprocess.run(["make install"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=my_env)
         if node == "3":
+            subprocess.run(["clear"], shell=True)
             print(bcolors.OKGREEN + "Installing Docker..." + bcolors.ENDC)
             subprocess.run(["brew install docker"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
             print(bcolors.OKGREEN + "Installing Docker-Compose..." + bcolors.ENDC)
             subprocess.run(["brew install docker-compose"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            print(bcolors.OKGREEN + "Adding Wallet Keys to Keyring..." + bcolors.ENDC)
+            subprocess.run(["make localnet-keys"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         subprocess.run(["clear"], shell=True)
     installLocation()
 
