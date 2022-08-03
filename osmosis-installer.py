@@ -285,7 +285,7 @@ def replayComplete():
 def replayDelay():
     print(bcolors.OKGREEN + "Congratulations! Osmosis is ready to replay from genesis on your command!")
     print(bcolors.OKGREEN + "YOU MUST MANUALLY INCREASE ULIMIT FILE SIZE BEFORE STARTING WITH `ulimit -n 200000`")
-    print(bcolors.OKGREEN + "In order to use osmosisd from the cli, either reload your terminal or refresh your profile with: 'source ~/.profile'")
+    print(bcolors.OKGREEN + "In order to use cosmovisor from the cli, either reload your terminal or refresh your profile with: 'source ~/.profile'")
     print(bcolors.OKGREEN + "Once reloaded, use the command `cosmosvisor start` to start the replay from genesis process")
     print(bcolors.OKGREEN + "It is recommended to run this in a tmux session if not running in a background service")
     print(bcolors.OKGREEN + "You must use `cosmosvisor start` and not `osmosisd start` in order to upgrade automatically"+ bcolors.ENDC)
@@ -430,6 +430,13 @@ def startReplayNow():
         subprocess.run(["sudo systemctl start cosmovisor"], shell=True, env=my_env)
         replayComplete()
     if startNow == "2":
+        subprocess.run(["echo '# Setup Cosmovisor' >> "+HOME+"/.profile"], shell=True, env=my_env)
+        subprocess.run(["echo 'export DAEMON_NAME=osmosisd' >> "+HOME+"/.profile"], shell=True, env=my_env)
+        subprocess.run(["echo 'export DAEMON_HOME="+osmo_home+"' >> "+HOME+"/.profile"], shell=True, env=my_env)
+        subprocess.run(["echo 'export DAEMON_ALLOW_DOWNLOAD_BINARIES=false' >> "+HOME+"/.profile"], shell=True, env=my_env)
+        subprocess.run(["echo 'export DAEMON_LOG_BUFFER_SIZE=512' >> "+HOME+"/.profile"], shell=True, env=my_env)
+        subprocess.run(["echo 'export DAEMON_RESTART_AFTER_UPGRADE=true' >> "+HOME+"/.profile"], shell=True, env=my_env)
+        subprocess.run(["echo 'export UNSAFE_SKIP_BACKUP=true' >> "+HOME+"/.profile"], shell=True, env=my_env)
         subprocess.run(["clear"], shell=True)
         replayDelay()
     else:
