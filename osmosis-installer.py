@@ -1362,7 +1362,7 @@ def start ():
  ╚═════╝ ╚══════╝╚═╝     ╚═╝ ╚═════╝ ╚══════╝╚═╝╚══════╝
 
 
-Welcome to the Osmosis node installer {v}}!
+Welcome to the Osmosis node installer {v}!
 For more information, please visit docs.osmosis.zone
 Ensure no osmosis services are running in the background
 If running over an old osmosis installation, back up
