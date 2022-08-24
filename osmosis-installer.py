@@ -6,11 +6,9 @@ import readline
 import random
 import argparse
 import sys
-from sys import argv
-from os import remove
 
 # self-destruct file after first call
-remove(argv[0])
+os.remove(sys.argv[0])
 
 # Global Parameters
 OSMOSIS_VERSION="v11.0.1"
