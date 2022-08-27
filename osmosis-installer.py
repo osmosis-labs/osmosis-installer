@@ -15,15 +15,15 @@ class NetworkVersion(str, Enum):
     MAINNET = "v11.0.1"
     TESTNET = "v11.0.1"
 
-class NetworkType(Enum):
-    MAINNET = auto()
-    TESTNET = auto()
-    LOCALOSMOSIS = auto()
+class NetworkType(str, Enum):
+    MAINNET = "1"
+    TESTNET = "2"
+    LOCALOSMOSIS = "3"
 
 class NodeType(str, Enum):
-    FULL = auto()
-    CLIENT = auto()
-    LOCALOSMOSIS = auto()
+    FULL = "1"
+    CLIENT = "2"
+    LOCALOSMOSIS = "3"
 
 class CustomHelpFormatter(argparse.HelpFormatter):
     def _format_action_invocation(self, action):
@@ -1353,10 +1353,12 @@ You have less than the recommended 32GB of RAM. Would you still like to continue
 
 def selectNetwork ():
     global networkType
-    print(bcolors.OKGREEN + """Please choose a network to join:
+    print(bcolors.OKGREEN + 
+    """
+Please choose a network to join:
 1) Mainnet (osmosis-1)
 2) Testnet (osmo-test-4)
-    """+ bcolors.ENDC)
+    """ + bcolors.ENDC)
 
     if args.network == "osmosis-1":
         networkType = networkType.MAINNET
