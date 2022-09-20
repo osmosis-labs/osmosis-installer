@@ -92,7 +92,7 @@ both.add_argument(
     '--ports',
     type=lambda s: [str(item) for item in s.split(';')],
     default=portDefault,
-    help='R|Single string seperated by semicolons of ports. Order must be api, grpc server, grpc web, abci app addr, rpc laddr, p2p laddr, and pprof laddr \nDefault: \"'+portDefault+'\"\n ',
+    help='R|Single string separated by semicolons of ports. Order must be api, grpc server, grpc web, abci app addr, rpc laddr, p2p laddr, and pprof laddr \nDefault: \"'+portDefault+'\"\n ',
     dest="ports")
 
 nodeTypeChoices = ['full', 'client', 'local']
@@ -239,11 +239,11 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 def rlinput(prompt, prefill=''):
-   readline.set_startup_hook(lambda: readline.insert_text(prefill))
-   try:
-      return input(prompt)
-   finally:
-      readline.set_startup_hook()
+    readline.set_startup_hook(lambda: readline.insert_text(prefill))
+    try:
+        return input(prompt)
+    finally:
+        readline.set_startup_hook()
 
 
 def completeCosmovisor():
@@ -299,9 +299,9 @@ def replayDelay():
     print(bcolors.OKGREEN + "Congratulations! Osmosis is ready to replay from genesis on your command!")
     print(bcolors.OKGREEN + "YOU MUST MANUALLY INCREASE ULIMIT FILE SIZE BEFORE STARTING WITH `ulimit -n 200000`")
     print(bcolors.OKGREEN + "In order to use cosmovisor from the cli, either reload your terminal or refresh your profile with: 'source ~/.profile'")
-    print(bcolors.OKGREEN + "Once reloaded, use the command `cosmosvisor start` to start the replay from genesis process")
+    print(bcolors.OKGREEN + "Once reloaded, use the command `cosmovisor start` to start the replay from genesis process")
     print(bcolors.OKGREEN + "It is recommended to run this in a tmux session if not running in a background service")
-    print(bcolors.OKGREEN + "You must use `cosmosvisor start` and not `osmosisd start` in order to upgrade automatically"+ bcolors.ENDC)
+    print(bcolors.OKGREEN + "You must use `cosmovisor start` and not `osmosisd start` in order to upgrade automatically"+ bcolors.ENDC)
     quit()
 
 
@@ -310,9 +310,13 @@ def localOsmosisComplete():
     print(bcolors.OKGREEN + "To start the local network")
     print(bcolors.OKGREEN + "Run 'source ~/.profile'")
     print(bcolors.OKGREEN + "Ensure docker is running in the background if on linux or start the Docker application if on Mac")
-    print(bcolors.OKGREEN + "Run 'cd $HOME/LocalOsmosis'")
-    print(bcolors.OKGREEN + "Run 'docker-compose up'")
-    print(bcolors.OKGREEN + "Run 'osmosisd status' to check that you are now creating blocks"+ bcolors.ENDC)
+    print(bcolors.OKGREEN + "Run 'cd $HOME/osmosis'")
+    print(bcolors.OKGREEN + "To start the node, run 'make localnet-start'")
+    print(bcolors.OKGREEN + "Run 'osmosisd status' to check that you are now creating blocks")
+    print(bcolors.OKGREEN + "To stop the node and retain data, run 'make localnet-stop'")
+    print(bcolors.OKGREEN + "To stop the node and remove data, run 'make localnet-remove'")
+    print(bcolors.OKGREEN + "To run LocalOsmosis on a different version, git checkout the desired branch, run 'make localnet-build', then follow the above instructions")
+    print(bcolors.OKGREEN + "For more in depth information, see https://github.com/osmosis-labs/osmosis/blob/main/tests/localosmosis/README.md"+ bcolors.ENDC)
     quit()
 
 
@@ -942,7 +946,6 @@ def pruningSettings ():
 
 
 def customPortSelection ():
-
     print(bcolors.OKGREEN + """Do you want to run Osmosis on default ports?:
 1) Yes, use default ports (recommended)
 2) No, specify custom ports
@@ -1000,18 +1003,14 @@ def customPortSelection ():
     pruningSettings()
 
 def setupLocalnet ():
-
     print(bcolors.OKGREEN + "Initializing LocalOsmosis " + nodeName + bcolors.ENDC)
-    os.chdir(os.path.expanduser(HOME))
-    subprocess.run(["git clone https://github.com/osmosis-labs/LocalOsmosis.git"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-    os.chdir(os.path.expanduser(HOME+"/LocalOsmosis"))
-    subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-    subprocess.run(["git pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+    os.chdir(os.path.expanduser(HOME+"/osmosis"))
+    print(bcolors.OKGREEN + "Building LocalOsmosis docker image {v}...".format(v=NetworkVersion.MAINNET) + bcolors.ENDC)
+    subprocess.run(["make localnet-build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     subprocess.run(["clear"], shell=True)
     localOsmosisComplete()
 
 def setupMainnet ():
-
     print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
     #subprocess.run(["osmosisd unsafe-reset-all"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["rm "+osmo_home+"/config/app.toml"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -1027,7 +1026,6 @@ def setupMainnet ():
 
 
 def setupTestnet ():
-
     print(bcolors.OKGREEN + "Initializing Osmosis Node " + nodeName + bcolors.ENDC)
     #subprocess.run(["osmosisd unsafe-reset-all"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["rm "+osmo_home+"/config/config.toml"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -1049,7 +1047,6 @@ def setupTestnet ():
 
 
 def clientSettings ():
-
     if networkType == NetworkType.MAINNET:
         print(bcolors.OKGREEN + "Initializing Osmosis Client Node " + nodeName + bcolors.ENDC)
         #subprocess.run(["osmosisd unsafe-reset-all"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -1061,7 +1058,7 @@ def clientSettings ():
         subprocess.run(["sed -i -E 's|node = \"tcp://localhost:26657\"|node = \"http://osmosis.artifact-staking.io:26657\"|g' "+osmo_home+"/config/client.toml"], shell=True)
         subprocess.run(["clear"], shell=True)
         clientComplete()
-    
+
     elif networkType == NetworkType.TESTNET:
         print(bcolors.OKGREEN + "Initializing Osmosis Client Node " + nodeName + bcolors.ENDC)
         #subprocess.run(["osmosisd unsafe-reset-all"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -1085,7 +1082,6 @@ def clientSettings ():
 
 
 def initNodeName ():
-
     global nodeName
     print(bcolors.OKGREEN + "AFTER INPUTTING NODE NAME, ALL PREVIOUS OSMOSIS DATA WILL BE RESET" + bcolors.ENDC)
 
@@ -1116,7 +1112,6 @@ def initNodeName ():
 
 
 def installLocationHandler ():
-
     global osmo_home
     print(bcolors.OKGREEN + "Input desired installation location. Press enter for default location" + bcolors.ENDC)
     location_def = subprocess.run(["echo $HOME/.osmosisd"], capture_output=True, shell=True, text=True).stdout.strip()
@@ -1142,13 +1137,12 @@ def installLocationHandler ():
 
 
 def installLocation ():
-
     global osmo_home
     print(bcolors.OKGREEN + """Do you want to install Osmosis in the default location?:
 1) Yes, use default location (recommended)
 2) No, specify custom location
     """+ bcolors.ENDC)
-    
+
     if args.installHome:
         locationChoice = '2'
     else:
@@ -1167,7 +1161,6 @@ def installLocation ():
 
 
 def initSetup ():
-
     global my_env
 
     if os_name == "Linux":
@@ -1187,19 +1180,19 @@ def initSetup ():
         os.chdir(os.path.expanduser(HOME+"/osmosis"))
         subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         subprocess.run(["git pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        
+
         if networkType == NetworkType.MAINNET:
             print(bcolors.OKGREEN + "(5/5) Installing Osmosis {v} Binary...".format(v=NetworkVersion.MAINNET) + bcolors.ENDC)
             subprocess.run(["git checkout {v}".format(v=NetworkVersion.MAINNET)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        
+
         if networkType == NetworkType.TESTNET:
             print(bcolors.OKGREEN + "(5/5) Installing Osmosis {v} Binary...".format(v=NetworkVersion.MAINNET) + bcolors.ENDC)
             subprocess.run(["git checkout {v}".format(v=NetworkVersion.TESTNET)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        
+
         if networkType == NetworkType.LOCALOSMOSIS:
-            print(bcolors.OKGREEN + "(5/5) Installing Osmosis Binary..." + bcolors.ENDC)
+            print(bcolors.OKGREEN + "(5/5) Installing Osmosis {v} Binary...".format(v=NetworkVersion.MAINNET) + bcolors.ENDC)
             subprocess.run(["git checkout {v}".format(v=NetworkVersion.MAINNET)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        
+
         my_env = os.environ.copy()
         my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME+"/go/bin:/"+HOME+"/.go/bin:" + my_env["PATH"]
         subprocess.run(["make install"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -1214,7 +1207,7 @@ def initSetup ():
             subprocess.run(["sudo apt install docker-compose -y"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
             print(bcolors.OKGREEN + "Adding Wallet Keys to Keyring..." + bcolors.ENDC)
             subprocess.run(["make localnet-keys"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-    
+
         subprocess.run(["clear"], shell=True)
 
     elif os_name == "Darwin":
@@ -1247,14 +1240,14 @@ def initSetup ():
         elif networkType == NetworkType.TESTNET:
             print(bcolors.OKGREEN + "(4/4) Installing Osmosis {v} Binary...".format(v=NetworkVersion.TESTNET) + bcolors.ENDC)
             subprocess.run(["git checkout {v}".format(v=NetworkVersion.TESTNET)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        
+
         elif networkType == NetworkType.LOCALOSMOSIS:
             print(bcolors.OKGREEN + "(4/4) Installing Osmosis Binary..." + bcolors.ENDC)
             subprocess.run(["git checkout {v}".format(v=NetworkVersion.MAINNET)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-       
+
         my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME+"/go/bin:/"+HOME+"/.go/bin:" + my_env["PATH"]
         subprocess.run(["make install"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=my_env)
-       
+
         if node == NodeType.LOCALOSMOSIS:
             subprocess.run(["clear"], shell=True)
             print(bcolors.OKGREEN + "Installing Docker..." + bcolors.ENDC)
@@ -1353,7 +1346,7 @@ You have less than the recommended 32GB of RAM. Would you still like to continue
 
 def selectNetwork ():
     global networkType
-    print(bcolors.OKGREEN + 
+    print(bcolors.OKGREEN +
     """
 Please choose a network to join:
 1) Mainnet (osmosis-1)
@@ -1422,7 +1415,7 @@ Please choose a node type:
 2) Client Node (setup a daemon and query a public RPC)
 3) LocalOsmosis Node (setup a daemon and query a localOsmosis development RPC)
         """.format(
-            m=NetworkVersion.MAINNET.value, 
+            m=NetworkVersion.MAINNET.value,
             t=NetworkVersion.TESTNET.value) + bcolors.ENDC)
 
         if args.nodeType == 'full':
