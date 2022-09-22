@@ -1003,9 +1003,10 @@ def customPortSelection ():
     pruningSettings()
 
 def setupLocalnet ():
+    global version
     print(bcolors.OKGREEN + "Initializing LocalOsmosis " + nodeName + bcolors.ENDC)
     os.chdir(os.path.expanduser(HOME+"/osmosis"))
-    print(bcolors.OKGREEN + "Building LocalOsmosis docker image {v}...".format(v=NetworkVersion.MAINNET) + bcolors.ENDC)
+    print(bcolors.OKGREEN + "Building LocalOsmosis docker image {v}...".format(v=version) + bcolors.ENDC)
     subprocess.run(["make localnet-build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     subprocess.run(["clear"], shell=True)
     localOsmosisComplete()
@@ -1162,6 +1163,8 @@ def installLocation ():
 
 def initSetup ():
     global my_env
+    global repo
+    global version
 
     if os_name == "Linux":
         print(bcolors.OKGREEN + "Please wait while the following processes run:" + bcolors.ENDC)
@@ -1176,22 +1179,23 @@ def initSetup ():
         print(bcolors.OKGREEN + "(4/5) Reloading Profile..." + bcolors.ENDC)
         subprocess.run([". "+HOME+"/.profile"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         os.chdir(os.path.expanduser(HOME))
-        subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        gitClone = subprocess.Popen(["git clone "+repo], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, shell=True)
+        if "Repository not found" in gitClone.communicate()[1]:
+            subprocess.run(["clear"], shell=True)
+            print(bcolors.OKGREEN + repo +""" repo provided by user does not exist, try another URL
+            """+ bcolors.ENDC)
+            brachSelection()
         os.chdir(os.path.expanduser(HOME+"/osmosis"))
         subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         subprocess.run(["git pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
 
-        if networkType == NetworkType.MAINNET:
-            print(bcolors.OKGREEN + "(5/5) Installing Osmosis {v} Binary...".format(v=NetworkVersion.MAINNET) + bcolors.ENDC)
-            subprocess.run(["git checkout {v}".format(v=NetworkVersion.MAINNET)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-
-        if networkType == NetworkType.TESTNET:
-            print(bcolors.OKGREEN + "(5/5) Installing Osmosis {v} Binary...".format(v=NetworkVersion.MAINNET) + bcolors.ENDC)
-            subprocess.run(["git checkout {v}".format(v=NetworkVersion.TESTNET)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-
-        if networkType == NetworkType.LOCALOSMOSIS:
-            print(bcolors.OKGREEN + "(5/5) Installing Osmosis {v} Binary...".format(v=NetworkVersion.MAINNET) + bcolors.ENDC)
-            subprocess.run(["git checkout {v}".format(v=NetworkVersion.MAINNET)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        print(bcolors.OKGREEN + "(4/4) Installing Osmosis {v} Binary...".format(v=version) + bcolors.ENDC)
+        gitCheckout = subprocess.Popen(["git checkout {v}".format(v=version)], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, shell=True)
+        if "did not match any file(s) known to git" in gitCheckout.communicate()[1]:
+            subprocess.run(["clear"], shell=True)
+            print(bcolors.OKGREEN + version +""" branch provided by user does not exist, try another branch
+            """+ bcolors.ENDC)
+            brachSelection()
 
         my_env = os.environ.copy()
         my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME+"/go/bin:/"+HOME+"/.go/bin:" + my_env["PATH"]
@@ -1228,22 +1232,23 @@ def initSetup ():
         subprocess.run(["asdf plugin-add golang https://github.com/kennyp/asdf-golang.git"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=my_env)
         subprocess.run(["asdf install golang 1.18"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=my_env)
         os.chdir(os.path.expanduser(HOME))
-        subprocess.run(["git clone https://github.com/osmosis-labs/osmosis"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        gitClone = subprocess.Popen(["git clone "+repo], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, shell=True)
+        if "Repository not found" in gitClone.communicate()[1]:
+            subprocess.run(["clear"], shell=True)
+            print(bcolors.OKGREEN + repo +""" repo provided by user does not exist, try another URL
+            """+ bcolors.ENDC)
+            brachSelection()
         os.chdir(os.path.expanduser(HOME+"/osmosis"))
         subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         subprocess.run(["git pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
 
-        if networkType == NetworkType.MAINNET:
-            print(bcolors.OKGREEN + "(4/4) Installing Osmosis {v} Binary...".format(v=NetworkVersion.MAINNET) + bcolors.ENDC)
-            subprocess.run(["git checkout {v}".format(v=NetworkVersion.MAINNET)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-
-        elif networkType == NetworkType.TESTNET:
-            print(bcolors.OKGREEN + "(4/4) Installing Osmosis {v} Binary...".format(v=NetworkVersion.TESTNET) + bcolors.ENDC)
-            subprocess.run(["git checkout {v}".format(v=NetworkVersion.TESTNET)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-
-        elif networkType == NetworkType.LOCALOSMOSIS:
-            print(bcolors.OKGREEN + "(4/4) Installing Osmosis Binary..." + bcolors.ENDC)
-            subprocess.run(["git checkout {v}".format(v=NetworkVersion.MAINNET)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        print(bcolors.OKGREEN + "(4/4) Installing Osmosis {v} Binary...".format(v=version) + bcolors.ENDC)
+        gitCheckout = subprocess.Popen(["git checkout {v}".format(v=version)], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, shell=True)
+        if "did not match any file(s) known to git" in gitCheckout.communicate()[1]:
+            subprocess.run(["clear"], shell=True)
+            print(bcolors.OKGREEN + version +""" branch provided by user does not exist, try another branch
+            """+ bcolors.ENDC)
+            brachSelection()
 
         my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME+"/go/bin:/"+HOME+"/.go/bin:" + my_env["PATH"]
         subprocess.run(["make install"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=my_env)
@@ -1260,7 +1265,82 @@ def initSetup ():
     installLocation()
 
 
+def branchHandler ():
+    global version
+    print(bcolors.OKGREEN + "Input desired branch. Press enter for default branch" + bcolors.ENDC)
+    branch_def = subprocess.run(["echo {v}".format(v=version)], capture_output=True, shell=True, text=True).stdout.strip()
+
+    version = rlinput(bcolors.OKGREEN +"Branch: "+ bcolors.ENDC, branch_def)
+
+    if version == "":
+        print(bcolors.FAIL + "Please ensure your branch is not blank" + bcolors.FAIL)
+        branchHandler()
+    else:
+        version = subprocess.run(["echo "+version], capture_output=True, shell=True, text=True).stdout.strip()
+        subprocess.run(["clear"], shell=True)
+        initSetup()
+
+
+def repoHandler ():
+    global repo
+    print(bcolors.OKGREEN + "Input desired repo URL (do not include branch). Press enter for default location" + bcolors.ENDC)
+    repo_def = subprocess.run(["echo "+repo], capture_output=True, shell=True, text=True).stdout.strip()
+
+    repo = rlinput(bcolors.OKGREEN +"Repo URL: "+ bcolors.ENDC, repo_def)
+
+    if repo.endswith("/"):
+        print(bcolors.FAIL + "Please ensure your path does not end with `/`" + bcolors.FAIL)
+        repoHandler()
+    elif not repo.startswith("https://"):
+        print(bcolors.FAIL + "Please ensure your path begins with a `https://`" + bcolors.FAIL)
+        repoHandler()
+    elif repo == "":
+        print(bcolors.FAIL + "Please ensure your path is not blank" + bcolors.FAIL)
+        repoHandler()
+    else:
+        repo = subprocess.run(["echo "+repo], capture_output=True, shell=True, text=True).stdout.strip()
+        subprocess.run(["clear"], shell=True)
+        branchHandler()
+
+
+def brachSelection ():
+    global version
+    global repo
+    repo = "https://github.com/osmosis-labs/osmosis"
+    version = NetworkVersion.MAINNET.value
+    print(bcolors.OKGREEN +"""
+Would you like to run LocalOsmosis on the current live release of Osmosis: {v} ?
+1) Yes, use {v} (recommended)
+2) No, I want to use a different version of Osmosis for LocalOsmosis from a branch on the osmosis repo
+3) No, I want to use a different version of Osmosis for LocalOsmosis from a branch on an external repo
+    """.format(
+            v=version) + bcolors.ENDC)
+
+    branchSelect = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+
+    if branchSelect == "1":
+        subprocess.run(["clear"], shell=True)
+        initSetup()
+    elif branchSelect == "2":
+        subprocess.run(["clear"], shell=True)
+        branchHandler()
+    elif branchSelect == "3":
+        subprocess.run(["clear"], shell=True)
+        repoHandler()
+    else:
+        subprocess.run(["clear"], shell=True)
+        brachSelection()
+
+
 def initEnvironment():
+    global repo
+    global version
+    repo = "https://github.com/osmosis-labs/osmosis"
+    if networkType == NetworkType.MAINNET:
+        version = NetworkVersion.MAINNET.value
+    if networkType == NetworkType.TESTNET:
+        version = NetworkVersion.TESTNET.value
+
     if os_name == "Linux":
         print(bcolors.OKGREEN +"System Detected: Linux"+ bcolors.ENDC)
         mem_bytes = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
@@ -1354,9 +1434,9 @@ Please choose a network to join:
     """ + bcolors.ENDC)
 
     if args.network == "osmosis-1":
-        networkType = networkType.MAINNET
+        networkType = NetworkType.MAINNET
     elif args.network == "osmo-test-4":
-        networkType = networkType.TESTNET
+        networkType = NetworkType.TESTNET
     else:
         networkType = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
 
@@ -1436,7 +1516,7 @@ Please choose a node type:
         elif node == NodeType.LOCALOSMOSIS:
             networkType = NetworkType.LOCALOSMOSIS
             subprocess.run(["clear"], shell=True)
-            initSetup()
+            brachSelection()
         else:
             subprocess.run(["clear"], shell=True)
             restart()
