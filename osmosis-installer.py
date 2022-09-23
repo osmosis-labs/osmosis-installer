@@ -1429,6 +1429,7 @@ You have less than the recommended 32GB of RAM. Would you still like to continue
 
 def selectNetwork ():
     global networkType
+    global version
     print(bcolors.OKGREEN +
     """
 Please choose a network to join:
@@ -1445,15 +1446,19 @@ Please choose a network to join:
 
     if networkType == NetworkType.MAINNET and node == NodeType.FULL:
         subprocess.run(["clear"], shell=True)
+        version = NetworkVersion.MAINNET
         initEnvironment()
     elif networkType == NetworkType.MAINNET and node == NodeType.CLIENT:
         subprocess.run(["clear"], shell=True)
+        version = NetworkVersion.MAINNET
         initSetup()
     elif networkType == NetworkType.TESTNET and node == NodeType.FULL:
         subprocess.run(["clear"], shell=True)
+        version = NetworkVersion.TESTNET
         initEnvironment()
     elif networkType == NetworkType.TESTNET and node == NodeType.CLIENT:
         subprocess.run(["clear"], shell=True)
+        version = NetworkVersion.TESTNET
         initSetup()
     else:
         subprocess.run(["clear"], shell=True)
