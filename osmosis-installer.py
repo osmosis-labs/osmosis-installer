@@ -13,7 +13,10 @@ os.remove(sys.argv[0])
 
 class NetworkVersion(str, Enum):
     MAINNET = "v11.0.1"
-    TESTNET = "v11.0.1"
+    TESTNET = "v12.0.0-rc5"
+
+repo = "https://github.com/osmosis-labs/osmosis"
+version = NetworkVersion.MAINNET
 
 class NetworkType(str, Enum):
     MAINNET = "1"
