@@ -13,7 +13,7 @@ os.remove(sys.argv[0])
 
 class NetworkVersion(str, Enum):
     MAINNET = "v11.0.1"
-    TESTNET = "v12.0.0-rc5"
+    TESTNET = "v12.0.0"
 
 repo = "https://github.com/osmosis-labs/osmosis"
 version = NetworkVersion.MAINNET
@@ -1163,6 +1163,52 @@ def installLocation ():
         subprocess.run(["clear"], shell=True)
         installLocation()
 
+def setupContactEnvironment ():
+    my_env = os.environ.copy()
+    my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME+"/go/bin:/"+HOME+"/.go/bin:"+HOME+"/.cargo/bin:" + my_env["PATH"]
+    print(bcolors.OKGREEN + """Do you want to set up a basic contract environment?:
+1) Yes, setup a basic contract environment
+2) No, continue with the rest of the setup
+    """+ bcolors.ENDC)
+
+    setupContractEnv = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+
+    if setupContractEnv == "1":
+        subprocess.run(["clear"], shell=True)
+        print(bcolors.OKGREEN + "Setting 'stable' as the default release channel:" + bcolors.ENDC)
+        subprocess.run(["rustup default stable"], shell=True, env=my_env)
+        print(bcolors.OKGREEN + "Adding WASM as the compilation target:" + bcolors.ENDC)
+        subprocess.run(["rustup target add wasm32-unknown-unknown"], shell=True, env=my_env)
+        print(bcolors.OKGREEN + "Installing packages to generate the contract:" + bcolors.ENDC)
+        subprocess.run(["cargo install cargo-generate --features vendored-openssl"], shell=True, env=my_env)
+        subprocess.run(["cargo install cargo-run-script"], shell=True, env=my_env)
+    elif setupContractEnv == "2":
+        subprocess.run(["clear"], shell=True)
+    else:
+        subprocess.run(["clear"], shell=True)
+        setupContactEnvironment()
+
+
+def installRust ():
+    isRustInstalled = subprocess.run(["rustc --version"], capture_output=True, shell=True, text=True).stderr.strip()
+    if "not found" not in isRustInstalled:
+        return
+    print(bcolors.OKGREEN + """Rust not found on your device. Do you want to install Rust?:
+1) Yes, install Rust
+2) No, do not install Rust
+    """+ bcolors.ENDC)
+
+    installRust = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
+
+    if installRust == "1":
+        subprocess.run(["clear"], shell=True)
+        subprocess.run(["curl https://sh.rustup.rs -sSf | sh -s -- -y"], shell=True)
+    elif installRust == "2":
+        subprocess.run(["clear"], shell=True)
+    else:
+        subprocess.run(["clear"], shell=True)
+        installRust()
+
 
 def initSetup ():
     global my_env
@@ -1192,7 +1238,7 @@ def initSetup ():
         subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         subprocess.run(["git pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
 
-        print(bcolors.OKGREEN + "(4/4) Installing Osmosis {v} Binary...".format(v=version) + bcolors.ENDC)
+        print(bcolors.OKGREEN + "(5/5) Installing Osmosis {v} Binary...".format(v=version) + bcolors.ENDC)
         gitCheckout = subprocess.Popen(["git checkout {v}".format(v=version)], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, shell=True)
         if "did not match any file(s) known to git" in gitCheckout.communicate()[1]:
             subprocess.run(["clear"], shell=True)
@@ -1214,7 +1260,10 @@ def initSetup ():
             subprocess.run(["sudo apt install docker-compose -y"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
             print(bcolors.OKGREEN + "Adding Wallet Keys to Keyring..." + bcolors.ENDC)
             subprocess.run(["make localnet-keys"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-
+            subprocess.run(["clear"], shell=True)
+            installRust()
+            subprocess.run(["clear"], shell=True)
+            setupContactEnvironment()
         subprocess.run(["clear"], shell=True)
 
     elif os_name == "Darwin":
@@ -1264,6 +1313,10 @@ def initSetup ():
             subprocess.run(["brew install docker-compose"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
             print(bcolors.OKGREEN + "Adding Wallet Keys to Keyring..." + bcolors.ENDC)
             subprocess.run(["make localnet-keys"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            subprocess.run(["clear"], shell=True)
+            installRust()
+            subprocess.run(["clear"], shell=True)
+            setupContactEnvironment()
         subprocess.run(["clear"], shell=True)
     installLocation()
 
@@ -1310,9 +1363,9 @@ def brachSelection ():
     global version
     global repo
     repo = "https://github.com/osmosis-labs/osmosis"
-    version = NetworkVersion.MAINNET.value
+    version = NetworkVersion.TESTNET.value
     print(bcolors.OKGREEN +"""
-Would you like to run LocalOsmosis on the current live release of Osmosis: {v} ?
+Would you like to run LocalOsmosis on the most recent release of Osmosis: {v} ?
 1) Yes, use {v} (recommended)
 2) No, I want to use a different version of Osmosis for LocalOsmosis from a branch on the osmosis repo
 3) No, I want to use a different version of Osmosis for LocalOsmosis from a branch on an external repo
