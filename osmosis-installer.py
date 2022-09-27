@@ -1172,6 +1172,8 @@ def setupContactEnvironment ():
         print(bcolors.OKGREEN + "Installing packages to generate the contract:" + bcolors.ENDC)
         subprocess.run(["cargo install cargo-generate --features vendored-openssl"], shell=True, env=my_env)
         subprocess.run(["cargo install cargo-run-script"], shell=True, env=my_env)
+        print(bcolors.OKGREEN + "Installing beaker:" + bcolors.ENDC)
+        subprocess.run(["cargo install -f beaker"], shell=True, env=my_env)
     elif setupContractEnv == "2":
         subprocess.run(["clear"], shell=True)
     else:
