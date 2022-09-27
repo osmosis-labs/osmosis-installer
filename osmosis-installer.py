@@ -253,8 +253,7 @@ def completeCosmovisor():
     print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis full node!")
     print(bcolors.OKGREEN + "The cosmovisor service is currently running in the background")
     print(bcolors.OKGREEN + "To see the status of cosmovisor, run the following command: 'sudo systemctl status cosmovisor'")
-    print(bcolors.OKGREEN + "To see the live logs from cosmovisor, run the following command: 'journalctl -u cosmovisor -f'")
-    print(bcolors.OKGREEN + "In order to use osmosisd from the cli, either reload your terminal or refresh your profile with: 'source ~/.profile'"+ bcolors.ENDC)
+    print(bcolors.OKGREEN + "To see the live logs from cosmovisor, run the following command: 'journalctl -u cosmovisor -f'" + bcolors.ENDC)
     quit()
 
 
@@ -262,56 +261,49 @@ def completeOsmosisd():
     print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis full node!")
     print(bcolors.OKGREEN + "The osmosisd service is currently running in the background")
     print(bcolors.OKGREEN + "To see the status of the osmosis daemon, run the following command: 'sudo systemctl status osmosisd'")
-    print(bcolors.OKGREEN + "To see the live logs from the osmosis daemon, run the following command: 'journalctl -u osmosisd -f'")
-    print(bcolors.OKGREEN + "In order to use cosmovisor/osmosisd from the cli, either reload your terminal or refresh your profile with: 'source ~/.profile'"+ bcolors.ENDC)
+    print(bcolors.OKGREEN + "To see the live logs from the osmosis daemon, run the following command: 'journalctl -u osmosisd -f'" + bcolors.ENDC)
     quit()
 
 
 def complete():
     print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis full node!")
     print(bcolors.OKGREEN + "The osmosisd service is NOT running in the background")
-    print(bcolors.OKGREEN + "In order to use osmosisd from the cli, either reload your terminal or refresh your profile with: 'source ~/.profile'")
-    print(bcolors.OKGREEN + "After reloading your terminal and/or profile, you can start osmosisd with: 'osmosisd start'"+ bcolors.ENDC)
+    print(bcolors.OKGREEN + "You can start osmosisd with the following command: 'osmosisd start'"+ bcolors.ENDC)
     quit()
 
 
 def partComplete():
     print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up the Osmosis daemon!")
     print(bcolors.OKGREEN + "The osmosisd service is NOT running in the background, and your data directory is empty")
-    print(bcolors.OKGREEN + "In order to use osmosisd from the cli, either reload your terminal or refresh your profile with: 'source ~/.profile'")
     print(bcolors.OKGREEN + "If you intend to use osmosisd without syncing, you must include the '--node' flag after cli commands with the address of a public RPC node"+ bcolors.ENDC)
     quit()
 
 
 def clientComplete():
     print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis client node!")
-    print(bcolors.OKGREEN + "DO NOT start the osmosis daemon. You can query directly from the command line without starting the daemon!")
-    print(bcolors.OKGREEN + "In order to use osmosisd from the cli, either reload your terminal or refresh your profile with: 'source ~/.profile'"+ bcolors.ENDC)
+    print(bcolors.OKGREEN + "DO NOT start the osmosis daemon. You can query directly from the command line without starting the daemon!" + bcolors.ENDC)
     quit()
 
 
 def replayComplete():
     print(bcolors.OKGREEN + "Congratulations! You are currently replaying from genesis in a background service!")
     print(bcolors.OKGREEN + "To see the status of cosmovisor, run the following command: 'sudo systemctl status cosmovisor'")
-    print(bcolors.OKGREEN + "To see the live logs from cosmovisor, run the following command: 'journalctl -u cosmovisor -f'")
-    print(bcolors.OKGREEN + "In order to use osmosisd from the cli, either reload your terminal or refresh your profile with: 'source ~/.profile'"+ bcolors.ENDC)
+    print(bcolors.OKGREEN + "To see the live logs from cosmovisor, run the following command: 'journalctl -u cosmovisor -f'" + bcolors.ENDC)
     quit()
 
 
 def replayDelay():
     print(bcolors.OKGREEN + "Congratulations! Osmosis is ready to replay from genesis on your command!")
     print(bcolors.OKGREEN + "YOU MUST MANUALLY INCREASE ULIMIT FILE SIZE BEFORE STARTING WITH `ulimit -n 200000`")
-    print(bcolors.OKGREEN + "In order to use cosmovisor from the cli, either reload your terminal or refresh your profile with: 'source ~/.profile'")
-    print(bcolors.OKGREEN + "Once reloaded, use the command `cosmovisor start` to start the replay from genesis process")
-    print(bcolors.OKGREEN + "It is recommended to run this in a tmux session if not running in a background service")
+    print(bcolors.OKGREEN + "Use the command `cosmovisor start` to start the replay from genesis process")
+    print(bcolors.OKGREEN + "It is recommended to run this in a tmux session if not running as a background service")
     print(bcolors.OKGREEN + "You must use `cosmovisor start` and not `osmosisd start` in order to upgrade automatically"+ bcolors.ENDC)
     quit()
 
 
 def localOsmosisComplete():
     print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up a LocalOsmosis node!")
-    print(bcolors.OKGREEN + "To start the local network")
-    print(bcolors.OKGREEN + "Run 'source ~/.profile'")
+    print(bcolors.OKGREEN + "To start the local network:")
     print(bcolors.OKGREEN + "Ensure docker is running in the background if on linux or start the Docker application if on Mac")
     print(bcolors.OKGREEN + "Run 'cd $HOME/osmosis'")
     print(bcolors.OKGREEN + "To start the node, run 'make localnet-start'")
@@ -413,7 +405,6 @@ def cosmovisorInit ():
         subprocess.run(["git checkout {v}".format(v=NetworkVersion.MAINNET)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         subprocess.run(["make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v9/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-        subprocess.run([". "+HOME+"/.profile"], shell=True, env=my_env)
         subprocess.run(["cp "+ GOPATH +"/bin/osmosisd "+osmo_home+"/cosmovisor/genesis/bin"], shell=True, env=my_env)
         cosmovisorService()
         subprocess.run(["sudo systemctl start cosmovisor"], shell=True, env=my_env)
@@ -500,7 +491,6 @@ def replayFromGenesisLevelDb ():
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v11/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["git checkout v3.1.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["make install"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    subprocess.run([". "+HOME+"/.profile"], shell=True, env=my_env)
     subprocess.run(["cp "+ GOPATH +"/bin/osmosisd "+osmo_home+"/cosmovisor/genesis/bin"], shell=True, env=my_env)
     print(bcolors.OKGREEN + "Adding Persistent Peers For Replay..." + bcolors.ENDC)
     peers = "b5ace00790c9cc7990370d7a117ef2a29f19b961@65.109.20.216:26656,2dd86ed01eae5673df4452ce5b0dddb549f46a38@34.66.52.160:26656,2dd86ed01eae5673df4452ce5b0dddb549f46a38@34.82.89.95:26656"
@@ -571,7 +561,6 @@ def replayFromGenesisRocksDb ():
     subprocess.run(["echo 'replace github.com/tecbot/gorocksdb => github.com/cosmos/gorocksdb v1.2.0' >> ./go.mod"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["go mod tidy"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["BUILD_TAGS=rocksdb make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    subprocess.run([". "+HOME+"/.profile"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/genesis/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["BUILD_TAGS=rocksdb make install"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["sudo /sbin/ldconfig -v"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -1217,16 +1206,14 @@ def initSetup ():
 
     if os_name == "Linux":
         print(bcolors.OKGREEN + "Please wait while the following processes run:" + bcolors.ENDC)
-        print(bcolors.OKGREEN + "(1/5) Updating Packages..." + bcolors.ENDC)
+        print(bcolors.OKGREEN + "(1/4) Updating Packages..." + bcolors.ENDC)
         subprocess.run(["sudo apt-get update"], stdout=subprocess.DEVNULL, shell=True)
         subprocess.run(["DEBIAN_FRONTEND=noninteractive apt-get -y upgrade"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        print(bcolors.OKGREEN + "(2/5) Installing make and GCC..." + bcolors.ENDC)
+        print(bcolors.OKGREEN + "(2/4) Installing make and GCC..." + bcolors.ENDC)
         subprocess.run(["sudo apt install git build-essential ufw curl jq snapd --yes"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        print(bcolors.OKGREEN + "(3/5) Installing Go..." + bcolors.ENDC)
+        print(bcolors.OKGREEN + "(3/4) Installing Go..." + bcolors.ENDC)
         subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --remove"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.18"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        print(bcolors.OKGREEN + "(4/5) Reloading Profile..." + bcolors.ENDC)
-        subprocess.run([". "+HOME+"/.profile"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         os.chdir(os.path.expanduser(HOME))
         gitClone = subprocess.Popen(["git clone "+repo], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, shell=True)
         if "Repository not found" in gitClone.communicate()[1]:
@@ -1238,7 +1225,7 @@ def initSetup ():
         subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         subprocess.run(["git pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
 
-        print(bcolors.OKGREEN + "(5/5) Installing Osmosis {v} Binary...".format(v=version) + bcolors.ENDC)
+        print(bcolors.OKGREEN + "(4/4) Installing Osmosis {v} Binary...".format(v=version) + bcolors.ENDC)
         gitCheckout = subprocess.Popen(["git checkout {v}".format(v=version)], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, shell=True)
         if "did not match any file(s) known to git" in gitCheckout.communicate()[1]:
             subprocess.run(["clear"], shell=True)
@@ -1271,7 +1258,6 @@ def initSetup ():
         print(bcolors.OKGREEN + "(1/4) Checking for brew and wget. If not present, installing..." + bcolors.ENDC)
         subprocess.run(["sudo chown -R $(whoami) /usr/local/var/homebrew"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         subprocess.run(["echo | /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)\""], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        #subprocess.run(["sudo chown -R $(whoami) /usr/local/share/zsh /usr/local/share/zsh/site-functions"], shell=True)
         subprocess.run(["echo 'eval \"$(/opt/homebrew/bin/brew shellenv)\"' >> "+HOME+"/.zprofile"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         subprocess.run(["eval \"$(/opt/homebrew/bin/brew shellenv)\""], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         my_env = os.environ.copy()
