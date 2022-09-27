@@ -14,6 +14,7 @@ os.remove(sys.argv[0])
 class NetworkVersion(str, Enum):
     MAINNET = "v11.0.1"
     TESTNET = "v12.0.0"
+    LOCALOSMOSIS = "v12.x"
 
 repo = "https://github.com/osmosis-labs/osmosis"
 version = NetworkVersion.MAINNET
@@ -1349,7 +1350,7 @@ def brachSelection ():
     global version
     global repo
     repo = "https://github.com/osmosis-labs/osmosis"
-    version = NetworkVersion.TESTNET.value
+    version = NetworkVersion.LOCALOSMOSIS.value
     print(bcolors.OKGREEN +"""
 Would you like to run LocalOsmosis on the most recent release of Osmosis: {v} ?
 1) Yes, use {v} (recommended)
