@@ -12,8 +12,8 @@ from enum import Enum, auto
 os.remove(sys.argv[0])
 
 class NetworkVersion(str, Enum):
-    MAINNET = "v12.0.0"
-    TESTNET = "v12.0.0"
+    MAINNET = "v12.2.0"
+    TESTNET = "v12.2.0"
     LOCALOSMOSIS = "v12.x"
 
 repo = "https://github.com/osmosis-labs/osmosis"
