@@ -307,6 +307,7 @@ def localOsmosisComplete():
     print(bcolors.OKGREEN + "To start the local network:")
     print(bcolors.OKGREEN + "Ensure docker is running in the background if on linux or start the Docker application if on Mac")
     print(bcolors.OKGREEN + "Run 'cd $HOME/osmosis'")
+    print(bcolors.OKGREEN + "First, you MUST clean your env, run 'make localnet-clean' and select 'yes'")
     print(bcolors.OKGREEN + "To start the node, run 'make localnet-start'")
     print(bcolors.OKGREEN + "Run 'osmosisd status' to check that you are now creating blocks")
     print(bcolors.OKGREEN + "To stop the node and retain data, run 'make localnet-stop'")
