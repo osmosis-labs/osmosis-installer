@@ -12,7 +12,7 @@ from enum import Enum, auto
 os.remove(sys.argv[0])
 
 class NetworkVersion(str, Enum):
-    MAINNET = "v12.2.0"
+    MAINNET = "v13.1.0"
     TESTNET = "v13.0.0-rc5"
     LOCALOSMOSIS = "v13.x"
 
