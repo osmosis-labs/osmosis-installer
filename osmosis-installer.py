@@ -1217,7 +1217,7 @@ def initSetup ():
         subprocess.run(["sudo apt install git build-essential ufw curl jq snapd --yes"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         print(bcolors.OKGREEN + "(3/4) Installing Go..." + bcolors.ENDC)
         subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --remove"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.18"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.19"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         os.chdir(os.path.expanduser(HOME))
         gitClone = subprocess.Popen(["git clone "+repo], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, shell=True)
         if "Repository not found" in gitClone.communicate()[1]:
@@ -1272,7 +1272,7 @@ def initSetup ():
         print(bcolors.OKGREEN + "(3/4) Checking/installing Go..." + bcolors.ENDC)
         subprocess.run(["brew install coreutils"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=my_env)
         subprocess.run(["asdf plugin-add golang https://github.com/kennyp/asdf-golang.git"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=my_env)
-        subprocess.run(["asdf install golang 1.18"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=my_env)
+        subprocess.run(["asdf install golang 1.19"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=my_env)
         os.chdir(os.path.expanduser(HOME))
         gitClone = subprocess.Popen(["git clone "+repo], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, shell=True)
         if "Repository not found" in gitClone.communicate()[1]:
