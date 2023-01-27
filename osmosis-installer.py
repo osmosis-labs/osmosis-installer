@@ -249,12 +249,20 @@ def rlinput(prompt, prefill=''):
     finally:
         readline.set_startup_hook()
 
+def colorprint(prompt: str):
+    print(bcolors.OKGREEN + prompt + bcolors.ENDC)
+
+def get_key(dict, value):
+    key = [k for k,v in dict.items() if v == value]
+    if len(key) == 1:
+        return key[0]
+    return None
 
 def completeCosmovisor():
     print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis full node!")
     print(bcolors.OKGREEN + "The cosmovisor service is currently running in the background")
     print(bcolors.OKGREEN + "To see the status of cosmovisor, run the following command: 'sudo systemctl status cosmovisor'")
-    print(bcolors.OKGREEN + "To see the live logs from cosmovisor, run the following command: 'journalctl -u cosmovisor -f'" + bcolors.ENDC)
+    colorprint("To see the live logs from cosmovisor, run the following command: 'journalctl -u cosmovisor -f'")
     quit()
 
 
@@ -262,7 +270,7 @@ def completeOsmosisd():
     print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis full node!")
     print(bcolors.OKGREEN + "The osmosisd service is currently running in the background")
     print(bcolors.OKGREEN + "To see the status of the osmosis daemon, run the following command: 'sudo systemctl status osmosisd'")
-    print(bcolors.OKGREEN + "To see the live logs from the osmosis daemon, run the following command: 'journalctl -u osmosisd -f'" + bcolors.ENDC)
+    colorprint("To see the live logs from the osmosis daemon, run the following command: 'journalctl -u osmosisd -f'")
     quit()
 
 
@@ -282,14 +290,14 @@ def partComplete():
 
 def clientComplete():
     print(bcolors.OKGREEN + "Congratulations! You have successfully completed setting up an Osmosis client node!")
-    print(bcolors.OKGREEN + "DO NOT start the osmosis daemon. You can query directly from the command line without starting the daemon!" + bcolors.ENDC)
+    colorprint("DO NOT start the osmosis daemon. You can query directly from the command line without starting the daemon!")
     quit()
 
 
 def replayComplete():
     print(bcolors.OKGREEN + "Congratulations! You are currently replaying from genesis in a background service!")
     print(bcolors.OKGREEN + "To see the status of cosmovisor, run the following command: 'sudo systemctl status cosmovisor'")
-    print(bcolors.OKGREEN + "To see the live logs from cosmovisor, run the following command: 'journalctl -u cosmovisor -f'" + bcolors.ENDC)
+    colorprint("To see the live logs from cosmovisor, run the following command: 'journalctl -u cosmovisor -f'")
     quit()
 
 
@@ -318,7 +326,7 @@ def localOsmosisComplete():
 
 
 def cosmovisorService ():
-    print(bcolors.OKGREEN + "Creating Cosmovisor Service" + bcolors.ENDC)
+    colorprint("Creating Cosmovisor Service")
     subprocess.run(["echo '# Setup Cosmovisor' >> "+HOME+"/.profile"], shell=True, env=my_env)
     subprocess.run(["echo 'export DAEMON_NAME=osmosisd' >> "+HOME+"/.profile"], shell=True, env=my_env)
     subprocess.run(["echo 'export DAEMON_HOME="+osmo_home+"' >> "+HOME+"/.profile"], shell=True, env=my_env)
@@ -353,7 +361,7 @@ WantedBy=multi-user.target
 
 
 def osmosisdService ():
-    print(bcolors.OKGREEN + "Creating Osmosisd Service..." + bcolors.ENDC)
+    colorprint("Creating Osmosisd Service...")
     subprocess.run(["""echo '[Unit]
 Description=Osmosis Daemon
 After=network-online.target
@@ -395,7 +403,7 @@ def cosmovisorInit ():
 
     if useCosmovisor == "1":
         subprocess.run(["clear"], shell=True)
-        print(bcolors.OKGREEN + "Setting Up Cosmovisor..." + bcolors.ENDC)
+        colorprint("Setting Up Cosmovisor...")
         os.chdir(os.path.expanduser(HOME))
         subprocess.run(["go install github.com/cosmos/cosmos-sdk/cosmovisor/cmd/cosmovisor@v1.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         subprocess.run(["mkdir -p "+osmo_home+"/cosmovisor"], shell=True, env=my_env)
@@ -458,7 +466,7 @@ def startReplayNow():
 
 
 def replayFromGenesisLevelDb ():
-    print(bcolors.OKGREEN + "Setting Up Cosmovisor..." + bcolors.ENDC)
+    colorprint("Setting Up Cosmovisor...")
     os.chdir(os.path.expanduser(HOME))
     subprocess.run(["go install github.com/cosmos/cosmos-sdk/cosmovisor/cmd/cosmovisor@v1.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["mkdir -p "+osmo_home+"/cosmovisor"], shell=True, env=my_env)
@@ -471,30 +479,30 @@ def replayFromGenesisLevelDb ():
     subprocess.run(["mkdir -p "+osmo_home+"/cosmovisor/upgrades/v9/bin"], shell=True, env=my_env)
     subprocess.run(["mkdir -p "+osmo_home+"/cosmovisor/upgrades/v11/bin"], shell=True, env=my_env)
     os.chdir(os.path.expanduser(HOME+"/osmosis"))
-    print(bcolors.OKGREEN + "Preparing v4 Upgrade..." + bcolors.ENDC)
+    colorprint("Preparing v4 Upgrade...")
     subprocess.run(["git checkout v4.2.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v4/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    print(bcolors.OKGREEN + "Preparing v5/v6 Upgrade..." + bcolors.ENDC)
+    colorprint("Preparing v5/v6 Upgrade...")
     subprocess.run(["git checkout v6.4.1"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v5/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    print(bcolors.OKGREEN + "Preparing v7/v8 Upgrade..." + bcolors.ENDC)
+    colorprint("Preparing v7/v8 Upgrade...")
     subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v7/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    print(bcolors.OKGREEN + "Preparing v9/v10 Upgrade..." + bcolors.ENDC)
+    colorprint("Preparing v9/v10 Upgrade...")
     subprocess.run(["git checkout v10.0.1"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v9/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    print(bcolors.OKGREEN + "Preparing v11 Upgrade..." + bcolors.ENDC)
+    colorprint("Preparing v11 Upgrade...")
     subprocess.run(["git checkout {v}".format(v=NetworkVersion.MAINNET)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v11/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["git checkout v3.1.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["make install"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp "+ GOPATH +"/bin/osmosisd "+osmo_home+"/cosmovisor/genesis/bin"], shell=True, env=my_env)
-    print(bcolors.OKGREEN + "Adding Persistent Peers For Replay..." + bcolors.ENDC)
+    colorprint("Adding Persistent Peers For Replay...")
     peers = "b5ace00790c9cc7990370d7a117ef2a29f19b961@65.109.20.216:26656,2dd86ed01eae5673df4452ce5b0dddb549f46a38@34.66.52.160:26656,2dd86ed01eae5673df4452ce5b0dddb549f46a38@34.82.89.95:26656"
     subprocess.run(["sed -i -E 's/persistent_peers = \"\"/persistent_peers = \""+peers+"\"/g' "+osmo_home+"/config/config.toml"], shell=True)
     subprocess.run(["clear"], shell=True)
@@ -502,10 +510,10 @@ def replayFromGenesisLevelDb ():
 
 
 def replayFromGenesisRocksDb ():
-    print(bcolors.OKGREEN + "Changing db_backend to rocksdb..." + bcolors.ENDC)
+    colorprint("Changing db_backend to rocksdb...")
     subprocess.run(["sed -i -E 's/db_backend = \"goleveldb\"/db_backend = \"rocksdb\"/g' "+osmo_home+"/config/config.toml"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-    print(bcolors.OKGREEN + "Installing rocksdb..." + bcolors.ENDC)
-    print(bcolors.OKGREEN + "This process may take 15 minutes or more" + bcolors.ENDC)
+    colorprint("Installing rocksdb...")
+    colorprint("This process may take 15 minutes or more")
     os.chdir(os.path.expanduser(HOME))
     subprocess.run(["sudo apt-get install -y libgflags-dev libsnappy-dev zlib1g-dev libbz2-dev liblz4-dev libzstd-dev"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     subprocess.run(["git clone https://github.com/facebook/rocksdb.git"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
@@ -516,7 +524,7 @@ def replayFromGenesisRocksDb ():
     subprocess.run(["sudo make install-shared INSTALL_PATH=/usr"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     subprocess.run(["sudo echo 'export LD_LIBRARY_PATH=/usr/local/lib' >> $HOME/.bashrc"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     my_env["LD_LIBRARY_PATH"] = "/usr/local/lib"
-    print(bcolors.OKGREEN + "Setting Up Cosmovisor..." + bcolors.ENDC)
+    colorprint("Setting Up Cosmovisor...")
     os.chdir(os.path.expanduser(HOME))
     subprocess.run(["go install github.com/cosmos/cosmos-sdk/cosmovisor/cmd/cosmovisor@v1.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["mkdir -p "+osmo_home+"/cosmovisor"], shell=True, env=my_env)
@@ -529,7 +537,7 @@ def replayFromGenesisRocksDb ():
     subprocess.run(["mkdir -p "+osmo_home+"/cosmovisor/upgrades/v9/bin"], shell=True, env=my_env)
     subprocess.run(["mkdir -p "+osmo_home+"/cosmovisor/upgrades/v11/bin"], shell=True, env=my_env)
     os.chdir(os.path.expanduser(HOME+"/osmosis"))
-    print(bcolors.OKGREEN + "Preparing v4 Upgrade..." + bcolors.ENDC)
+    colorprint("Preparing v4 Upgrade...")
     subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["git checkout v4.2.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["sed '/gorocksdb.*/d' ./go.mod"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -538,20 +546,20 @@ def replayFromGenesisRocksDb ():
     subprocess.run(["go mod tidy"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["BUILD_TAGS=rocksdb make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v4/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    print(bcolors.OKGREEN + "Preparing v5/v6 Upgrade..." + bcolors.ENDC)
+    colorprint("Preparing v5/v6 Upgrade...")
     subprocess.run(["git stash"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["git checkout v6.4.1"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["BUILD_TAGS=rocksdb make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v5/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    print(bcolors.OKGREEN + "Preparing v7/v8 Upgrade..." + bcolors.ENDC)
+    colorprint("Preparing v7/v8 Upgrade...")
     subprocess.run(["git checkout v8.0.0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["BUILD_TAGS=rocksdb make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v7/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    print(bcolors.OKGREEN + "Preparing v9/v10 Upgrade..." + bcolors.ENDC)
+    colorprint("Preparing v9/v10 Upgrade...")
     subprocess.run(["git checkout v10.0.1"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["BUILD_TAGS=rocksdb make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v9/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    print(bcolors.OKGREEN + "Preparing v11 Upgrade..." + bcolors.ENDC)
+    colorprint("Preparing v11 Upgrade...")
     subprocess.run(["git checkout {v}".format(v=NetworkVersion.MAINNET)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["BUILD_TAGS=rocksdb make build"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/upgrades/v11/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
@@ -566,7 +574,7 @@ def replayFromGenesisRocksDb ():
     subprocess.run(["cp build/osmosisd "+osmo_home+"/cosmovisor/genesis/bin"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["BUILD_TAGS=rocksdb make install"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["sudo /sbin/ldconfig -v"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    print(bcolors.OKGREEN + "Adding Persistent Peers For Replay..." + bcolors.ENDC)
+    colorprint("Adding Persistent Peers For Replay...")
     peers = "b5ace00790c9cc7990370d7a117ef2a29f19b961@65.109.20.216:26656,2dd86ed01eae5673df4452ce5b0dddb549f46a38@34.66.52.160:26656,2dd86ed01eae5673df4452ce5b0dddb549f46a38@34.82.89.95:26656"
     subprocess.run(["sed -i -E 's/persistent_peers = \"\"/persistent_peers = \""+peers+"\"/g' "+osmo_home+"/config/config.toml"], shell=True)
     subprocess.run(["clear"], shell=True)
@@ -599,15 +607,15 @@ def replayFromGenesisDb ():
 def extraSwap():
     mem_bytes = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
     mem_gib = mem_bytes/(1024.**3)
-    print(bcolors.OKGREEN +"RAM Detected: "+str(round(mem_gib))+"GB"+ bcolors.ENDC)
+    colorprint("RAM Detected: "+str(round(mem_gib))+"GB")
     swapNeeded = 64 - round(mem_gib)
     if round(mem_gib) < 64:
-        print(bcolors.OKGREEN +"""
+        colorprint("""
 There have been reports of replay from genesis needing extra swap (up to 64GB) to prevent OOM errors.
 Would you like to overwrite any previous swap file and instead set a """+str(swapNeeded)+"""GB swap file?
 1) Yes, set up extra swap (recommended)
 2) No, do not set up extra swap
-        """+ bcolors.ENDC)
+        """)
         if args.extraSwap == True :
             swapAns = '1'
         elif args.extraSwap == False :
@@ -616,7 +624,7 @@ Would you like to overwrite any previous swap file and instead set a """+str(swa
             swapAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
 
         if swapAns == "1":
-            print(bcolors.OKGREEN +"Setting up "+ str(swapNeeded)+ "GB swap file..."+ bcolors.ENDC)
+            colorprint("Setting up "+ str(swapNeeded)+ "GB swap file...")
             subprocess.run(["sudo swapoff -a"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
             subprocess.run(["sudo fallocate -l " +str(swapNeeded)+"G /swapfile"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
             subprocess.run(["sudo chmod 600 /swapfile"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
@@ -625,7 +633,7 @@ Would you like to overwrite any previous swap file and instead set a """+str(swa
             subprocess.run(["sudo cp /etc/fstab /etc/fstab.bak"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
             subprocess.run(["echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
             subprocess.run(["clear"], shell=True)
-            print(bcolors.OKGREEN +str(swapNeeded)+"GB swap file set"+ bcolors.ENDC)
+            colorprint(str(swapNeeded)+"GB swap file set")
             replayFromGenesisDb()
         elif swapAns == "2":
             subprocess.run(["clear"], shell=True)
@@ -634,14 +642,14 @@ Would you like to overwrite any previous swap file and instead set a """+str(swa
             subprocess.run(["clear"], shell=True)
             extraSwap()
     else:
-        print(bcolors.OKGREEN +"You have enough RAM to meet the 64GB minimum requirement, moving on to system setup..."+ bcolors.ENDC)
+        colorprint("You have enough RAM to meet the 64GB minimum requirement, moving on to system setup...")
         time.sleep(3)
         subprocess.run(["clear"], shell=True)
         replayFromGenesisDb()
 
 
 # def stateSyncInit ():
-#     print(bcolors.OKGREEN + "Replacing trust height, trust hash, and RPCs in config.toml" + bcolors.ENDC)
+#     colorprint("Replacing trust height, trust hash, and RPCs in config.toml")
 #     LATEST_HEIGHT= subprocess.run(["curl -s http://osmo-sync.blockpane.com:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True, env=my_env)
 #     TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 2000)
 #     TRUST_HASH= subprocess.run(["curl -s \"http://osmo-sync.blockpane.com:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True, env=my_env)
@@ -663,7 +671,7 @@ Would you like to overwrite any previous swap file and instead set a """+str(swa
 #     stateSyncAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
 #     if stateSyncAns == "1":
 #         subprocess.run(["osmosisd start"], shell=True, env=my_env)
-#         print(bcolors.OKGREEN + "Statesync finished. Installing required patches for state sync fix" + bcolors.ENDC)
+#         colorprint("Statesync finished. Installing required patches for state sync fix")
 #         os.chdir(os.path.expanduser(HOME))
 #         subprocess.run(["git clone https://github.com/tendermint/tendermint"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
 #         os.chdir(os.path.expanduser(HOME+'/tendermint/'))
@@ -682,7 +690,7 @@ Would you like to overwrite any previous swap file and instead set a """+str(swa
 #         stateSyncInit()
 
 #def testnetStateSyncInit ():
-    #print(bcolors.OKGREEN + "Replacing trust height, trust hash, and RPCs in config.toml" + bcolors.ENDC)
+    #colorprint("Replacing trust height, trust hash, and RPCs in config.toml")
     #LATEST_HEIGHT= subprocess.run(["curl -s http://143.198.139.33:26657/block | jq -r .result.block.header.height"], capture_output=True, shell=True, text=True, env=my_env)
     #TRUST_HEIGHT= str(int(LATEST_HEIGHT.stdout.strip()) - 2000)
     #TRUST_HASH= subprocess.run(["curl -s \"http://143.198.139.33:26657/block?height="+str(TRUST_HEIGHT)+"\" | jq -r .result.block_id.hash"], capture_output=True, shell=True, text=True, env=my_env)
@@ -698,13 +706,13 @@ Would you like to overwrite any previous swap file and instead set a """+str(swa
         #subprocess.run(["clear"], shell=True)
         #complete()
 def infraSnapshotInstall ():
-    print(bcolors.OKGREEN + "Downloading Decompression Packages..." + bcolors.ENDC)
+    colorprint("Downloading Decompression Packages...")
     if os_name == "Linux":
         subprocess.run(["sudo apt-get install wget liblz4-tool aria2 -y"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     else:
         subprocess.run(["brew install aria2"], shell=True, env=my_env)
         subprocess.run(["brew install lz4"], shell=True, env=my_env)
-    print(bcolors.OKGREEN + "Downloading Snapshot..." + bcolors.ENDC)
+    colorprint("Downloading Snapshot...")
     proc = subprocess.run(["curl https://osmosis-snapshot.sfo3.cdn.digitaloceanspaces.com/osmosis.json|jq -r '.[] |select(.file==\"osmosis-1-pruned\")|.url'"], capture_output=True, shell=True, text=True)
     os.chdir(os.path.expanduser(osmo_home))
     subprocess.run(["wget -O - "+proc.stdout.strip()+" | lz4 -d | tar -xvf -"], shell=True, env=my_env)
@@ -715,13 +723,13 @@ def infraSnapshotInstall ():
         complete()
 
 def snapshotInstall ():
-    print(bcolors.OKGREEN + "Downloading Decompression Packages..." + bcolors.ENDC)
+    colorprint("Downloading Decompression Packages...")
     if os_name == "Linux":
         subprocess.run(["sudo apt-get install wget liblz4-tool aria2 -y"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     else:
         subprocess.run(["brew install aria2"], shell=True, env=my_env)
         subprocess.run(["brew install lz4"], shell=True, env=my_env)
-    print(bcolors.OKGREEN + "Downloading Snapshot..." + bcolors.ENDC)
+    colorprint("Downloading Snapshot...")
     proc = subprocess.run(["curl -L https://quicksync.io/osmosis.json|jq -r '.[] |select(.file==\""+ fileName +"\")|select (.mirror==\""+ location +"\")|.url'"], capture_output=True, shell=True, text=True)
     os.chdir(os.path.expanduser(osmo_home))
     subprocess.run(["wget -O - "+proc.stdout.strip()+" | lz4 -d | tar -xvf -"], shell=True, env=my_env)
@@ -734,40 +742,28 @@ def snapshotInstall ():
 
 def mainNetLocation ():
     global location
-    print(bcolors.OKGREEN + """Please choose the location nearest to your node:
+    location_map = {"1": "netherlands", "2": "singapore", "3": "sanfrancisco"}
+    colorprint("""Please choose the location nearest to your node:
 1) Netherlands
 2) Singapore
 3) SanFrancisco (WARNING: Location usually slow)
-    """+ bcolors.ENDC)
-    if args.snapshotLocation == "netherlands":
-        nodeLocationAns = "1"
-    elif args.snapshotLocation == "singapore":
-        nodeLocationAns = "2"
-    elif args.snapshotLocation == "sanfrancisco":
-        nodeLocationAns = "3"
+    """)
+    if args.snapshotLocation.lower() in location_map.values():
+        nodeLocationAns = get_key(location_map, args.snapshotLocation.lower())
     else:
         nodeLocationAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
 
-    if nodeLocationAns == "1":
-        subprocess.run(["clear"], shell=True)
-        location = "Netherlands"
-        snapshotInstall()
-    elif nodeLocationAns == "2":
-        subprocess.run(["clear"], shell=True)
-        location = "Singapore"
-        snapshotInstall()
-    elif nodeLocationAns == "3":
-        subprocess.run(["clear"], shell=True)
-        location = "SanFrancisco"
+    subprocess.run(["clear"], shell=True)
+    if nodeLocationAns in location_map:
+        location = location_map[nodeLocationAns]
         snapshotInstall()
     else:
-        subprocess.run(["clear"], shell=True)
         mainNetLocation()
-
 
 def testNetType ():
     global fileName
     global location
+    testnet_type_map = {"1": "pruned", "2": "archive"}
     print(bcolors.OKGREEN + """Please choose the node snapshot type:
 1) Pruned (recommended)
 2) Archive
@@ -960,7 +956,7 @@ def customPortSelection ():
             pruningSettings()
         elif portChoice == "2":
             subprocess.run(["clear"], shell=True)
-            print(bcolors.OKGREEN + "Input desired values. Press enter for default values" + bcolors.ENDC)
+            colorprint("Input desired values. Press enter for default values")
             #app.toml
             api_server_def = "tcp://0.0.0.0:1317"
             grpc_server_def = "0.0.0.0:9090"
@@ -1012,9 +1008,9 @@ def setupMainnet ():
     subprocess.run(["rm "+osmo_home+"/config/config.toml"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["rm "+osmo_home+"/config/addrbook.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["osmosisd init " + nodeName + " --chain-id=osmo-1 -o --home "+osmo_home], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL ,shell=True, env=my_env)
-    print(bcolors.OKGREEN + "Downloading and Replacing Genesis..." + bcolors.ENDC)
+    colorprint("Downloading and Replacing Genesis...")
     subprocess.run(["wget -O "+osmo_home+"/config/genesis.json https://github.com/osmosis-labs/networks/raw/main/osmosis-1/genesis.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    print(bcolors.OKGREEN + "Downloading and Replacing Addressbook..." + bcolors.ENDC)
+    colorprint("Downloading and Replacing Addressbook...")
     subprocess.run(["wget -O "+osmo_home+"/config/addrbook.json https://quicksync.io/addrbook.osmosis.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["clear"], shell=True)
     customPortSelection()
@@ -1027,15 +1023,15 @@ def setupTestnet ():
     subprocess.run(["rm "+osmo_home+"/config/app.toml"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["rm "+osmo_home+"/config/addrbook.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["osmosisd init " + nodeName + " --chain-id=osmo-test-4 -o --home "+osmo_home], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    print(bcolors.OKGREEN + "Downloading and Replacing Genesis..." + bcolors.ENDC)
+    colorprint("Downloading and Replacing Genesis...")
     subprocess.run(["wget -O "+osmo_home+"/config/genesis.tar.bz2 wget https://github.com/osmosis-labs/networks/raw/main/osmo-test-4/genesis.tar.bz2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-    print(bcolors.OKGREEN + "Finding and Replacing Seeds..." + bcolors.ENDC)
+    colorprint("Finding and Replacing Seeds...")
     peers = "4ab030b7fd75ed895c48bcc899b99c17a396736b@137.184.190.127:26656,3dbffa30baab16cc8597df02945dcee0aa0a4581@143.198.139.33:26656"
     subprocess.run(["sed -i -E 's/persistent_peers = \"\"/persistent_peers = \""+peers+"\"/g' "+osmo_home+"/config/config.toml"], shell=True)
     subprocess.run(["tar -xjf "+osmo_home+"/config/genesis.tar.bz2"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
     subprocess.run(["rm "+osmo_home+"/config/genesis.tar.bz2"], shell=True)
     subprocess.run(["sed -i -E 's/seeds = \"21d7539792ee2e0d650b199bf742c56ae0cf499e@162.55.132.230:2000,295b417f995073d09ff4c6c141bd138a7f7b5922@65.21.141.212:2000,ec4d3571bf709ab78df61716e47b5ac03d077a1a@65.108.43.26:2000,4cb8e1e089bdf44741b32638591944dc15b7cce3@65.108.73.18:2000,f515a8599b40f0e84dfad935ba414674ab11a668@osmosis.blockpane.com:26656,6bcdbcfd5d2c6ba58460f10dbcfde58278212833@osmosis.artifact-staking.io:26656\"/seeds = \"0f9a9c694c46bd28ad9ad6126e923993fc6c56b1@137.184.181.105:26656\"/g' "+osmo_home+"/config/config.toml"], shell=True)
-    print(bcolors.OKGREEN + "Downloading and Replacing Addressbook..." + bcolors.ENDC)
+    colorprint("Downloading and Replacing Addressbook...")
     subprocess.run(["wget -O "+osmo_home+"/config/addrbook.json https://quicksync.io/addrbook.osmotestnet.json"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
     subprocess.run(["clear"], shell=True)
     customPortSelection()
@@ -1047,7 +1043,7 @@ def clientSettings ():
         #subprocess.run(["osmosisd unsafe-reset-all"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         subprocess.run(["rm "+osmo_home+"/config/client.toml"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         subprocess.run(["osmosisd init " + nodeName + " --chain-id=osmosis-1 -o --home "+osmo_home], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-        print(bcolors.OKGREEN + "Changing Client Settings..." + bcolors.ENDC)
+        colorprint("Changing Client Settings...")
         subprocess.run(["sed -i -E 's/chain-id = \"\"/chain-id = \"osmosis-1\"/g' "+osmo_home+"/config/client.toml"], shell=True)
         #subprocess.run(["sed -i -E 's|node = \"tcp://localhost:26657\"|node = \"https://rpc-osmosis.blockapsis.com:443\"|g' "+osmo_home+"/config/client.toml"], shell=True)
         subprocess.run(["sed -i -E 's|node = \"tcp://localhost:26657\"|node = \"http://osmosis.artifact-staking.io:26657\"|g' "+osmo_home+"/config/client.toml"], shell=True)
@@ -1059,7 +1055,7 @@ def clientSettings ():
         #subprocess.run(["osmosisd unsafe-reset-all"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         subprocess.run(["rm "+osmo_home+"/config/client.toml"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         subprocess.run(["osmosisd init " + nodeName + " --chain-id=osmo-test-4 -o --home "+osmo_home], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-        print(bcolors.OKGREEN + "Changing Client Settings..." + bcolors.ENDC)
+        colorprint("Changing Client Settings...")
         subprocess.run(["sed -i -E 's/chain-id = \"\"/chain-id = \"osmo-test-4\"/g' "+osmo_home+"/config/client.toml"], shell=True)
         subprocess.run(["sed -i -E 's|node = \"tcp://localhost:26657\"|node = \"https://rpc.testnet.osmosis.zone:443\"|g' "+osmo_home+"/config/client.toml"], shell=True)
         subprocess.run(["clear"], shell=True)
@@ -1069,7 +1065,7 @@ def clientSettings ():
         print(bcolors.OKGREEN + "Initializing LocalOsmosis Node " + nodeName + bcolors.ENDC)
         subprocess.run(["rm "+osmo_home+"/config/client.toml"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
         subprocess.run(["osmosisd init " + nodeName + " --chain-id=localosmosis -o --home "+osmo_home], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, env=my_env)
-        print(bcolors.OKGREEN + "Changing Client Settings..." + bcolors.ENDC)
+        colorprint("Changing Client Settings...")
         subprocess.run(["sed -i -E 's/chain-id = \"\"/chain-id = \"localosmosis\"/g' "+osmo_home+"/config/client.toml"], shell=True)
         subprocess.run(["sed -i -E 's|node = \"tcp://localhost:26657\"|node = \"tcp://127.0.0.1:26657\"|g' "+osmo_home+"/config/client.toml"], shell=True)
         subprocess.run(["clear"], shell=True)
@@ -1078,7 +1074,7 @@ def clientSettings ():
 
 def initNodeName ():
     global nodeName
-    print(bcolors.OKGREEN + "AFTER INPUTTING NODE NAME, ALL PREVIOUS OSMOSIS DATA WILL BE RESET" + bcolors.ENDC)
+    colorprint("AFTER INPUTTING NODE NAME, ALL PREVIOUS OSMOSIS DATA WILL BE RESET")
 
     if args.nodeName:
         nodeName = args.nodeName
@@ -1102,13 +1098,13 @@ def initNodeName ():
         clientSettings()
     else:
         subprocess.run(["clear"], shell=True)
-        print(bcolors.OKGREEN + "Please insert a non-blank node name" + bcolors.ENDC)
+        colorprint("Please insert a non-blank node name")
         initNodeName()
 
 
 def installLocationHandler ():
     global osmo_home
-    print(bcolors.OKGREEN + "Input desired installation location. Press enter for default location" + bcolors.ENDC)
+    colorprint("Input desired installation location. Press enter for default location")
     location_def = subprocess.run(["echo $HOME/.osmosisd"], capture_output=True, shell=True, text=True).stdout.strip()
 
     if args.installHome:
@@ -1166,14 +1162,14 @@ def setupContactEnvironment ():
 
     if setupContractEnv == "1":
         subprocess.run(["clear"], shell=True)
-        print(bcolors.OKGREEN + "Setting 'stable' as the default release channel:" + bcolors.ENDC)
+        colorprint("Setting 'stable' as the default release channel:")
         subprocess.run(["rustup default stable"], shell=True, env=my_env)
-        print(bcolors.OKGREEN + "Adding WASM as the compilation target:" + bcolors.ENDC)
+        colorprint("Adding WASM as the compilation target:")
         subprocess.run(["rustup target add wasm32-unknown-unknown"], shell=True, env=my_env)
-        print(bcolors.OKGREEN + "Installing packages to generate the contract:" + bcolors.ENDC)
+        colorprint("Installing packages to generate the contract:")
         subprocess.run(["cargo install cargo-generate --features vendored-openssl"], shell=True, env=my_env)
         subprocess.run(["cargo install cargo-run-script"], shell=True, env=my_env)
-        print(bcolors.OKGREEN + "Installing beaker:" + bcolors.ENDC)
+        colorprint("Installing beaker:")
         subprocess.run(["cargo install -f beaker"], shell=True, env=my_env)
     elif setupContractEnv == "2":
         subprocess.run(["clear"], shell=True)
@@ -1209,13 +1205,13 @@ def initSetup ():
     global version
 
     if os_name == "Linux":
-        print(bcolors.OKGREEN + "Please wait while the following processes run:" + bcolors.ENDC)
-        print(bcolors.OKGREEN + "(1/4) Updating Packages..." + bcolors.ENDC)
+        colorprint("Please wait while the following processes run:")
+        colorprint("(1/4) Updating Packages...")
         subprocess.run(["sudo apt-get update"], stdout=subprocess.DEVNULL, shell=True)
         subprocess.run(["DEBIAN_FRONTEND=noninteractive apt-get -y upgrade"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        print(bcolors.OKGREEN + "(2/4) Installing make and GCC..." + bcolors.ENDC)
+        colorprint("(2/4) Installing make and GCC...")
         subprocess.run(["sudo apt install git build-essential ufw curl jq snapd --yes"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        print(bcolors.OKGREEN + "(3/4) Installing Go..." + bcolors.ENDC)
+        colorprint("(3/4) Installing Go...")
         subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --remove"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.19"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         os.chdir(os.path.expanduser(HOME))
@@ -1243,13 +1239,13 @@ def initSetup ():
 
         if node == NodeType.LOCALOSMOSIS:
             subprocess.run(["clear"], shell=True)
-            print(bcolors.OKGREEN + "Installing Docker..." + bcolors.ENDC)
+            colorprint("Installing Docker...")
             subprocess.run(["sudo apt-get remove docker docker-engine docker.io"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
             subprocess.run(["sudo apt-get update"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
             subprocess.run(["sudo apt install docker.io -y"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-            print(bcolors.OKGREEN + "Installing Docker-Compose..." + bcolors.ENDC)
+            colorprint("Installing Docker-Compose...")
             subprocess.run(["sudo apt install docker-compose -y"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-            print(bcolors.OKGREEN + "Adding Wallet Keys to Keyring..." + bcolors.ENDC)
+            colorprint("Adding Wallet Keys to Keyring...")
             subprocess.run(["make localnet-keys"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
             subprocess.run(["clear"], shell=True)
             installRust()
@@ -1258,8 +1254,8 @@ def initSetup ():
         subprocess.run(["clear"], shell=True)
 
     elif os_name == "Darwin":
-        print(bcolors.OKGREEN + "Please wait while the following processes run:" + bcolors.ENDC)
-        print(bcolors.OKGREEN + "(1/4) Checking for brew and wget. If not present, installing..." + bcolors.ENDC)
+        colorprint("Please wait while the following processes run:")
+        colorprint("(1/4) Checking for brew and wget. If not present, installing...")
         subprocess.run(["sudo chown -R $(whoami) /usr/local/var/homebrew"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         subprocess.run(["echo | /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)\""], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         subprocess.run(["echo 'eval \"$(/opt/homebrew/bin/brew shellenv)\"' >> "+HOME+"/.zprofile"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
@@ -1267,9 +1263,9 @@ def initSetup ():
         my_env = os.environ.copy()
         my_env["PATH"] = "/opt/homebrew/bin:/opt/homebrew/bin/brew:" + my_env["PATH"]
         subprocess.run(["brew install wget"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=my_env)
-        print(bcolors.OKGREEN + "(2/4) Checking/installing jq..." + bcolors.ENDC)
+        colorprint("(2/4) Checking/installing jq...")
         subprocess.run(["brew install jq"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=my_env)
-        print(bcolors.OKGREEN + "(3/4) Checking/installing Go..." + bcolors.ENDC)
+        colorprint("(3/4) Checking/installing Go...")
         subprocess.run(["brew install coreutils"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=my_env)
         subprocess.run(["asdf plugin-add golang https://github.com/kennyp/asdf-golang.git"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=my_env)
         subprocess.run(["asdf install golang 1.19"], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=my_env)
@@ -1297,11 +1293,11 @@ def initSetup ():
 
         if node == NodeType.LOCALOSMOSIS:
             subprocess.run(["clear"], shell=True)
-            print(bcolors.OKGREEN + "Installing Docker..." + bcolors.ENDC)
+            colorprint("Installing Docker...")
             subprocess.run(["brew install docker"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-            print(bcolors.OKGREEN + "Installing Docker-Compose..." + bcolors.ENDC)
+            colorprint("Installing Docker-Compose...")
             subprocess.run(["brew install docker-compose"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-            print(bcolors.OKGREEN + "Adding Wallet Keys to Keyring..." + bcolors.ENDC)
+            colorprint("Adding Wallet Keys to Keyring...")
             subprocess.run(["make localnet-keys"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
             subprocess.run(["clear"], shell=True)
             installRust()
@@ -1313,7 +1309,7 @@ def initSetup ():
 
 def branchHandler ():
     global version
-    print(bcolors.OKGREEN + "Input desired branch. Press enter for default branch" + bcolors.ENDC)
+    colorprint("Input desired branch. Press enter for default branch")
     branch_def = subprocess.run(["echo {v}".format(v=version)], capture_output=True, shell=True, text=True).stdout.strip()
 
     version = rlinput(bcolors.OKGREEN +"Branch: "+ bcolors.ENDC, branch_def)
@@ -1329,7 +1325,7 @@ def branchHandler ():
 
 def repoHandler ():
     global repo
-    print(bcolors.OKGREEN + "Input desired repo URL (do not include branch). Press enter for default location" + bcolors.ENDC)
+    colorprint("Input desired repo URL (do not include branch). Press enter for default location")
     repo_def = subprocess.run(["echo "+repo], capture_output=True, shell=True, text=True).stdout.strip()
 
     repo = rlinput(bcolors.OKGREEN +"Repo URL: "+ bcolors.ENDC, repo_def)
