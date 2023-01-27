@@ -742,14 +742,14 @@ def snapshotInstall ():
 
 def mainNetLocation ():
     global location
-    location_map = {"1": "Netherlands", "2": "Singapore", "3": "SanFrancisco"}
+    location_map = {"1": "netherlands", "2": "singapore", "3": "sanfrancisco"}
     colorprint("""Please choose the location nearest to your node:
 1) Netherlands
 2) Singapore
 3) SanFrancisco (WARNING: Location usually slow)
     """)
-    if args.snapshotLocation in location_map:
-        nodeLocationAns = get_key(location_map, args.snapshotLocation)
+    if args.snapshotLocation.lower() in location_map.values():
+        nodeLocationAns = get_key(location_map, args.snapshotLocation.lower())
     else:
         nodeLocationAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
 
