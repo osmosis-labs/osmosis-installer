@@ -748,7 +748,7 @@ def mainNetLocation ():
 2) Singapore
 3) SanFrancisco (WARNING: Location usually slow)
     """)
-    if args.snapshotLocation.lower() in location_map.values():
+    if args.snapshotLocation in location_map.values():
         nodeLocationAns = get_key(location_map, args.snapshotLocation.lower())
     else:
         nodeLocationAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
