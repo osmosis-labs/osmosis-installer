@@ -18,6 +18,8 @@ class NetworkVersion(str, Enum):
 
 repo = "https://github.com/osmosis-labs/osmosis"
 version = NetworkVersion.MAINNET
+location = ""
+fileName = ""
 
 class NetworkType(str, Enum):
     MAINNET = "1"
@@ -729,7 +731,7 @@ def snapshotInstall ():
     else:
         subprocess.run(["brew install aria2"], shell=True, env=my_env)
         subprocess.run(["brew install lz4"], shell=True, env=my_env)
-    colorprint("Downloading Snapshot...")
+    colorprint("Downloading Snapshot from " + location + " ...")
     proc = subprocess.run(["curl -L https://quicksync.io/osmosis.json|jq -r '.[] |select(.file==\""+ fileName +"\")|select (.mirror==\""+ location +"\")|.url'"], capture_output=True, shell=True, text=True)
     os.chdir(os.path.expanduser(osmo_home))
     subprocess.run(["wget -O - "+proc.stdout.strip()+" | lz4 -d | tar -xvf -"], shell=True, env=my_env)
