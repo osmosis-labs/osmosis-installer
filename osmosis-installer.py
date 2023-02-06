@@ -18,6 +18,8 @@ class NetworkVersion(str, Enum):
 
 repo = "https://github.com/osmosis-labs/osmosis"
 version = NetworkVersion.MAINNET
+location = ""
+fileName = ""
 
 class NetworkType(str, Enum):
     MAINNET = "1"
@@ -252,8 +254,11 @@ def rlinput(prompt, prefill=''):
 def colorprint(prompt: str):
     print(bcolors.OKGREEN + prompt + bcolors.ENDC)
 
-def get_key(dict, value):
-    key = [k for k,v in dict.items() if v == value]
+def get_key_case_insensitive(dict, candidate_value):
+    if candidate_value is None:
+        return None
+    candidate = candidate_value.lower()
+    key = [k for k,v in dict.items() if v.lower() == candidate]
     if len(key) == 1:
         return key[0]
     return None
@@ -729,7 +734,7 @@ def snapshotInstall ():
     else:
         subprocess.run(["brew install aria2"], shell=True, env=my_env)
         subprocess.run(["brew install lz4"], shell=True, env=my_env)
-    colorprint("Downloading Snapshot...")
+    colorprint("Downloading Snapshot from " + location + " ...")
     proc = subprocess.run(["curl -L https://quicksync.io/osmosis.json|jq -r '.[] |select(.file==\""+ fileName +"\")|select (.mirror==\""+ location +"\")|.url'"], capture_output=True, shell=True, text=True)
     os.chdir(os.path.expanduser(osmo_home))
     subprocess.run(["wget -O - "+proc.stdout.strip()+" | lz4 -d | tar -xvf -"], shell=True, env=my_env)
@@ -742,15 +747,14 @@ def snapshotInstall ():
 
 def mainNetLocation ():
     global location
-    location_map = {"1": "netherlands", "2": "singapore", "3": "sanfrancisco"}
+    location_map = {"1": "Netherlands", "2": "Singapore", "3": "SanFrancisco"}
     colorprint("""Please choose the location nearest to your node:
 1) Netherlands
 2) Singapore
 3) SanFrancisco (WARNING: Location usually slow)
     """)
-    if args.snapshotLocation in location_map.values():
-        nodeLocationAns = get_key(location_map, args.snapshotLocation.lower())
-    else:
+    nodeLocationAns = get_key_case_insensitive(location_map, args.snapshotLocation)
+    if nodeLocationAns == None:
         nodeLocationAns = input(bcolors.OKGREEN + 'Enter Choice: '+ bcolors.ENDC)
 
     subprocess.run(["clear"], shell=True)
