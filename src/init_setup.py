@@ -1,9 +1,7 @@
 import subprocess
 import os
 import globals
-from style import bcolors
-from style import colorprint
-from style import rlinput
+from style import colorprint, rlinput, bcolors
 import rust
 from install_location import installLocation
 

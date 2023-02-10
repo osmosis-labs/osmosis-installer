@@ -1,10 +1,7 @@
 import subprocess
-import os
 import globals
-from style import bcolors
-from style import colorprint
-from style import rlinput
-import rust
+from style import bcolors, colorprint, rlinput
+import setups
 
 
 def installLocation(args):
@@ -77,7 +74,7 @@ def initNodeName(args):
                        stderr=subprocess.DEVNULL, shell=True, env=globals.selected_my_env)
         subprocess.run(["rm -r "+globals.HOME+"/.osmosisd"], stdout=subprocess.DEVNULL,
                        stderr=subprocess.DEVNULL, shell=True, env=globals.selected_my_env)
-        # setupMainnet()
+        setups.setupMainnet(args)
 
     elif globals.node_name and globals.selected_networktype == globals.NetworkType.TESTNET and globals.selected_node == globals.NodeType.FULL:
         subprocess.run(["clear"], shell=True)
@@ -85,14 +82,14 @@ def initNodeName(args):
                        stderr=subprocess.DEVNULL, shell=True, env=globals.selected_my_env)
         subprocess.run(["rm -r "+globals.HOME+"/.osmosisd"], stdout=subprocess.DEVNULL,
                        stderr=subprocess.DEVNULL, shell=True, env=globals.selected_my_env)
-        # setupTestnet()
+        setups.setupTestnet(args)
     elif globals.node_name and globals.selected_node == globals.NodeType.CLIENT or globals.selected_node == globals.NodeType.LOCALOSMOSIS:
         subprocess.run(["clear"], shell=True)
         subprocess.run(["rm -r "+globals.osmo_home], stdout=subprocess.DEVNULL,
                        stderr=subprocess.DEVNULL, shell=True, env=globals.selected_my_env)
         subprocess.run(["rm -r "+globals.HOME+"/.osmosisd"], stdout=subprocess.DEVNULL,
                        stderr=subprocess.DEVNULL, shell=True, env=globals.selected_my_env)
-        # clientSettings()
+        setups.clientSettings()
     else:
         subprocess.run(["clear"], shell=True)
         colorprint("Please insert a non-blank node name")

@@ -2,7 +2,6 @@ import subprocess
 import os
 import globals
 from style import bcolors
-from init_setup import brachSelection
 from style import colorprint
 
 

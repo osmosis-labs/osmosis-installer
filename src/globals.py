@@ -1,6 +1,6 @@
 import subprocess
 import platform
-from enum import Enum, auto
+from enum import Enum
 
 
 class NetworkVersion(str, Enum):
@@ -26,6 +26,7 @@ version = NetworkVersion.MAINNET
 location = ""
 fileName = ""
 osmo_home = ""
+node_name = ""
 
 os_name = platform.system()
 machine = platform.machine()
@@ -40,3 +41,7 @@ selected_node = ""
 selected_networktype = ""
 selected_version = ""
 selected_my_env = ""
+
+# used in data_sync_selection.py
+filename = ""
+location = ""

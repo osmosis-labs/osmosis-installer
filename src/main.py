@@ -92,7 +92,7 @@ Please choose a node type:
         elif globals.selected_node == globals.NodeType.LOCALOSMOSIS:
             globals.selected_networktype = globals.NetworkType.LOCALOSMOSIS
             subprocess.run(["clear"], shell=True)
-            brachSelection()
+            brachSelection(args)
         else:
             subprocess.run(["clear"], shell=True)
             restart()
