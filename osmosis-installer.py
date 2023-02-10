@@ -11,25 +11,25 @@ from enum import Enum, auto
 # self-destruct file after first call
 os.remove(sys.argv[0])
 
-class NetworkVersion(str, Enum):
-    MAINNET = "v14.0.0"
-    TESTNET = "v14.0.0"
-    LOCALOSMOSIS = "v14.x"
+# class NetworkVersion(str, Enum):
+#     MAINNET = "v14.0.0"
+#     TESTNET = "v14.0.0"
+#     LOCALOSMOSIS = "v14.x"
 
-repo = "https://github.com/osmosis-labs/osmosis"
-version = NetworkVersion.MAINNET
-location = ""
-fileName = ""
+# repo = "https://github.com/osmosis-labs/osmosis"
+# version = NetworkVersion.MAINNET
+# location = ""
+# fileName = ""
 
-class NetworkType(str, Enum):
-    MAINNET = "1"
-    TESTNET = "2"
-    LOCALOSMOSIS = "3"
+# class NetworkType(str, Enum):
+#     MAINNET = "1"
+#     TESTNET = "2"
+#     LOCALOSMOSIS = "3"
 
-class NodeType(str, Enum):
-    FULL = "1"
-    CLIENT = "2"
-    LOCALOSMOSIS = "3"
+# class NodeType(str, Enum):
+#     FULL = "1"
+#     CLIENT = "2"
+#     LOCALOSMOSIS = "3"
 
 class CustomHelpFormatter(argparse.HelpFormatter):
     def _format_action_invocation(self, action):
