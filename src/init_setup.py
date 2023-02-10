@@ -1,12 +1,16 @@
 import subprocess
 import os
 import globals
-from style import colorprint, rlinput, bcolors
+from style import colorprint, bcolors
 import rust
 from install_location import installLocation
 
 
 def initSetup(args):
+    # calling import here to fix circular import.
+    # performace cost is negligible because imports are cached and future imports will
+    # refer to the cached copy.
+    from handlers import branchSelection
     if globals.os_name == "Linux":
         colorprint("Please wait while the following processes run:")
         colorprint("(1/4) Updating Packages...")
@@ -29,7 +33,7 @@ def initSetup(args):
             subprocess.run(["clear"], shell=True)
             print(bcolors.OKGREEN + globals.repo + """ repo provided by user does not exist, try another URL
             """ + bcolors.ENDC)
-            brachSelection(args)
+            branchSelection(args)
         os.chdir(os.path.expanduser(globals.HOME+"/osmosis"))
         subprocess.run(["git stash"], stdout=subprocess.DEVNULL,
                        stderr=subprocess.DEVNULL, shell=True)
@@ -44,7 +48,7 @@ def initSetup(args):
             subprocess.run(["clear"], shell=True)
             print(bcolors.OKGREEN + globals.selected_version + """ branch provided by user does not exist, try another branch
             """ + bcolors.ENDC)
-            brachSelection(args)
+            branchSelection(args)
 
         globals.selected_my_env = os.environ.copy()
         globals.selected_my_env["PATH"] = "/"+globals.HOME+"/go/bin:/"+globals.HOME + \
@@ -110,7 +114,7 @@ def initSetup(args):
             subprocess.run(["clear"], shell=True)
             print(bcolors.OKGREEN + globals.repo + """ repo provided by user does not exist, try another URL
             """ + bcolors.ENDC)
-            brachSelection(args)
+            branchSelection(args)
         os.chdir(os.path.expanduser(globals.HOME+"/osmosis"))
         subprocess.run(["git stash"], stdout=subprocess.DEVNULL,
                        stderr=subprocess.DEVNULL, shell=True)
@@ -125,7 +129,7 @@ def initSetup(args):
             subprocess.run(["clear"], shell=True)
             print(bcolors.OKGREEN + globals.selected_version + """ branch provided by user does not exist, try another branch
             """ + bcolors.ENDC)
-            brachSelection(args)
+            branchSelection(args)
 
         globals.selected_my_env["PATH"] = "/"+globals.HOME+"/go/bin:/"+globals.HOME + \
             "/go/bin:/"+globals.HOME+"/.go/bin:" + \
@@ -152,74 +156,3 @@ def initSetup(args):
             print("SETUP CONTACT ENV")
         subprocess.run(["clear"], shell=True)
     installLocation(args)
-
-
-def brachSelection(args):
-    globals.selected_version = globals.NetworkVersion.LOCALOSMOSIS.value
-    print(bcolors.OKGREEN + """
-Would you like to run LocalOsmosis on the most recent release of Osmosis: {v} ?
-1) Yes, use {v} (recommended)
-2) No, I want to use a different version of Osmosis for LocalOsmosis from a branch on the osmosis repo
-3) No, I want to use a different version of Osmosis for LocalOsmosis from a branch on an external repo
-    """.format(
-        v=globals.version) + bcolors.ENDC)
-
-    branchSelect = input(bcolors.OKGREEN + 'Enter Choice: ' + bcolors.ENDC)
-
-    if branchSelect == "1":
-        subprocess.run(["clear"], shell=True)
-        initSetup(args)
-    elif branchSelect == "2":
-        subprocess.run(["clear"], shell=True)
-        branchHandler(args)
-    elif branchSelect == "3":
-        subprocess.run(["clear"], shell=True)
-        repoHandler(args)
-    else:
-        subprocess.run(["clear"], shell=True)
-        brachSelection(args)
-
-
-def branchHandler(args):
-    colorprint("Input desired branch. Press enter for default branch")
-    branch_def = subprocess.run(["echo {v}".format(
-        v=globals.selected_version)], capture_output=True, shell=True, text=True).stdout.strip()
-
-    globals.selected_version = rlinput(
-        bcolors.OKGREEN + "Branch: " + bcolors.ENDC, branch_def)
-
-    if globals.selected_version == "":
-        print(bcolors.FAIL + "Please ensure your branch is not blank" + bcolors.FAIL)
-        branchHandler(args)
-    else:
-        globals.selected_version = subprocess.run(
-            ["echo "+globals.selected_version], capture_output=True, shell=True, text=True).stdout.strip()
-        subprocess.run(["clear"], shell=True)
-        initSetup(args)
-
-
-def repoHandler(args):
-    colorprint(
-        "Input desired repo URL (do not include branch). Press enter for default location")
-    repo_def = subprocess.run(
-        ["echo "+globals.repo], capture_output=True, shell=True, text=True).stdout.strip()
-
-    globals.repo = rlinput(
-        bcolors.OKGREEN + "Repo URL: " + bcolors.ENDC, repo_def)
-
-    if globals.repo.endswith("/"):
-        print(bcolors.FAIL +
-              "Please ensure your path does not end with `/`" + bcolors.FAIL)
-        repoHandler(args)
-    elif not globals.repo.startswith("https://"):
-        print(bcolors.FAIL +
-              "Please ensure your path begins with a `https://`" + bcolors.FAIL)
-        repoHandler(args)
-    elif globals.repo == "":
-        print(bcolors.FAIL + "Please ensure your path is not blank" + bcolors.FAIL)
-        repoHandler(args)
-    else:
-        globals.repo = subprocess.run(
-            ["echo "+globals.repo], capture_output=True, shell=True, text=True).stdout.strip()
-        subprocess.run(["clear"], shell=True)
-        branchHandler(args)

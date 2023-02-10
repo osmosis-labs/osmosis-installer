@@ -38,4 +38,4 @@ Please choose a network to join:
         initSetup(args)
     else:
         subprocess.run(["clear"], shell=True)
-        selectNetwork()
+        selectNetwork(args)

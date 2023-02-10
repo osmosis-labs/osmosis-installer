@@ -4,7 +4,7 @@ import sys
 import globals
 from style import bcolors
 import select_network
-from init_setup import brachSelection
+from handlers import branchSelection
 
 # os.remove(sys.argv[0])
 
@@ -277,7 +277,7 @@ Please choose a node type:
         elif globals.selected_node == globals.NodeType.LOCALOSMOSIS:
             globals.selected_networktype = globals.NetworkType.LOCALOSMOSIS
             subprocess.run(["clear"], shell=True)
-            brachSelection(args)
+            branchSelection(args)
         else:
             subprocess.run(["clear"], shell=True)
             restart()
