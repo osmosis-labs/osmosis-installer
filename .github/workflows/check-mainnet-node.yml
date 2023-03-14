@@ -8,7 +8,7 @@ on:
 
 jobs:
   check_mainnet:
-    runs-on: self-hosted
+    runs-on: osmo-dev-runner
     steps:
       - name: 🐍 Set up Python
         uses: actions/setup-python@v2
