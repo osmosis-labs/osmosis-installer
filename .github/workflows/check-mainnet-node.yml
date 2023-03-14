@@ -1,4 +1,4 @@
-name: Check Osmosis mainnet
+name: Check Osmosis mainnet node
 
 on:
   workflow_dispatch:
