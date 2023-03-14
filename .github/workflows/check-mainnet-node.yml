@@ -18,9 +18,9 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      # - name: 🧪 Start osmosis mainnet node
-      #   run: |
-      #     python3 osmosis-installer.py -i="/home/runner/.osmosisd" -ds="snapshot" -st="pruned" -sl="netherlands" -rdb="goleveldb" -es=True -sr=False -cvs="noservice"
+      - name: 🧪 Start osmosis mainnet node
+        run: |
+          python3 osmosis-installer.py -i="/home/runner/.osmosisd" -ds="snapshot" -st="pruned" -sl="netherlands" -rdb="goleveldb" -es=True -sr=False -cvs="noservice"
       - name: Run the node for 50 blocks
         run: |
           CURR_BLOCK_HEIGHT=$(curl -s https://rpc.osmosis.zone/status | jq ".result.sync_info.latest_block_height| tonumber")
