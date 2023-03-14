@@ -20,7 +20,7 @@ jobs:
           fetch-depth: 0
       - name: 🧪 Start osmosis mainnet node
         run: |
-          python3 osmosis-installer.py -i=$HOME -ds="snapshot" -st="pruned" -sl="netherlands" -rdb="goleveldb" -es=True -sr=False -cvs="noservice"
+          python3 osmosis-installer.py -i="$HOME/.osmosisd" -ds="snapshot" -st="pruned" -sl="netherlands" -rdb="goleveldb" -es=True -sr=False -cvs="noservice"
       - name: Run the node for 50 blocks
         run: |
           CURR_BLOCK_HEIGHT=$(curl -s https://rpc.osmosis.zone/status | jq ".result.sync_info.latest_block_height| tonumber")
@@ -30,7 +30,7 @@ jobs:
           CONFIG_FOLDER=$HOME/.osmosisd/config
           # Edit app.toml
           dasel put int -f $CONFIG_FOLDER/config.toml '.halt-height' $HALT_BLOCK_HEIGHT
-          osmosisd start
+          osmosisd start --home="$HOME/.osmosisd"
       - name: 🧹 Clean up Osmosis Home
         if: always()
         run: rm -rf $HOME/.osmosisd/ || true
