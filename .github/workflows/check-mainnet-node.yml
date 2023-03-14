@@ -29,9 +29,7 @@ jobs:
           echo "HALT HEIGHT: $HALT_BLOCK_HEIGHT"
           CONFIG_FOLDER=$HOME/.osmosisd/config
           # Edit app.toml
-          HALT_BLOCK_HEIGHT_STR=$(printf '%s' "$HALT_BLOCK_HEIGHT")
-          echo "dasel put string -f $CONFIG_FOLDER/app.toml '.halt-height' $HALT_BLOCK_HEIGHT_STR"
-          dasel put -t string -f $CONFIG_FOLDER/app.toml  -v '.halt-height' $HALT_BLOCK_HEIGHT_STR
+          dasel put int -f /osmosis/.osmosisd/config/config.toml '.halt-height' $HALT_BLOCK_HEIGHT
           osmosisd start
       - name: 🧹 Clean up Osmosis Home
         if: always()
