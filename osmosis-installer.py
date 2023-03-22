@@ -13,9 +13,9 @@ os.remove(sys.argv[0])
 
 
 class NetworkVersion(str, Enum):
-    MAINNET = "v14.0.0"
-    TESTNET = "v14.0.0"
-    LOCALOSMOSIS = "v14.x"
+    MAINNET = "v15.0.0"
+    TESTNET = "v15.0.0"
+    LOCALOSMOSIS = "v15.x"
 
 
 repo = "https://github.com/osmosis-labs/osmosis"
