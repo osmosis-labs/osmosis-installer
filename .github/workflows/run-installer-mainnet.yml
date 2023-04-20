@@ -30,32 +30,68 @@ jobs:
             -rdb="goleveldb" \
             -es=True \
             -sr=False \
-            -cvs="osmoservice"
-      -
-        name: ⏳ Wait for node to start
-        run: |
-          echo "Waiting for chain to start..." 
-
-          until $(curl --output /dev/null --silent --head --fail http://localhost:26657/status) && [ $(curl -s http://localhost:26657/status | jq -r '.result.sync_info.latest_block_height') -ne 0 ]; do
-            printf '.'
-            sleep 1
-          done
-      -
-        name: ⏳ Wait for node to hit 50 blocks
-        run: |
-          CURRENT_HEIGHT=$(curl -s --retry 5 --retry-delay 5 --connect-timeout 30 -H "Accept: application/json" http://localhost:26657/status | jq -r '.result.sync_info.latest_block_height')
-          TARGET_HEIGHT=$((CURRENT_HEIGHT+50))
-          echo "Current block height is $CURRENT_HEIGHT."
-          echo "Waiting for it to reach $TARGET_HEIGHT..."
-          until $(curl --output /dev/null --silent --head --fail http://localhost:26657/status) && [ $(curl -s http://localhost:26657/status | jq -r '.result.sync_info.latest_block_height') -ge $TARGET_HEIGHT ]; do
-            printf '.'
-            sleep 5
-          done
+            -cvs="noservice"
       - 
-        name: Remove osmosisd.service
-        if: always()
+        name: Run the node for 50 blocks
         run: |
-          sudo systemctl stop osmosisd.service
-          sudo systemctl disable osmosisd.service
-          sudo rm /etc/systemd/system/osmosisd.service
-          sudo systemctl daemon-reload
+          CURRENT_HEIGHT=$(curl -s https://rpc.osmosis.zone/status | jq -r ".result.sync_info.latest_block_height")
+          HALT_HEIGHT=$((CURRENT_HEIGHT + 50))
+          
+          echo "Block height: $CURRENT_HEIGHT"
+          echo "Halth height: $HALT_HEIGHT"
+          # Edit app.toml
+          sed -i "s/halt-height = 0/halt-height = $HALT_HEIGHT/g" $RUNNER_TEMP/.osmosisd/config/app.toml
+
+          /home/runner/go/bin/osmosisd start --home="$RUNNER_TEMP/.osmosisd"
+
+  # run_installer_mainnet_osmosisd:
+  #   runs-on: osmo-dev-runner
+  #   steps:
+  #     - 
+  #       name: 🐍 Set up Python
+  #       uses: actions/setup-python@v2
+  #       with:
+  #         python-version: 3.x
+  #     - 
+  #       name: Checkout repository
+  #       uses: actions/checkout@v3
+  #     - 
+  #       name: 🤖 Run osmosis-installer
+  #       run: |
+  #         python3 osmosis-installer.py \
+  #           -i="$RUNNER_TEMP/.osmosisd" \
+  #           -ds="snapshot" \
+  #           -st="pruned" \
+  #           -sl="netherlands" \
+  #           -rdb="goleveldb" \
+  #           -es=True \
+  #           -sr=False \
+  #           -cvs="osmoservice"
+  #     -
+  #       name: ⏳ Wait for node to start
+  #       run: |
+  #         echo "Waiting for chain to start..." 
+
+  #         until $(curl --output /dev/null --silent --head --fail http://localhost:26657/status) && [ $(curl -s http://localhost:26657/status | jq -r '.result.sync_info.latest_block_height') -ne 0 ]; do
+  #           printf '.'
+  #           sleep 1
+  #         done
+  #     -
+  #       name: ⏳ Wait for node to hit 50 blocks
+  #       run: |
+  #         CURRENT_HEIGHT=$(curl -s --retry 5 --retry-delay 5 --connect-timeout 30 -H "Accept: application/json" http://localhost:26657/status | jq -r '.result.sync_info.latest_block_height')
+  #         TARGET_HEIGHT=$((CURRENT_HEIGHT+50))
+  #         echo "Current block height is $CURRENT_HEIGHT."
+  #         echo "Waiting for it to reach $TARGET_HEIGHT..."
+  #         until $(curl --output /dev/null --silent --head --fail http://localhost:26657/status) && [ $(curl -s http://localhost:26657/status | jq -r '.result.sync_info.latest_block_height') -ge $TARGET_HEIGHT ]; do
+  #           printf '.'
+  #           sleep 5
+  #         done
+  #     - 
+  #       name: Remove osmosisd.service
+  #       if: always()
+  #       run: |
+  #         sudo systemctl stop osmosisd.service
+  #         sudo systemctl disable osmosisd.service
+  #         sudo rm /etc/systemd/system/osmosisd.service
+  #         sudo systemctl daemon-reload
