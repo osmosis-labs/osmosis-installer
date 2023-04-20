@@ -12,7 +12,6 @@ jobs:
     runs-on: osmo-dev-runner
     #container: ubuntu:22.04
     steps:
-
       - 
         name: 🐍 Set up Python
         uses: actions/setup-python@v2
@@ -44,4 +43,6 @@ jobs:
 
           # Edit app.toml
           sed -i "s/halt-height = 0/halt-height = $HALT_HEIGHT/g" $RUNNER_TEMP/.osmosisd/config/app.toml
+          
+          sleep 3600
           osmosisd start --home="$RUNNER_TEMP/.osmosisd"
