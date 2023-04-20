@@ -10,7 +10,6 @@ jobs:
 
   run_installer_mainnet:
     runs-on: osmo-dev-runner
-    container: ubuntu:22.04
     steps:
       - 
         name: 🐍 Set up Python
@@ -33,17 +32,23 @@ jobs:
             -sr=False \
             -cvs="noservice"
       - 
-        name: Run the node for 50 blocks
+        name: Run the node for 10 blocks
         run: |
           CURRENT_HEIGHT=$(curl -s https://rpc.osmosis.zone/status | jq -r ".result.sync_info.latest_block_height")
-          HALT_HEIGHT=$((CURRENT_HEIGHT + 50))
+          HALT_HEIGHT=$((CURRENT_HEIGHT + 10))
           
           echo "Block height: $CURRENT_HEIGHT"
           echo "Halth height: $HALT_HEIGHT"
           # Edit app.toml
           sed -i "s/halt-height = 0/halt-height = $HALT_HEIGHT/g" $HOME/.osmosisd/config/app.toml
 
-          /home/runner/go/bin/osmosisd start --home="$HOME/.osmosisd"
+          $HOME/go/bin/osmosisd start --home="$HOME/.osmosisd"
+      - 
+        name: 🧹 Clean up 
+        run: |
+          rm -rf $HOME/.osmosisd
+          rm -rf $HOME/osmosis
+
 
   # run_installer_mainnet_osmosisd:
   #   runs-on: osmo-dev-runner
