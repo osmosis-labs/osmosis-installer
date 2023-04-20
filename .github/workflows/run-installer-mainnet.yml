@@ -10,7 +10,6 @@ jobs:
 
   run_installer_mainnet:
     runs-on: osmo-dev-runner
-    #container: ubuntu:22.04
     steps:
       - 
         name: 🐍 Set up Python
@@ -21,7 +20,7 @@ jobs:
         name: Checkout repository
         uses: actions/checkout@v3
       - 
-        name: 🧪 Run installer
+        name: 🤖 Run osmosis-installer
         run: |
           python3 osmosis-installer.py \
             -i="$RUNNER_TEMP/.osmosisd" \
@@ -31,9 +30,29 @@ jobs:
             -rdb="goleveldb" \
             -es=True \
             -sr=False \
-            -cvs="noservice"
+            -cvs="osmoservice"
+      -
+        name: ⏳ Wait for node to start
+        run: |
+          echo "Waiting for chain to start..." 
+
+          until $(curl --output /dev/null --silent --head --fail http://localhost:26657/status) && [ $(curl -s http://localhost:26657/status | jq -r '.result.sync_info.latest_block_height') -ne 0 ]; do
+            printf '.'
+            sleep 1
+          done
+      -
+        name: ⏳ Wait for node to hit 50 blocks
+        run: |
+          CURRENT_HEIGHT=$(curl -s --retry 5 --retry-delay 5 --connect-timeout 30 -H "Accept: application/json" http://localhost:26657/status | jq -r '.result.sync_info.latest_block_height')
+          TARGET_HEIGHT=$((CURRENT_HEIGHT+50))
+          echo "Current block height is $CURRENT_HEIGHT."
+          echo "Waiting for it to reach $TARGET_HEIGHT..."
+          until $(curl --output /dev/null --silent --head --fail http://localhost:26657/status) && [ $(curl -s http://localhost:26657/status | jq -r '.result.sync_info.latest_block_height') -ge $TARGET_HEIGHT ]; do
+            printf '.'
+            sleep 5
+          done
       - 
-        name: Run the node for 50 blocks
+        name: 🧪  Run the node for 50 blocks
         run: |
           CURRENT_HEIGHT=$(curl -s https://rpc.osmosis.zone/status | jq -r ".result.sync_info.latest_block_height")
           HALT_HEIGHT=$((CURRENT_HEIGHT + 50))
@@ -46,3 +65,11 @@ jobs:
           
           sleep 3600
           osmosisd start --home="$RUNNER_TEMP/.osmosisd"
+      - 
+        name: Remove osmosisd.service
+        if: always()
+        run: |
+          sudo systemctl stop osmosisd.service
+          sudo systemctl disable osmosisd.service
+          sudo rm /etc/systemd/system/osmosisd.service
+          sudo systemctl daemon-reload
