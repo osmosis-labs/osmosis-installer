@@ -10,7 +10,7 @@ jobs:
 
   run_installer_mainnet:
     runs-on: osmo-dev-runner
-    container: ubuntu:22.04
+    #container: ubuntu:22.04
     steps:
 
       - 
@@ -21,8 +21,6 @@ jobs:
       - 
         name: Checkout repository
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - 
         name: 🧪 Run installer
         run: |
@@ -38,7 +36,7 @@ jobs:
       - 
         name: Run the node for 50 blocks
         run: |
-          apt install jq
+          #apt install jq
 
           CURRENT_HEIGHT=$(curl -s https://rpc.osmosis.zone/status | jq -r ".result.sync_info.latest_block_height")
           HALT_HEIGHT=$((CURRENT_HEIGHT + 50))
@@ -48,4 +46,4 @@ jobs:
 
           # Edit app.toml
           sed -i "s/halt-height = 0/halt-height = $HALT_HEIGHT/g" ~/.osmosisd/config/app.toml
-          osmosisd start --home="~/.osmosisd"
+          #osmosisd start --home="~/.osmosisd"
