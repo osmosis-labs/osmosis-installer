@@ -36,8 +36,6 @@ jobs:
       - 
         name: Run the node for 50 blocks
         run: |
-          #apt install jq
-
           CURRENT_HEIGHT=$(curl -s https://rpc.osmosis.zone/status | jq -r ".result.sync_info.latest_block_height")
           HALT_HEIGHT=$((CURRENT_HEIGHT + 50))
           
@@ -46,4 +44,4 @@ jobs:
 
           # Edit app.toml
           sed -i "s/halt-height = 0/halt-height = $HALT_HEIGHT/g" $RUNNER_TEMP/.osmosisd/config/app.toml
-          #osmosisd start --home="$RUNNER_TEMP/.osmosisd"
+          osmosisd start --home="$RUNNER_TEMP/.osmosisd"
