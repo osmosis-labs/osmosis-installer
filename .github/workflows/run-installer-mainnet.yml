@@ -1,25 +1,30 @@
-name: Run installer
+name: Run installer | Mainnet
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - sis/docker-test
 
 jobs:
-  run_installer:
+
+  run_installer_mainnet:
     runs-on: osmo-dev-runner
     container: ubuntu:22.04
     steps:
+
       - 
         name: 🐍 Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: 3.x
       - 
-        name: Checkout osmosis-installer branch
+        name: Checkout repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - 
-        name: 🧪 Start osmosis mainnet node
+        name: 🧪 Run installer
         run: |
           python3 osmosis-installer.py \
             -i="~/.osmosisd" \
