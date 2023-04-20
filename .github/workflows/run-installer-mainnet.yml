@@ -25,7 +25,7 @@ jobs:
         name: 🧪 Run installer
         run: |
           python3 osmosis-installer.py \
-            -i="~/.osmosisd" \
+            -i="$RUNNER_TEMP/.osmosisd" \
             -ds="snapshot" \
             -st="pruned" \
             -sl="netherlands" \
@@ -45,5 +45,5 @@ jobs:
           echo "Halth height: $HALT_HEIGHT"
 
           # Edit app.toml
-          sed -i "s/halt-height = 0/halt-height = $HALT_HEIGHT/g" ~/.osmosisd/config/app.toml
-          #osmosisd start --home="~/.osmosisd"
+          sed -i "s/halt-height = 0/halt-height = $HALT_HEIGHT/g" $RUNNER_TEMP/.osmosisd/config/app.toml
+          #osmosisd start --home="$RUNNER_TEMP/.osmosisd"
