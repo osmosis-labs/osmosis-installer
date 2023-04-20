@@ -10,6 +10,7 @@ jobs:
 
   run_installer_mainnet:
     runs-on: osmo-dev-runner
+    container: ubuntu:22.04
     steps:
       - 
         name: 🐍 Set up Python
@@ -23,7 +24,7 @@ jobs:
         name: 🤖 Run osmosis-installer
         run: |
           python3 osmosis-installer.py \
-            -i="$RUNNER_TEMP/.osmosisd" \
+            -i="$HOME/.osmosisd" \
             -ds="snapshot" \
             -st="pruned" \
             -sl="netherlands" \
@@ -40,9 +41,9 @@ jobs:
           echo "Block height: $CURRENT_HEIGHT"
           echo "Halth height: $HALT_HEIGHT"
           # Edit app.toml
-          sed -i "s/halt-height = 0/halt-height = $HALT_HEIGHT/g" $RUNNER_TEMP/.osmosisd/config/app.toml
+          sed -i "s/halt-height = 0/halt-height = $HALT_HEIGHT/g" $HOME/.osmosisd/config/app.toml
 
-          /home/runner/go/bin/osmosisd start --home="$RUNNER_TEMP/.osmosisd"
+          /home/runner/go/bin/osmosisd start --home="$HOME/.osmosisd"
 
   # run_installer_mainnet_osmosisd:
   #   runs-on: osmo-dev-runner
