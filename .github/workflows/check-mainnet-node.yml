@@ -2,34 +2,37 @@ name: Check Osmosis mainnet
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches:
-      - "*"
 
 jobs:
   check_mainnet:
     runs-on: osmo-dev-runner
+    container: ubuntu:22.04
     steps:
-      - name: 🐍 Set up Python
+      - 
+        name: 🐍 Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: 3.x
-      - name: Checkout osmosis-installer branch
+      - 
+        name: Checkout osmosis-installer branch
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: 🧪 Start osmosis mainnet node
+      - 
+        name: 🧪 Start osmosis mainnet node
         run: |
-          python3 osmosis-installer.py -i="/home/runner/.osmosisd" -ds="snapshot" -st="pruned" -sl="netherlands" -rdb="goleveldb" -es=True -sr=False -cvs="noservice"
-      - name: Run the node for 50 blocks
+          python3 osmosis-installer.py -i="$RUNNER_TEMP/.osmosisd" -ds="snapshot" -st="pruned" -sl="netherlands" -rdb="goleveldb" -es=True -sr=False -cvs="noservice"
+      - 
+        name: Run the node for 50 blocks
         run: |
-          CURR_BLOCK_HEIGHT=$(curl -s https://rpc.osmosis.zone/status | jq ".result.sync_info.latest_block_height| tonumber")
-          HALT_BLOCK_HEIGHT=$((CURR_BLOCK_HEIGHT + 50))
-          echo "Block height: $CURR_BLOCK_HEIGHT"
-          echo "HALT HEIGHT: $HALT_BLOCK_HEIGHT"
+          apt install jq
+
+          CURRENT_HEIGHT=$(curl -s https://rpc.osmosis.zone/status | jq -r ".result.sync_info.latest_block_height")
+          HALT_HEIGHT=$((CURRENT_HEIGHT + 50))
+          
+          echo "Block height: $CURRENT_HEIGHT"
+          echo "Halth height: $HALT_HEIGHT"
+
           # Edit app.toml
-          dasel put string -f "/home/runner/.osmosisd/config/app.toml" '.halt-height' $HALT_BLOCK_HEIGHT 
-          osmosisd start --home="/home/runner/.osmosisd"
-      - name: 🧹 Clean up Osmosis Home
-        if: always()
-        run: rm -rf "/home/runner/.osmosisd/" || true
+          sed -i "s/halt-height = 0/halt-height = $HALT_HEIGHT/g" $RUNNER_TEMP/.osmosisd/config/app.toml
+          osmosisd start --home="$RUNNER_TEMP/.osmosisd"
