@@ -13,8 +13,8 @@ os.remove(sys.argv[0])
 
 
 class NetworkVersion(str, Enum):
-    MAINNET = "v15.0.0"
-    TESTNET = "v15.0.0-rc4"
+    MAINNET = "v15.1.0"
+    TESTNET = "v15.1.0-testnet"
     LOCALOSMOSIS = "v15.x"
 
 
