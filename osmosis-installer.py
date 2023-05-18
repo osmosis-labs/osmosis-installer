@@ -1476,7 +1476,7 @@ def initSetup():
         colorprint("(3/4) Installing Go...")
         subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --remove"],
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-        subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.19"],
+        subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.20"],
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         os.chdir(os.path.expanduser(HOME))
         gitClone = subprocess.Popen(
@@ -1554,7 +1554,7 @@ def initSetup():
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=my_env)
         subprocess.run(["asdf plugin-add golang https://github.com/kennyp/asdf-golang.git"],
                        shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=my_env)
-        subprocess.run(["asdf install golang 1.19"], shell=True,
+        subprocess.run(["asdf install golang 1.20"], shell=True,
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=my_env)
         os.chdir(os.path.expanduser(HOME))
         gitClone = subprocess.Popen(
