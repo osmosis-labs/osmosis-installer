@@ -1,23 +1,23 @@
 import os
 import sys
 import argparse
-import shutil
-import urllib.request
+import subprocess
 import platform
+import configparser
 from time import time, sleep
 from enum import Enum
 
 # CLI arguments
 parser = argparse.ArgumentParser(description="Osmosis Installer")
 
-osmosisd_home = os.path.expanduser("~/.osmosisd")
+DEFAULT_OSMOSIS_HOME = os.path.expanduser("~/.osmosisd")
+DEFAULT_MONIKER = "osmosis"
 NETWORK_CHOICES = ['osmosis-1', 'osmo-test-5']
 
 parser.add_argument(
     "--home",
     type=str,
-    default=osmosisd_home,
-    help=f"Osmosis installation location\n(Default: '{osmosisd_home}')",
+    help=f"Osmosis installation location",
 )
 
 parser.add_argument(
@@ -54,12 +54,13 @@ class NetworkType(str, Enum):
 
 # Network configurations
 class Network:
-    def __init__(self, chain_id, version, genesis_url, binary_url, seeds, addrbook_url, snapshot_url):
+    def __init__(self, chain_id, version, genesis_url, binary_url, seeds, rpc_node, addrbook_url, snapshot_url):
         self.chain_id = chain_id
         self.version = version
         self.genesis_url = genesis_url
         self.binary_url = binary_url
         self.seeds = seeds
+        self.rpc_node = rpc_node
         self.addrbook_url = addrbook_url
         self.snapshot_url = snapshot_url
 
@@ -95,6 +96,7 @@ TESTNET = Network(
         "f440c4980357d8b56db87ddd50f06bd551f1319a@5.78.98.19:26656",
         "ade4d8bc,8cbe014af6ebdf3cb7b1e9ad36f412c0@testnet-seeds.polkachu.com:12556",
     ],
+    rpc_node = "https://rpc.osmotest5.osmosis.zone:443",
     addrbook_url = "https://addrbook.osmotest5.osmosis.zone",
     snapshot_url = "https://snapshots.osmotest5.osmosis.zone/latest"
 )
@@ -105,12 +107,13 @@ MAINNET = Network(
     genesis_url = "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/genesis.json",
     binary_url = {
         "linux": {
-            "amd64": "",
-            "arm64": "4",
+            "amd64": "https://github.com/osmosis-labs/osmosis/releases/download/v15.1.2/osmosisd-15.1.2-linux-amd64",
+            "arm64": "https://github.com/osmosis-labs/osmosis/releases/download/v15.1.2/osmosisd-15.1.2-linux-arm64",
         }
     },
     seeds = [
     ],
+    rpc_node = "https://rpc.osmosis.zone:443",
     addrbook_url = "",
     snapshot_url = ""
 )
@@ -118,6 +121,7 @@ MAINNET = Network(
 # Terminal utils
 class bcolors:
     OKGREEN = '\033[92m'
+    RED = '\033[91m'
     ENDC = '\033[0m'
 
 def clear_screen():
@@ -147,17 +151,15 @@ it is recommended to back up any important Osmosis data before proceeding.
 def select_setup():
 
     print(bcolors.OKGREEN + """
-Please choose a node type (1, 2, 3), or enter 'exit' to quit:
+Please choose a node type:
 
 1) Full Node (downloads chain data and runs locally)
 2) Client Node (sets up a daemon to query a public RPC)
 3) LocalOsmosis Node (sets up a daemon to query a local Osmosis development RPC)
-    """
-    + bcolors.ENDC
-)
+""" + bcolors.ENDC)
 
     while True:
-        user_input = input()
+        user_input = input("Enter your choice, or 'exit' to quit: ").strip()
 
         if user_input.lower() == "exit":
             print("Exiting the program...")
@@ -170,8 +172,16 @@ Please choose a node type (1, 2, 3), or enter 'exit' to quit:
 
     return user_input
 
-
 def select_network():
+    """
+    Selects a network based on user input or command-line arguments.
+
+    Returns:
+        chosen_network (NetworkType): The chosen network, either MAINNET or TESTNET.
+
+    Raises:
+        SystemExit: If an invalid network is specified or the user chooses to exit the program.
+    """
 
     # Check if network is specified in args
     if args.network:
@@ -185,16 +195,15 @@ def select_network():
 
     # If not, ask the user to choose a network
     else:
-        print(bcolors.OKGREEN +
-        f"""
-Please choose a node type (1, 2), or enter 'exit' to quit:
+        print(bcolors.OKGREEN + f"""
+Please choose a node type:
 
 1) Mainnet ({MAINNET.chain_id})
 2) Testnet ({TESTNET.chain_id})
-        """ + bcolors.ENDC)
+""" + bcolors.ENDC)
 
         while True:
-            chosen_network = input()
+            chosen_network = input("Enter your choice, or 'exit' to quit: ").strip()
 
             if chosen_network.lower() == "exit":
                 print("Exiting the program...")
@@ -207,13 +216,22 @@ Please choose a node type (1, 2), or enter 'exit' to quit:
         
     if args.verbose:
         clear_screen()
-        print(f"Chosen network: {NETWORK_CHOICES[int(chosen_network)]}")
+        print(f"Chosen network: {NETWORK_CHOICES[int(chosen_network) - 1]}")
 
     return chosen_network
 
 
 def download_binary(network):
+    """
+    Downloads the binary for the specified network based on the operating system and architecture.
 
+    Args:
+        network (NetworkType): The network type, either MAINNET or TESTNET.
+
+    Raises:
+        SystemExit: If the binary download URL is not available for the current operating system and architecture.
+
+    """
     operating_system = platform.system().lower()
     architecture = platform.machine()
 
@@ -227,6 +245,9 @@ def download_binary(network):
     else:
         binary_urls = MAINNET.binary_url
 
+    # TODO: Remove this
+    operating_system = "linux"
+
     if operating_system in binary_urls and architecture in binary_urls[operating_system]:
         binary_url = binary_urls[operating_system][architecture]
     else:
@@ -235,18 +256,176 @@ def download_binary(network):
         sys.exit(0)
 
     try:
-        with urllib.request.urlopen(binary_url) as response:
-            osmosisd_path = "./osmosisd"  # Change the path as per your requirement
+        if args.verbose:
+            print(f"Downloading binary from {binary_url}")
 
-            with open(osmosisd_path, 'wb') as file:
-                shutil.copyfileobj(response, file)
+        osmosisd_path = "./osmosisd"  # Change the path as per your requirement
 
-            # Make the binary file executable
-            os.chmod(osmosisd_path, 0o755)
+        subprocess.run(["wget", binary_url,"-q", "-O", osmosisd_path], check=True)
+        os.chmod(osmosisd_path, 0o755)
 
         print("Binary downloaded successfully.")
-    except urllib.error.URLError:
+
+    except subprocess.CalledProcessError:
         print("Failed to download the binary.")
+
+
+def select_osmosis_home():
+    """
+    Selects the path for running the 'osmosisd init --home <SELECTED_HOME>' command.
+
+    Returns:
+        osmosis_home (str): The selected path.
+
+    """
+    if args.home:
+        osmosis_home = args.home
+    else:
+        default_home = os.path.expanduser("~/.osmosisd")
+        print(bcolors.OKGREEN + f"""
+Do you want to install Osmosis in the default location?:
+
+1) Yes, use default location {DEFAULT_OSMOSIS_HOME} (recommended)
+2) No, specify custom location
+
+💡 You can specify the location using the --home flag.
+""" + bcolors.ENDC)
+
+        while True:
+            choice = input("Enter your choice: ").strip()
+
+            if choice == "1":
+                osmosis_home = default_home
+                break
+            elif choice == "2":
+                while True:
+                    custom_home = input("Enter the path for Osmosis home: ").strip()
+                    if custom_home != "":
+                        osmosis_home = custom_home
+                        break
+                    else:
+                        print("Invalid path. Please enter a valid directory.")
+                break
+            else:
+                print("Invalid choice. Please enter 1 or 2.")
+
+    return osmosis_home
+
+
+def select_moniker():
+    """
+    Selects the moniker for the Osmosis node.
+
+    Returns:
+        moniker (str): The selected moniker.
+
+    """
+    if args.moniker:
+        moniker = args.moniker
+    else:
+        print(bcolors.OKGREEN + f"""
+Do you want to use the default moniker?
+
+1) Yes, use default moniker ({DEFAULT_MONIKER})
+2) No, specify custom moniker
+
+💡 You can specify the moniker using the --moniker flag.
+""" + bcolors.ENDC)
+
+        while True:
+            choice = input("Enter your choice: ")
+
+            if choice == "1":
+                moniker = DEFAULT_MONIKER
+                break
+            elif choice == "2":
+                while True:
+                    custom_moniker = input("Enter the custom moniker: ")
+                    if custom_moniker.strip() != "":
+                        moniker = custom_moniker
+                        break
+                    else:
+                        print("Invalid moniker. Please enter a valid moniker.")
+                break
+            else:
+                print("Invalid choice. Please enter 1 or 2.")
+
+    return moniker
+
+
+def initialize_home(osmosis_home, moniker):
+    """
+    Initializes the Osmosis home directory with the specified moniker.
+
+    Args:
+        osmosis_home (str): The chosen home directory.
+        moniker (str): The moniker for the Osmosis node.
+
+    """
+    while True:
+        print(bcolors.OKGREEN + f"""
+Do you want to initialize the Osmosis home directory at '{osmosis_home}'?
+""" + bcolors.ENDC)
+
+        print(bcolors.RED + f"⚠️ All contents of the directory will be deleted." + bcolors.ENDC)
+
+        print(bcolors.OKGREEN + f"""
+1) Yes, proceed with initialization
+2) No, quit
+""" + bcolors.ENDC)
+        
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            print(f"Initializing Osmosis home directory at '{osmosis_home}'...")
+            try:
+                subprocess.run(
+                    ["rm", "-rf", osmosis_home], 
+                    stderr=subprocess.DEVNULL, check=True)
+                
+                subprocess.run(
+                    ["osmosisd", "init", moniker,  "-o", "--home", osmosis_home], 
+                    stderr=subprocess.DEVNULL, check=True)
+                print("Initialization completed successfully.")
+                break
+            except subprocess.CalledProcessError:
+                print("Initialization failed.")
+                print("Please check if the home directory is valid and has write permissions.")
+                sys.exit(1)
+        elif choice == "2":
+            sys.exit(0)
+        else:
+            print("Invalid choice. Please enter 1 or 2.")
+
+
+def customize_config(home, network):
+    """
+    Customizes the TOML configurations based on the network.
+
+    Args:
+        home (str): The home directory.
+        network (str): The network identifier.
+
+    """
+
+    if network == NetworkType.TESTNET:
+        client_toml = os.path.join(home, "config", "client.toml")
+
+        with open(client_toml, "r") as config_file:
+            lines = config_file.readlines()
+
+        for i, line in enumerate(lines):
+            if line.startswith("chain-id"):
+                lines[i] = f'chain-id = "{TESTNET.chain_id}"\n'
+            elif line.startswith("node"):
+                lines[i] = f'node = "{TESTNET.rpc_node}"\n'
+
+        with open(client_toml, "w") as config_file:
+            config_file.writelines(lines)
+
+        print("Configuration customized successfully.")
+    else:
+        print("No customization needed for the specified network.")
 
 
 # Parse the command-line arguments
@@ -265,7 +444,16 @@ def main():
     elif chosen_setup == SetupType.CLIENT:
         print("Setting up a client node...")
         chosen_network = select_network()
-        download_binary(chosen_network)
+        clear_screen()
+        # download_binary(chosen_network)
+        clear_screen()
+        chosen_home = select_osmosis_home()
+        clear_screen()
+        moniker = select_moniker()
+        clear_screen()
+        initialize_home(chosen_home, moniker)
+        clear_screen()
+        customize_config(chosen_home, chosen_network)
 
     elif chosen_setup == SetupType.LOCALOSMOSIS:
         print("Setting up a LocalOsmosis node...")
