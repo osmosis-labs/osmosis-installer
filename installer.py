@@ -229,6 +229,7 @@ Please choose a node type:
         clear_screen()
         print(f"Chosen network: {NETWORK_CHOICES[int(chosen_network) - 1]}")
 
+    clear_screen()
     return chosen_network
 
 
@@ -279,6 +280,8 @@ def download_binary(network):
 
     except subprocess.CalledProcessError:
         print("Failed to download the binary.")
+    
+    clear_screen()
 
 
 def select_osmosis_home():
@@ -320,6 +323,7 @@ Do you want to install Osmosis in the default location?:
             else:
                 print("Invalid choice. Please enter 1 or 2.")
 
+    clear_screen()
     return osmosis_home
 
 
@@ -361,6 +365,7 @@ Do you want to use the default moniker?
             else:
                 print("Invalid choice. Please enter 1 or 2.")
 
+    clear_screen()
     return moniker
 
 
@@ -407,6 +412,8 @@ Do you want to initialize the Osmosis home directory at '{osmosis_home}'?
             sys.exit(0)
         else:
             print("Invalid choice. Please enter 1 or 2.")
+    
+    clear_screen()
 
 
 def customize_config(home, network):
@@ -419,6 +426,10 @@ def customize_config(home, network):
 
     """
 
+    # TODO: Use configparser to read the TOML file
+    # https://stackoverflow.com/questions/2885190/using-configparser-to-read-a-file-without-section-name 
+
+    # osmo-test-5 configuration
     if network == NetworkType.TESTNET:
         client_toml = os.path.join(home, "config", "client.toml")
 
@@ -435,8 +446,29 @@ def customize_config(home, network):
             config_file.writelines(lines)
 
         print("Configuration customized successfully.")
+    
+    # osmosis-1 configuration
+    elif network == NetworkType.MAINNET:
+        client_toml = os.path.join(home, "config", "client.toml")
+
+        with open(client_toml, "r") as config_file:
+            lines = config_file.readlines()
+
+        for i, line in enumerate(lines):
+            if line.startswith("chain-id"):
+                lines[i] = f'chain-id = "{MAINNET.chain_id}"\n'
+            elif line.startswith("node"):
+                lines[i] = f'node = "{MAINNET.rpc_node}"\n'
+
+        with open(client_toml, "w") as config_file:
+            config_file.writelines(lines)
+
+        print("Configuration customized successfully.")
+
     else:
         print("No customization needed for the specified network.")
+    
+    clear_screen()
 
 
 # Parse the command-line arguments
@@ -455,17 +487,11 @@ def main():
     elif chosen_setup == SetupType.CLIENT:
         print("Setting up a client node...")
         chosen_network = select_network()
-        clear_screen()
-        # download_binary(chosen_network)
-        clear_screen()
+        download_binary(chosen_network)
         chosen_home = select_osmosis_home()
-        clear_screen()
         moniker = select_moniker()
-        clear_screen()
         initialize_home(chosen_home, moniker)
-        clear_screen()
         customize_config(chosen_home, chosen_network)
-        clear_screen()
         client_complete_message()
 
     elif chosen_setup == SetupType.LOCALOSMOSIS:
