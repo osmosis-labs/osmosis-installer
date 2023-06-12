@@ -127,7 +127,7 @@ class bcolors:
 def clear_screen():
     os.system('clear')
 
-# # Messages
+# Messages
 
 def welcome_message():
     print(bcolors.OKGREEN + """
@@ -145,8 +145,19 @@ Ensure no osmosis services are running in the background
 
 If you have an old Osmosis installation, 
 it is recommended to back up any important Osmosis data before proceeding.
-""" + bcolors.ENDC
-)
+""" + bcolors.ENDC)
+
+
+def client_complete_message():
+    print(bcolors.OKGREEN + """
+✨ Congratulations! You have successfully completed setting up an Osmosis client node! ✨
+""" + bcolors.ENDC)
+
+    print("🧪 Try running: " + bcolors.OKGREEN + "osmosisd status" + bcolors.ENDC)
+    print()
+
+
+# Options
 
 def select_setup():
 
@@ -454,11 +465,11 @@ def main():
         initialize_home(chosen_home, moniker)
         clear_screen()
         customize_config(chosen_home, chosen_network)
+        clear_screen()
+        client_complete_message()
 
     elif chosen_setup == SetupType.LOCALOSMOSIS:
         print("Setting up a LocalOsmosis node...")
 
-    clear_screen()
-    print("Installation completed successfully!")
 
 main()
