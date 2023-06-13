@@ -3,17 +3,19 @@ import sys
 import argparse
 import subprocess
 import platform
-import urllib
+import random
 from time import time, sleep
 from enum import Enum
 
-# CLI arguments
-parser = argparse.ArgumentParser(description="Osmosis Installer")
-
 DEFAULT_OSMOSIS_HOME = os.path.expanduser("~/.osmosisd")
 DEFAULT_MONIKER = "osmosis"
+
 NETWORK_CHOICES = ['osmosis-1', 'osmo-test-5']
 SETUP_CHOICES = ['fullnode', 'client', 'localosmosis']
+PRUNING_CHOICES = ['default', 'nothing', 'everything']
+
+# CLI arguments
+parser = argparse.ArgumentParser(description="Osmosis Installer")
 
 parser.add_argument(
     "--home",
@@ -36,11 +38,27 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    '-o',
+    '--overwrite',
+    action='store_true',
+    help="Overwrite existing Osmosis home without prompt",
+    dest="overwrite"
+)
+
+parser.add_argument(
     '-n',
     '--network',
     type=str,
     choices=NETWORK_CHOICES,
     help=f"Network to join: {NETWORK_CHOICES})",
+)
+
+parser.add_argument(
+    '-p',
+    '--pruning',
+    type=str,
+    choices=PRUNING_CHOICES,
+    help=f"Pruning settings: {PRUNING_CHOICES})",
 )
 
 parser.add_argument(
@@ -51,6 +69,9 @@ parser.add_argument(
     help=f"Which setup to do: {SETUP_CHOICES})",
 )
 
+# Parse the command-line arguments
+args = parser.parse_args()
+
 # Choices
 class SetupChoice(str, Enum):
     FULLNODE = "1"
@@ -60,6 +81,15 @@ class SetupChoice(str, Enum):
 class NetworkChoice(str, Enum):
     MAINNET = "1"
     TESTNET = "2"
+
+class PruningChoice(str, Enum):
+    DEFAULT = "1"
+    NOTHING = "2"
+    EVERYTHING = "3"
+
+class Answer(str, Enum):
+    YES = "1"
+    NO = "2"
 
 # Network configurations
 class Network:
@@ -99,7 +129,7 @@ TESTNET = Network(
             "arm64": "https://osmosis.fra1.digitaloceanspaces.com/osmo-test-5/binaries/osmosisd-15.1.0-testnet-linux-arm64",
         }
     },
-    seeds = [
+    peers = [
         "a5f81c035ff4f985d5e7c940c7c3b846389b7374@167.235.115.14:26656",
         "05c41cc1fc7c8cb379e54d784bcd3b3907a1568e@157.245.26.231:26656",
         "7c2b9e76be5c2142c76b429d9c29e902599ceb44@157.245.21.183:26656",
@@ -107,8 +137,22 @@ TESTNET = Network(
         "ade4d8bc,8cbe014af6ebdf3cb7b1e9ad36f412c0@testnet-seeds.polkachu.com:12556",
     ],
     rpc_node = "https://rpc.osmotest5.osmosis.zone:443",
-    addrbook_url = "https://addrbook.osmotest5.osmosis.zone",
-    snapshot_url = "https://snapshots.osmotest5.osmosis.zone/latest"
+    addrbook_url = "https://rpc.osmotest5.osmosis.zone/addrbook/",
+    snapshot_url = {
+        "osmosis": {
+            "pruned": {
+                "FRA (EU)": "https://snapshots.osmotest5.osmosis.zone/latest",
+            }
+        },
+        "chainlayer": {
+            "pruned": {
+                "AMS (EU)": "https://snapshots.osmotest5.osmosis.zone/latest",
+            },
+            "archive": {
+                "AMS (EU)": "https://snapshots.osmotest5.osmosis.zone/latest",
+            }
+        }
+    }
 )
 
 
@@ -126,7 +170,28 @@ MAINNET = Network(
     ],
     rpc_node = "https://rpc.osmosis.zone:443",
     addrbook_url = "https://rpc.osmosis.zone/addrbook",
-    snapshot_url = ""
+    snapshot_url = {
+        "osmosis": {
+            "pruned": {
+                "FRA (EU)": "https://snapshots.osmosis.zone/latest",
+            }
+        },
+        "chainlayer": {
+            "default": {
+                "AMS (EU)": "https://snapshots.osmotest5.osmosis.zone/latest",
+                "SIN (ASIA)": "https://snapshots.osmotest5.osmosis.zone/latest",
+                "SFO (US)": "https://snapshots.osmotest5.osmosis.zone/latest",
+            },
+            "pruned": {
+                "AMS (EU)": "https://snapshots.osmotest5.osmosis.zone/latest",
+                "SIN (ASIA)": "https://snapshots.osmotest5.osmosis.zone/latest",
+                "SFO (US)": "https://snapshots.osmotest5.osmosis.zone/latest",
+            },
+            "archive": {
+                "AMS (EU)": "https://snapshots.osmotest5.osmosis.zone/latest",
+            }
+        }
+    }
 )
 
 # Terminal utils
@@ -177,11 +242,11 @@ def select_setup():
     # Check if setup is specified in args
     if args.setup:
         if args.setup == "fullnode":
-            chosen_setup = SetupChoice.FULLNODE
+            choice = SetupChoice.FULLNODE
         elif args.setup == "client":
-            chosen_setup = SetupChoice.CLIENT
+            choice = SetupChoice.CLIENT
         elif args.setup ==  "localosmosis":
-            chosen_setup = SetupChoice.LOCALOSMOSIS
+            choice = SetupChoice.LOCALOSMOSIS
         else:
             print(bcolors.RED + f"Invalid setup {args.setup}. Please choose a valid setup.\n" + bcolors.ENDC)
             sys.exit(1)
@@ -199,23 +264,23 @@ Please choose the desired setup:
         """ + bcolors.ENDC)
 
         while True:
-            chosen_setup = input("Enter your choice, or 'exit' to quit: ").strip()
+            choice = input("Enter your choice, or 'exit' to quit: ").strip()
 
-            if chosen_setup.lower() == "exit":
+            if choice.lower() == "exit":
                 print("Exiting the program...")
                 sys.exit(0)
 
-            if chosen_setup not in [SetupChoice.FULLNODE, SetupChoice.CLIENT, SetupChoice.LOCALOSMOSIS]:
+            if choice not in [SetupChoice.FULLNODE, SetupChoice.CLIENT, SetupChoice.LOCALOSMOSIS]:
                 print("Invalid input. Please choose a valid option.")
             else:
                 break
             
         if args.verbose:
             clear_screen()
-            print(f"Chosen setup: {SETUP_CHOICES[int(chosen_setup) - 1]}")
+            print(f"Chosen setup: {SETUP_CHOICES[int(choice) - 1]}")
 
     clear_screen()
-    return chosen_setup
+    return choice
 
 def select_network():
     """
@@ -231,9 +296,9 @@ def select_network():
     # Check if network is specified in args
     if args.network:
         if args.network == MAINNET.chain_id:
-            chosen_network = NetworkChoice.MAINNET
+            choice = NetworkChoice.MAINNET
         elif args.network == TESTNET.chain_id:
-            chosen_network = NetworkChoice.TESTNET
+            choice = NetworkChoice.TESTNET
         else:
             print(bcolors.RED + f"Invalid network {args.network}. Please choose a valid network." + bcolors.ENDC)
             sys.exit(1)
@@ -250,23 +315,23 @@ Please choose the desired network:
 """ + bcolors.ENDC)
 
         while True:
-            chosen_network = input("Enter your choice, or 'exit' to quit: ").strip()
+            choice = input("Enter your choice, or 'exit' to quit: ").strip()
 
-            if chosen_network.lower() == "exit":
+            if choice.lower() == "exit":
                 print("Exiting the program...")
                 sys.exit(0)
 
-            if chosen_network not in [NetworkChoice.MAINNET, NetworkChoice.TESTNET]:
+            if choice not in [NetworkChoice.MAINNET, NetworkChoice.TESTNET]:
                 print(bcolors.RED + "Invalid input. Please choose a valid option. Accepted values: [ 1 , 2 ] \n" + bcolors.ENDC)
             else:
                 break
         
     if args.verbose:
         clear_screen()
-        print(f"Chosen network: {NETWORK_CHOICES[int(chosen_network) - 1]}")
+        print(f"Chosen network: {NETWORK_CHOICES[int(choice) - 1]}")
 
     clear_screen()
-    return chosen_network
+    return choice
 
 
 def select_osmosis_home():
@@ -291,12 +356,17 @@ Do you want to install Osmosis in the default location?:
 """ + bcolors.ENDC)
 
         while True:
-            choice = input("Enter your choice: ").strip()
+            choice = input("Enter your choice, or 'exit' to quit: ").strip()
 
-            if choice == "1":
+            if choice.lower() == "exit":
+                print("Exiting the program...")
+                sys.exit(0)
+
+            if choice == Answer.YES:
                 osmosis_home = default_home
                 break
-            elif choice == "2":
+
+            elif choice == Answer.NO:
                 while True:
                     custom_home = input("Enter the path for Osmosis home: ").strip()
                     if custom_home != "":
@@ -333,7 +403,11 @@ Do you want to use the default moniker?
 """ + bcolors.ENDC)
 
         while True:
-            choice = input("Enter your choice: ")
+            choice = input("Enter your choice, or 'exit' to quit: ").strip()
+
+            if choice.lower() == "exit":
+                print("Exiting the program...")
+                sys.exit(0)
 
             if choice == "1":
                 moniker = DEFAULT_MONIKER
@@ -363,42 +437,129 @@ def initialize_osmosis_home(osmosis_home, moniker):
         moniker (str): The moniker for the Osmosis node.
 
     """
-    while True:
-        print(bcolors.OKGREEN + f"""
-Do you want to initialize the Osmosis home directory at '{osmosis_home}'?
-""" + bcolors.ENDC)
-        
-        print(bcolors.RED + f"⚠️ All contents of the directory will be deleted." + bcolors.ENDC)
+    if not args.overwrite:
 
-        print(bcolors.OKGREEN + f"""
+        while True:
+            print(bcolors.OKGREEN + f"""
+Do you want to initialize the Osmosis home directory at '{osmosis_home}'?
+            """ + bcolors.ENDC)
+
+            print(bcolors.RED + f"""
+⚠️ All contents of the directory will be deleted.
+            """ + bcolors.ENDC)
+
+            print(bcolors.OKGREEN + f"""
     1) Yes, proceed with initialization
     2) No, quit
-""" + bcolors.ENDC)
-        
-        choice = input("Enter your choice: ")
+            """ + bcolors.ENDC)
+            
+            choice = input("Enter your choice, or 'exit' to quit: ").strip()
 
-        if choice == "1":
-            print(f"Initializing Osmosis home directory at '{osmosis_home}'...")
-            try:
-                subprocess.run(
-                    ["rm", "-rf", osmosis_home], 
-                    stderr=subprocess.DEVNULL, check=True)
-                
-                subprocess.run(
-                    ["osmosisd", "init", moniker,  "-o", "--home", osmosis_home], 
-                    stderr=subprocess.DEVNULL, check=True)
-                print("Initialization completed successfully.")
+            if choice.lower() == "exit":
+                print("Exiting the program...")
+                sys.exit(0)
+
+            if choice == Answer.YES:
                 break
-            except subprocess.CalledProcessError:
-                print("Initialization failed.")
-                print("Please check if the home directory is valid and has write permissions.")
-                sys.exit(1)
-        elif choice == "2":
-            sys.exit(0)
-        else:
-            print("Invalid choice. Please enter 1 or 2.")
+
+            elif choice == Answer.NO:
+                sys.exit(0)
+
+            else:
+                print("Invalid choice. Please enter 1 or 2.")
     
+    print(f"Initializing Osmosis home directory at '{osmosis_home}'...")
+    try:
+        subprocess.run(
+            ["rm", "-rf", osmosis_home], 
+            stderr=subprocess.DEVNULL, check=True)
+        
+        subprocess.run(
+            ["osmosisd", "init", moniker,  "-o", "--home", osmosis_home], 
+            stderr=subprocess.DEVNULL, check=True)
+        print("Initialization completed successfully.")
+
+    except subprocess.CalledProcessError:
+        print("Initialization failed.")
+        print("Please check if the home directory is valid and has write permissions.")
+        sys.exit(1)
+
     clear_screen()
+
+
+def select_pruning(osmosis_home):
+    """
+    Allows the user to choose pruning settings and performs actions based on the selected option.
+
+    """
+
+    # Check if pruning settings are specified in args
+    if args.pruning:
+        if args.pruning == "default":
+            choice = PruningChoice.DEFAULT
+        elif args.pruning == "nothing":
+            choice = PruningChoice.NOTHING
+        elif args.pruning ==  "everything":
+            choice = PruningChoice.EVERYTHING
+        else:
+            print(bcolors.RED + f"Invalid pruning setting {args.pruning}. Please choose a valid setting.\n" + bcolors.ENDC)
+            sys.exit(1)
+    
+    else:
+
+        print(bcolors.OKGREEN + """
+Please choose your desired pruning settings:
+
+    1) Default: (keep last 100,000 states to query the last week worth of data and prune at 100 block intervals)
+    2) Nothing: (keep everything, select this if running an archive node)
+    3) Everything: (modified prune everything due to bug, keep last 10,000 states and prune at a random prime block interval)
+
+💡 You can select the pruning settings using the --pruning flag.
+    """ + bcolors.ENDC)
+
+        while True:
+            choice = input("Enter your choice, or 'exit' to quit: ").strip()
+
+            if choice.lower() == "exit":
+                print("Exiting the program...")
+                sys.exit(0)
+
+            if choice not in [PruningChoice.DEFAULT, PruningChoice.NOTHING, PruningChoice.EVERYTHING]:
+                print("Invalid input. Please choose a valid option.")
+            else:
+                break
+            
+        if args.verbose:
+            clear_screen()
+            print(f"Chosen setting: {PRUNING_CHOICES[int(choice) - 1]}")
+    
+    app_toml = os.path.join(osmosis_home, "config", "app.toml")
+
+    if choice == PruningChoice.DEFAULT:
+        # Nothing to do
+        pass
+
+    elif choice == PruningChoice.NOTHING:
+        subprocess.run(["sed -i -E 's/pruning = \"default\"/pruning = \"nothing\"/g' " + app_toml], shell=True)
+
+    elif choice == PruningChoice.EVERYTHING:
+        primeNum = random.choice([x for x in range(11, 97) if not [t for t in range(2, x) if not x % t]])
+        subprocess.run(["sed -i -E 's/pruning = \"default\"/pruning = \"custom\"/g' " + app_toml], shell=True)
+        subprocess.run(["sed -i -E 's/pruning-keep-recent = \"0\"/pruning-keep-recent = \"10000\"/g' " + app_toml], shell=True)
+        subprocess.run(["sed -i -E 's/pruning-interval = \"0\"/pruning-interval = \"" + str(primeNum) + "\"/g' " + app_toml], shell=True)
+    
+    else:
+        print(bcolors.RED + f"Invalid pruning setting {choice}. Please choose a valid setting.\n" + bcolors.ENDC)
+        sys.exit(1)
+
+    clear_screen()
+
+
+def setup_cosmovisor(osmosis_home, network):
+
+    operating_system = platform.system().lower()
+    if operating_system != "linux":
+        return
 
 
 def customize_config(home, network):
@@ -411,11 +572,10 @@ def customize_config(home, network):
 
     """
 
-    # TODO: Use configparser to read the TOML file
-    # https://stackoverflow.com/questions/2885190/using-configparser-to-read-a-file-without-section-name 
-
     # osmo-test-5 configuration
     if network == NetworkChoice.TESTNET:
+
+        # patch client.toml
         client_toml = os.path.join(home, "config", "client.toml")
 
         with open(client_toml, "r") as config_file:
@@ -430,7 +590,11 @@ def customize_config(home, network):
         with open(client_toml, "w") as config_file:
             config_file.writelines(lines)
 
-        print("Configuration customized successfully.")
+        # patch config.toml
+        config_toml = os.path.join(home, "config", "config.toml")
+        
+        peers = ','.join(TESTNET.peers)
+        subprocess.run(["sed -i -E 's/persistent_peers = \"\"/persistent_peers = \"" + peers + "\"/g' " + config_toml], shell=True)
     
     # osmosis-1 configuration
     elif network == NetworkChoice.MAINNET:
@@ -448,10 +612,9 @@ def customize_config(home, network):
         with open(client_toml, "w") as config_file:
             config_file.writelines(lines)
 
-        print("Configuration customized successfully.")
-
     else:
-        print("No customization needed for the specified network.")
+        print(bcolors.RED + f"Invalid network {network}. Please choose a valid setting.\n" + bcolors.ENDC)
+        sys.exit(1)
     
     clear_screen()
 
@@ -539,8 +702,6 @@ def download_genesis(network, osmosis_home):
             print("Failed to download the genesis.")
             sys.exit(1)
 
-    clear_screen()
-
 
 def download_addrbook(network, osmosis_home):
     """
@@ -574,9 +735,36 @@ def download_addrbook(network, osmosis_home):
     clear_screen()
 
 
+def download_snapshot(network, osmosis_home):
+    """
+    Downloads the snapshot for the specified network.
 
-# Parse the command-line arguments
-args = parser.parse_args()
+    Args:
+        network (NetworkChoice): The network type, either MAINNET or TESTNET.
+        osmosis_home (str): The path to the Osmosis home directory.
+
+    Raises:
+        SystemExit: If the genesis download URL is not available for the current network.
+
+    """
+    if network == NetworkChoice.TESTNET:
+        addrbook_url = TESTNET.addrbook_url
+    else:
+        addrbook_url = MAINNET.addrbook_url
+
+    if addrbook_url:
+        try:
+            print("Downloading " + bcolors.PURPLE + "snapshot.json" + bcolors.ENDC + f" from {addrbook_url}")
+            addrbook_path = os.path.join(osmosis_home, "config", "snapshot.json")
+
+            subprocess.run(["wget", addrbook_url, "-q", "-O", addrbook_path], check=True)
+            print("Addrbook downloaded successfully.")
+
+        except subprocess.CalledProcessError:
+            print("Failed to download the addrbook.")
+            sys.exit(1)
+
+    clear_screen()
 
 def main():
 
@@ -593,6 +781,11 @@ def main():
         initialize_osmosis_home(osmosis_home, moniker)
         download_genesis(network, osmosis_home)
         download_addrbook(network, osmosis_home)
+        select_pruning(osmosis_home)
+        download_snapshot(network, osmosis_home)
+
+        setup_cosmovisor() 
+        # replay from genesis
         # setup_swap()
 
     elif chosen_setup == SetupChoice.CLIENT:
