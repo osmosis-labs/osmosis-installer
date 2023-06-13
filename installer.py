@@ -4,6 +4,10 @@ import argparse
 import subprocess
 import platform
 import random
+import textwrap
+import urllib.request as urlrq
+import ssl
+import json
 from time import time, sleep
 from enum import Enum
 
@@ -69,7 +73,6 @@ parser.add_argument(
     help=f"Which setup to do: {SETUP_CHOICES})",
 )
 
-# Parse the command-line arguments
 args = parser.parse_args()
 
 # Choices
@@ -93,31 +96,15 @@ class Answer(str, Enum):
 
 # Network configurations
 class Network:
-    def __init__(self, chain_id, version, genesis_url, binary_url, seeds, rpc_node, addrbook_url, snapshot_url):
+    def __init__(self, chain_id, version, genesis_url, binary_url, peers, rpc_node, addrbook_url, snapshot_url):
         self.chain_id = chain_id
         self.version = version
         self.genesis_url = genesis_url
         self.binary_url = binary_url
-        self.seeds = seeds
+        self.peers = peers
         self.rpc_node = rpc_node
         self.addrbook_url = addrbook_url
         self.snapshot_url = snapshot_url
-
-    def display_info(self):
-        print("Chain ID:", self.chain_id)
-        print("Version:", self.version)
-        print("Genesis URL:", self.genesis_url)
-        print("Binary URLs:")
-        for platform, urls in self.binary_url.items():
-            print(f"  {platform}:")
-            for arch, url in urls.items():
-                print(f"    {arch}: {url}")
-        print("Seeds:")
-        for seed in self.seeds:
-            print(f"  {seed}")
-        print("Address Book:", self.addrbook_url)
-        print("Snapshot URL:", self.snapshot_url)
-
 
 TESTNET = Network(
     chain_id = "osmo-test-5",
@@ -138,23 +125,8 @@ TESTNET = Network(
     ],
     rpc_node = "https://rpc.osmotest5.osmosis.zone:443",
     addrbook_url = "https://rpc.osmotest5.osmosis.zone/addrbook/",
-    snapshot_url = {
-        "osmosis": {
-            "pruned": {
-                "FRA (EU)": "https://snapshots.osmotest5.osmosis.zone/latest",
-            }
-        },
-        "chainlayer": {
-            "pruned": {
-                "AMS (EU)": "https://snapshots.osmotest5.osmosis.zone/latest",
-            },
-            "archive": {
-                "AMS (EU)": "https://snapshots.osmotest5.osmosis.zone/latest",
-            }
-        }
-    }
+    snapshot_url = "https://snapshots.osmotest5.osmosis.zone/latest"
 )
-
 
 MAINNET = Network(
     chain_id = "osmosis-1",
@@ -166,32 +138,10 @@ MAINNET = Network(
             "arm64": "https://github.com/osmosis-labs/osmosis/releases/download/v15.1.2/osmosisd-15.1.2-linux-arm64",
         }
     },
-    seeds = [
-    ],
+    peers = None,
     rpc_node = "https://rpc.osmosis.zone:443",
     addrbook_url = "https://rpc.osmosis.zone/addrbook",
-    snapshot_url = {
-        "osmosis": {
-            "pruned": {
-                "FRA (EU)": "https://snapshots.osmosis.zone/latest",
-            }
-        },
-        "chainlayer": {
-            "default": {
-                "AMS (EU)": "https://snapshots.osmotest5.osmosis.zone/latest",
-                "SIN (ASIA)": "https://snapshots.osmotest5.osmosis.zone/latest",
-                "SFO (US)": "https://snapshots.osmotest5.osmosis.zone/latest",
-            },
-            "pruned": {
-                "AMS (EU)": "https://snapshots.osmotest5.osmosis.zone/latest",
-                "SIN (ASIA)": "https://snapshots.osmotest5.osmosis.zone/latest",
-                "SFO (US)": "https://snapshots.osmotest5.osmosis.zone/latest",
-            },
-            "archive": {
-                "AMS (EU)": "https://snapshots.osmotest5.osmosis.zone/latest",
-            }
-        }
-    }
+    snapshot_url = "https://snapshots.osmosis.zone/v15/latest.json"
 )
 
 # Terminal utils
@@ -281,6 +231,7 @@ Please choose the desired setup:
 
     clear_screen()
     return choice
+
 
 def select_network():
     """
@@ -409,10 +360,10 @@ Do you want to use the default moniker?
                 print("Exiting the program...")
                 sys.exit(0)
 
-            if choice == "1":
+            if choice == Answer.YES:
                 moniker = DEFAULT_MONIKER
                 break
-            elif choice == "2":
+            elif choice == Answer.NO:
                 while True:
                     custom_moniker = input("Enter the custom moniker: ")
                     if custom_moniker.strip() != "":
@@ -512,7 +463,7 @@ Please choose your desired pruning settings:
 
     1) Default: (keep last 100,000 states to query the last week worth of data and prune at 100 block intervals)
     2) Nothing: (keep everything, select this if running an archive node)
-    3) Everything: (modified prune everything due to bug, keep last 10,000 states and prune at a random prime block interval)
+    3) Everything: (keep last 10,000 states and prune at a random prime block interval)
 
 💡 You can select the pruning settings using the --pruning flag.
     """ + bcolors.ENDC)
@@ -747,24 +698,182 @@ def download_snapshot(network, osmosis_home):
         SystemExit: If the genesis download URL is not available for the current network.
 
     """
-    if network == NetworkChoice.TESTNET:
-        addrbook_url = TESTNET.addrbook_url
-    else:
-        addrbook_url = MAINNET.addrbook_url
 
-    if addrbook_url:
-        try:
-            print("Downloading " + bcolors.PURPLE + "snapshot.json" + bcolors.ENDC + f" from {addrbook_url}")
-            addrbook_path = os.path.join(osmosis_home, "config", "snapshot.json")
+    def install_snapshot_prerequisites():
+        """
+        Installs the prerequisites: Homebrew (brew) package manager and lz4 compression library.
 
-            subprocess.run(["wget", addrbook_url, "-q", "-O", addrbook_path], check=True)
-            print("Addrbook downloaded successfully.")
+        Args:
+            osmosis_home (str): The path of the Osmosis home directory.
 
-        except subprocess.CalledProcessError:
-            print("Failed to download the addrbook.")
+        """
+        while True:
+            print(bcolors.OKGREEN + f"""
+To download the snapshot, we need the lz4 compression library.
+Do you want me to install it?
+
+    1) Yes, install lz4
+    2) No, continue without installing lz4
+        """ + bcolors.ENDC)
+
+            choice = input("Enter your choice, or 'exit' to quit: ").strip()
+
+            if choice.lower() == "exit":
+                print("Exiting the program...")
+                sys.exit(0)
+
+            if choice == Answer.YES:
+                break
+
+            elif choice == Answer.NO:
+                clear_screen()
+                return
+
+            else:
+                print("Invalid choice. Please enter 1 or 2.")
+
+        print("Installing Homebrew...")
+        subprocess.run(['/bin/bash', '-c', '$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)'])
+
+        print("Installing lz4...")
+        subprocess.run(['brew', 'install', 'lz4'])
+
+        print("Installation completed successfully.")
+        clear_screen()
+
+
+    def parse_snapshot_info(network):
+        """
+        Parses the snapshot JSON from https://dl2.quicksync.io/json/osmosis.json
+        and returns a dictionary.
+
+        Returns:
+            dict: Dictionary containing the parsed snapshot information.
+
+        """
+
+        snapshot_info = []
+
+        if network == NetworkChoice.TESTNET:
+            snapshot_url = TESTNET.snapshot_url
+            chain_id = TESTNET.chain_id
+            quicksync_prefix = "osmotestnet-5"
+        elif network == NetworkChoice.MAINNET:
+            snapshot_url = MAINNET.snapshot_url
+            chain_id = MAINNET.chain_id
+            quicksync_prefix = "osmosis-1"
+        else:
+            print(f"Invalid network choice - {network}")
             sys.exit(1)
 
+        # Set SSL context
+        context = ssl.create_default_context()
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
+
+        req = urlrq.Request(snapshot_url, headers={'User-Agent': 'Mozilla/5.0'})
+        resp = urlrq.urlopen(req, context=context)
+        latest_snapshot_url = resp.read().decode()
+
+        snapshot_info.append({
+            "network": chain_id,
+            "mirror": "Germany",
+            "url": latest_snapshot_url.rstrip('\n'),
+            "type": "pruned",
+            "provider": "osmosis"
+        })
+
+        # Parse quicksync snapshot json
+        try:
+            url = "https://dl2.quicksync.io/json/osmosis.json"
+            resp = urlrq.urlopen(url, context=context)
+            data = resp.read().decode()
+
+            snapshots = json.loads(data)
+
+            for snapshot in snapshots:
+                
+                if not snapshot["file"].startswith(quicksync_prefix):
+                    continue
+
+                snapshot_info.append({
+                    "network": chain_id,
+                    "mirror": snapshot["mirror"],
+                    "url": snapshot["url"],
+                    "type": snapshot["network"],
+                    "provider": "chainlayer"
+                })
+
+        except (urlrq.URLError, json.JSONDecodeError) as e:
+            print(f"Error: Failed to fetch or parse snapshot JSON - {e}")
+
+        return snapshot_info
+
+
+    def print_snapshot_download_info(snapshot_info):
+        """
+        Prints the information about the snapshot download.
+        """
+
+        print(bcolors.OKGREEN + f"""
+Choose one of the following snapshots:
+        """ + bcolors.ENDC)
+
+        # Prepare table headers
+        column_widths = [1, 12, 12, 12]
+        headers = ["#", "Provider", "Location", "Type"]
+        header_row = " | ".join(f"{header:{width}}" for header, width in zip(headers, column_widths))
+
+        # Print table header
+        print(header_row)
+        print("-" * len(header_row))
+
+        # Print table content
+        for idx, snapshot in enumerate(snapshot_info):
+
+            row_data = [str(idx + 1), snapshot["provider"], snapshot["mirror"], snapshot["type"]]
+            wrapped_data = [textwrap.fill(data, width=width) for data, width in zip(row_data, column_widths)]
+            formatted_row = " | ".join(f"{data:{width}}" for data, width in zip(wrapped_data, column_widths))
+            print(formatted_row)
+
+        print()
+
+    install_snapshot_prerequisites()
+    snapshots = parse_snapshot_info(network)
+    
+    while True:
+
+        print_snapshot_download_info(snapshots)
+        choice = input("Enter your choice, or 'exit' to quit: ").strip()
+
+        if choice.lower() == "exit":
+            print("Exiting the program...")
+            sys.exit(0)
+
+        if int(choice) < 0 or int(choice) > len(snapshots):
+            clear_screen()
+            print(bcolors.RED + "Invalid input. Please choose a valid option." + bcolors.ENDC)
+        else:
+            break
+    
+    snapshot_url = snapshots[int(choice) - 1]['url']
+
+    try:
+        print(f"\n🔽 Downloading snapshots from {snapshot_url}")
+        download_process = subprocess.Popen(["wget", "-q", "-O", "-", snapshot_url], stdout=subprocess.PIPE)
+        lz4_process = subprocess.Popen(["lz4", "-d"], stdin=download_process.stdout, stdout=subprocess.PIPE)
+        tar_process = subprocess.Popen(["tar", "-C", osmosis_home, "-xf", "-"], stdin=lz4_process.stdout, stdout=subprocess.PIPE)
+
+        tar_process.wait()
+        print("Snapshot download and extraction completed successfully.")
+
+    except subprocess.CalledProcessError as e:
+        print("Failed to download the snapshot.")
+        print(f"Error: {e}")
+        sys.exit(1)
+
     clear_screen()
+
 
 def main():
 
@@ -783,8 +892,7 @@ def main():
         download_addrbook(network, osmosis_home)
         select_pruning(osmosis_home)
         download_snapshot(network, osmosis_home)
-
-        setup_cosmovisor() 
+        # setup_cosmovisor()
         # replay from genesis
         # setup_swap()
 
