@@ -8,6 +8,7 @@ import textwrap
 import urllib.request as urlrq
 import ssl
 import json
+import getpass
 from time import time, sleep
 from enum import Enum
 
@@ -15,7 +16,7 @@ DEFAULT_OSMOSIS_HOME = os.path.expanduser("~/.osmosisd")
 DEFAULT_MONIKER = "osmosis"
 
 NETWORK_CHOICES = ['osmosis-1', 'osmo-test-5']
-SETUP_CHOICES = ['fullnode', 'client', 'localosmosis']
+INSTALL_CHOICES = ['fullnode', 'client', 'localosmosis']
 PRUNING_CHOICES = ['default', 'nothing', 'everything']
 
 # CLI arguments
@@ -28,6 +29,7 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    '-m',
     "--moniker",
     type=str,
     help="Moniker name for the node (Default: 'osmosis')",
@@ -66,17 +68,31 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    '-s',
-    '--setup',
+    '-i',
+    '--install',
     type=str,
-    choices=SETUP_CHOICES,
-    help=f"Which setup to do: {SETUP_CHOICES})",
+    choices=INSTALL_CHOICES,
+    help=f"Which installation to do: {INSTALL_CHOICES})",
+)
+
+parser.add_argument(
+    '-c',
+    '--cosmovisor',
+    action='store_true',
+    help="Install cosmovisor"
+)
+
+parser.add_argument(
+    '-s',
+    '--service',
+    action='store_true',
+    help="Setup systemd service (Linux only)"
 )
 
 args = parser.parse_args()
 
 # Choices
-class SetupChoice(str, Enum):
+class InstallChoice(str, Enum):
     FULLNODE = "1"
     CLIENT = "2"
     LOCALOSMOSIS = "3"
@@ -144,6 +160,17 @@ MAINNET = Network(
     snapshot_url = "https://snapshots.osmosis.zone/v15/latest.json"
 )
 
+COSMOVISOR_URL = {
+    "darwin": {
+        "amd64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/cosmovisor/cosmovisor-v1.2.0-darwin-amd64",
+        "arm64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/cosmovisor/cosmovisor-v1.2.0-darwin-arm64"
+    },
+    "linux": {
+        "amd64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/cosmovisor/cosmovisor-v1.2.0-linux-amd64",
+        "arm64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/cosmovisor/cosmovisor-v1.2.0-linux-arm64"
+    }
+}
+
 # Terminal utils
 
 class bcolors:
@@ -187,30 +214,30 @@ def client_complete_message():
 
 # Options
 
-def select_setup():
+def select_install():
 
     # Check if setup is specified in args
-    if args.setup:
-        if args.setup == "fullnode":
-            choice = SetupChoice.FULLNODE
-        elif args.setup == "client":
-            choice = SetupChoice.CLIENT
-        elif args.setup ==  "localosmosis":
-            choice = SetupChoice.LOCALOSMOSIS
+    if args.install:
+        if args.install == "fullnode":
+            choice = InstallChoice.FULLNODE
+        elif args.install == "client":
+            choice = InstallChoice.CLIENT
+        elif args.install ==  "localosmosis":
+            choice = InstallChoice.LOCALOSMOSIS
         else:
-            print(bcolors.RED + f"Invalid setup {args.setup}. Please choose a valid setup.\n" + bcolors.ENDC)
+            print(bcolors.RED + f"Invalid setup {args.install}. Please choose a valid setup.\n" + bcolors.ENDC)
             sys.exit(1)
     
     else:
 
         print(bcolors.OKGREEN + """
-Please choose the desired setup:
+Please choose the desired installation:
 
     1) Full Node (downloads chain data and runs locally)
     2) Client Node (sets up a daemon to query a public RPC)
     3) LocalOsmosis Node (sets up a daemon to query a local Osmosis development RPC)
 
-💡 You can select the setup using the --setup flag.
+💡 You can select the installation using the --install flag.
         """ + bcolors.ENDC)
 
         while True:
@@ -220,14 +247,14 @@ Please choose the desired setup:
                 print("Exiting the program...")
                 sys.exit(0)
 
-            if choice not in [SetupChoice.FULLNODE, SetupChoice.CLIENT, SetupChoice.LOCALOSMOSIS]:
+            if choice not in [InstallChoice.FULLNODE, InstallChoice.CLIENT, InstallChoice.LOCALOSMOSIS]:
                 print("Invalid input. Please choose a valid option.")
             else:
                 break
             
         if args.verbose:
             clear_screen()
-            print(f"Chosen setup: {SETUP_CHOICES[int(choice) - 1]}")
+            print(f"Chosen install: {INSTALL_CHOICES[int(choice) - 1]}")
 
     clear_screen()
     return choice
@@ -506,13 +533,6 @@ Please choose your desired pruning settings:
     clear_screen()
 
 
-def setup_cosmovisor(osmosis_home, network):
-
-    operating_system = platform.system().lower()
-    if operating_system != "linux":
-        return
-
-
 def customize_config(home, network):
     """
     Customizes the TOML configurations based on the network.
@@ -589,7 +609,7 @@ def download_binary(network):
     elif architecture == "aarch64":
         architecture = "arm64"
     else:
-        print(f"Unsupported architecture {architecture}. Please choose a valid architecture.")
+        print(f"Unsupported architecture {architecture}.")
         sys.exit(1)
 
     if network == NetworkChoice.TESTNET:
@@ -609,12 +629,10 @@ def download_binary(network):
 
     try:
         print("Downloading " + bcolors.PURPLE + "osmosisd" + bcolors.ENDC + f" from {binary_url}")
+        binary_path = "/usr/local/bin/osmosisd"
 
-        osmosisd_path = "./osmosisd"  # Change the path as per your requirement
-
-        subprocess.run(["wget", binary_url,"-q", "-O", osmosisd_path], check=True)
-        os.chmod(osmosisd_path, 0o755)
-
+        subprocess.run(["wget", binary_url,"-q", "-O", binary_path], check=True)
+        os.chmod(binary_path, 0o755)
         print("Binary downloaded successfully.")
 
     except subprocess.CalledProcessError:
@@ -744,8 +762,9 @@ Do you want me to install it?
 
     def parse_snapshot_info(network):
         """
-        Parses the snapshot JSON from https://dl2.quicksync.io/json/osmosis.json
-        and returns a dictionary.
+        Creates a dictionary containing the snapshot information for the specified network.
+        It merges the snapshot information from the osmosis official snapshot JSON and 
+        quicksync from chianlayer https://dl2.quicksync.io/json/osmosis.json
 
         Returns:
             dict: Dictionary containing the parsed snapshot information.
@@ -875,14 +894,165 @@ Choose one of the following snapshots:
     clear_screen()
 
 
+def download_cosmovisor(osmosis_home):
+    """
+    Downloads and installs cosmovisor.
+
+    Returns:
+        use_cosmovisor(bool): Whether to use cosmovisor or not.
+
+    """
+    if not args.cosmovisor:
+        print(bcolors.OKGREEN + f"""
+Do you want to install cosmovisor?
+
+    1) Yes, download and install cosmovisor ({DEFAULT_MONIKER})
+    2) No
+
+💡 You can specify the cosmovisor setup using the --cosmovisor flag.
+""" + bcolors.ENDC)
+
+        while True:
+            choice = input("Enter your choice, or 'exit' to quit: ").strip()
+
+            if choice.lower() == "exit":
+                print("Exiting the program...")
+                sys.exit(0)
+
+            if choice == Answer.YES:
+                break
+            elif choice == Answer.NO:
+                print("Skipping cosmovisor installation.")
+                clear_screen()
+                return False
+            else:
+                print("Invalid choice. Please enter 1 or 2.")
+
+    # Download and install cosmovisor
+    operating_system = platform.system().lower()
+    architecture = platform.machine()
+
+    if architecture == "x86_64":
+        architecture = "amd64"
+    elif architecture == "aarch64":
+        architecture = "arm64"
+    else:
+        print(f"Unsupported architecture {architecture}.")
+        sys.exit(1)
+    
+    if operating_system in COSMOVISOR_URL and architecture in COSMOVISOR_URL[operating_system]:
+        binary_url = COSMOVISOR_URL[operating_system][architecture]
+    else:
+        print(f"Binary download URL not available for {os}/{architecture}")
+        sys.exit(0)
+
+    try:
+        print("Downloading " + bcolors.PURPLE + "cosmovisor" + bcolors.ENDC + f" from {binary_url}")
+        binary_path = "/usr/local/bin/cosmovisor"
+
+        subprocess.run(["wget", binary_url,"-q", "-O", binary_path], check=True)
+        os.chmod(binary_path, 0o755)
+        print("Binary downloaded successfully.")
+
+    except subprocess.CalledProcessError:
+        print("Failed to download the binary.")
+        sys.exit(1)
+
+    # Initialize cosmovisor
+    print("Setting up cosmovisor directory...")
+
+    # Set environment variables
+    env = {
+        "DAEMON_NAME": "osmosisd",
+        "DAEMON_HOME": os.path.join(os.path.abspath(osmosis_home), "cosmovisor")
+    }
+
+    try:
+        subprocess.run(["/usr/local/bin/cosmovisor", "init", "/usr/local/bin/osmosisd"], check=True, env=env)
+    except subprocess.CalledProcessError:
+        print("Failed to initialize cosmovisor.")
+        sys.exit(1)
+
+    clear_screen()
+    return True
+
+
+def setup_cosmovisor_service(osmosis_home):
+    """
+    Setup cosmovisor service on Linux.
+    """
+
+    operating_system = platform.system()
+
+    if operating_system != "Linux":
+        return False
+    
+    if not args.service:
+        print(bcolors.OKGREEN + f"""
+Do you want to setup cosmovisor as a background service?
+
+    1) Yes, setup cosmovisor as a service
+    2) No
+
+💡 You can specify the service setup using the --service flag.
+""" + bcolors.ENDC)
+
+        while True:
+            choice = input("Enter your choice, or 'exit' to quit: ").strip()
+
+            if choice.lower() == "exit":
+                print("Exiting the program...")
+                sys.exit(0)
+
+            if choice == Answer.YES:
+                break
+            elif choice == Answer.NO:
+                return
+    
+    user = os.environ.get("USER")
+    
+    unit_file_contents = f"""[Unit]
+Description=Cosmovisor daemon
+After=network-online.target
+
+[Service]
+Environment="DAEMON_NAME=osmosisd"
+Environment="DAEMON_HOME={osmosis_home}"
+Environment="DAEMON_RESTART_AFTER_UPGRADE=true"
+Environment="DAEMON_ALLOW_DOWNLOAD_BINARIES=false"
+Environment="DAEMON_LOG_BUFFER_SIZE=512"
+Environment="UNSAFE_SKIP_BACKUP=true"
+User={user}
+ExecStart=/usr/local/bin/cosmovisor start --home {osmosis_home}
+Restart=always
+RestartSec=3
+LimitNOFILE=infinity
+LimitNPROC=infinity
+
+[Install]
+WantedBy=multi-user.target
+"""
+
+    unit_file_path = "/lib/systemd/system/cosmovisor.service"
+
+    with open("cosmovisor.service", "w") as f:
+        f.write(unit_file_contents)
+
+    subprocess.run(["sudo", "mv", "cosmovisor.service", unit_file_path])
+    subprocess.run(["sudo", "systemctl", "daemon-reload"])
+    subprocess.run(["systemctl", "restart", "systemd-journald"])
+    subprocess.run(["sudo", "systemctl", "start", "cosmovisor"])
+    clear_screen()
+
+
 def main():
 
     welcome_message()
 
     # Start the installation
-    chosen_setup = select_setup()
+    chosen_install = select_install()
 
-    if chosen_setup == SetupChoice.FULLNODE:
+    if chosen_install == InstallChoice.FULLNODE:
         network = select_network()
         # download_binary(network)
         osmosis_home = select_osmosis_home()
@@ -892,11 +1062,14 @@ def main():
         download_addrbook(network, osmosis_home)
         select_pruning(osmosis_home)
         download_snapshot(network, osmosis_home)
-        # setup_cosmovisor()
-        # replay from genesis
+        using_cosmovisor = download_cosmovisor(osmosis_home)
+        if using_cosmovisor:
+            setup_cosmovisor_service(osmosis_home)
+        else:
+            setup_osmosisd_service(osmosis_home)
         # setup_swap()
 
-    elif chosen_setup == SetupChoice.CLIENT:
+    elif chosen_install == InstallChoice.CLIENT:
         network = select_network()
         # download_binary(network)
         osmosis_home = select_osmosis_home()
@@ -905,7 +1078,7 @@ def main():
         customize_config(osmosis_home, network)
         client_complete_message()
 
-    elif chosen_setup == SetupChoice.LOCALOSMOSIS:
+    elif chosen_install == InstallChoice.LOCALOSMOSIS:
         print("Setting up a LocalOsmosis node...")
 
 
