@@ -1128,6 +1128,7 @@ def main():
         else:
             setup_osmosisd_service(osmosis_home)
         # setup_swap()
+        # fullnode_complete_message()
 
     elif chosen_install == InstallChoice.CLIENT:
         network = select_network()
