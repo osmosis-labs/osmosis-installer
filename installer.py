@@ -8,7 +8,6 @@ import textwrap
 import urllib.request as urlrq
 import ssl
 import json
-import getpass
 from time import time, sleep
 from enum import Enum
 
@@ -617,9 +616,6 @@ def download_binary(network):
     else:
         binary_urls = MAINNET.binary_url
 
-    # TODO: Remove this
-    operating_system = "linux"
-
     if operating_system in binary_urls and architecture in binary_urls[operating_system]:
         binary_url = binary_urls[operating_system][architecture]
     else:
@@ -1118,7 +1114,7 @@ def main():
 
     if chosen_install == InstallChoice.FULLNODE:
         network = select_network()
-        # download_binary(network)
+        download_binary(network)
         osmosis_home = select_osmosis_home()
         moniker = select_moniker()
         initialize_osmosis_home(osmosis_home, moniker)
@@ -1135,7 +1131,7 @@ def main():
 
     elif chosen_install == InstallChoice.CLIENT:
         network = select_network()
-        # download_binary(network)
+        download_binary(network)
         osmosis_home = select_osmosis_home()
         moniker = select_moniker()
         initialize_osmosis_home(osmosis_home, moniker)
@@ -1143,7 +1139,7 @@ def main():
         client_complete_message()
 
     elif chosen_install == InstallChoice.LOCALOSMOSIS:
-        print("Setting up a LocalOsmosis node...")
-
+        print("Setting up a LocalOsmosis node not yet supported.")
+        sys.exit(1)
 
 main()
