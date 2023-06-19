@@ -1041,7 +1041,71 @@ WantedBy=multi-user.target
     subprocess.run(["sudo", "mv", "cosmovisor.service", unit_file_path])
     subprocess.run(["sudo", "systemctl", "daemon-reload"])
     subprocess.run(["systemctl", "restart", "systemd-journald"])
-    subprocess.run(["sudo", "systemctl", "start", "cosmovisor"])
+    # Should we start the service?
+    # subprocess.run(["sudo", "systemctl", "start", "cosmovisor"])
+    clear_screen()
+
+
+def setup_osmosisd_service(osmosis_home):
+    """
+    Setup osmosisd service on Linux.
+    """
+
+    operating_system = platform.system()
+
+    if operating_system != "Linux":
+        return False
+
+    if not args.service:
+        print(bcolors.OKGREEN + """
+Do you want to set up osmosisd as a background service?
+
+    1) Yes, set up osmosisd as a service
+    2) No
+
+💡 You can specify the service setup using the --service flag.
+""" + bcolors.ENDC)
+
+        while True:
+            choice = input("Enter your choice, or 'exit' to quit: ").strip()
+
+            if choice.lower() == "exit":
+                print("Exiting the program...")
+                sys.exit(0)
+
+            if choice == Answer.YES:
+                break
+            elif choice == Answer.NO:
+                return
+    
+    user = os.environ.get("USER")
+    
+    unit_file_contents = f"""[Unit]
+Description=Osmosis Daemon
+After=network-online.target
+
+[Service]
+User={user}
+ExecStart=/usr/local/bin/osmosisd start --home {osmosis_home}
+Restart=always
+RestartSec=3
+LimitNOFILE=infinity
+LimitNPROC=infinity
+
+[Install]
+WantedBy=multi-user.target
+"""
+
+    unit_file_path = "/lib/systemd/system/osmosisd.service"
+
+    with open("osmosisd.service", "w") as f:
+        f.write(unit_file_contents)
+
+    subprocess.run(["sudo", "mv", "osmosisd.service", unit_file_path])
+    subprocess.run(["sudo", "systemctl", "daemon-reload"])
+    subprocess.run(["systemctl", "restart", "systemd-journald"])
+    # Should we start the service?
+    # subprocess.run(["sudo", "systemctl", "start", "osmosisd"])
     clear_screen()
 
 
