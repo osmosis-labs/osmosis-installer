@@ -746,12 +746,18 @@ Do you want me to install it?
             else:
                 print("Invalid choice. Please enter 1 or 2.")
 
-        print("Installing Homebrew...")
-        subprocess.run(['/bin/bash', '-c', '$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)'])
+            operating_system = platform.system()
+            if operating_system == "Linux":
+                subprocess.run(["sudo apt-get install wget liblz4-tool aria2 -y"],
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+            else:
+                print("Installing Homebrew...")
+                subprocess.run(
+                    ['/bin/bash', '-c', '$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)'])
 
-        print("Installing lz4...")
-        subprocess.run(['brew', 'install', 'lz4'])
-
+                print("Installing lz4...")
+                subprocess.run(['brew', 'install', 'lz4'])
+        
         print("Installation completed successfully.")
         clear_screen()
 
