@@ -99,6 +99,7 @@ class InstallChoice(str, Enum):
 class NetworkChoice(str, Enum):
     MAINNET = "1"
     TESTNET = "2"
+    LOCALOSMOSIS = "3"
 
 class PruningChoice(str, Enum):
     DEFAULT = "1"
@@ -157,6 +158,22 @@ MAINNET = Network(
     rpc_node = "https://rpc.osmosis.zone:443",
     addrbook_url = "https://rpc.osmosis.zone/addrbook",
     snapshot_url = "https://snapshots.osmosis.zone/v15/latest.json"
+)
+
+LOCALOSMOSIS = Network(
+    chain_id = "localosmosis",
+    version = "v15.1.2",
+    genesis_url = "https://osmosis.fra1.digitaloceanspaces.com/localosmosis/genesis.json", #TODO: check if this is correct
+    binary_url = {
+        "linux": {
+            "amd64": "https://github.com/osmosis-labs/osmosis/releases/download/v15.1.2/osmosisd-15.1.2-linux-amd64",
+            "arm64": "https://github.com/osmosis-labs/osmosis/releases/download/v15.1.2/osmosisd-15.1.2-linux-arm64",
+        }
+    },
+    peers = None,
+    rpc_node = "https://rpc.osmosis.zone:443", #TODO: check if this is correct
+    addrbook_url = "https://rpc.osmosis.zone/addrbook", #TODO: check if this is correct
+    snapshot_url = "https://snapshots.osmosis.zone/v15/latest.json" #TODO: check if this is correct
 )
 
 COSMOVISOR_URL = {
@@ -860,6 +877,7 @@ Choose one of the following snapshots:
         print()
 
     install_snapshot_prerequisites()
+ 
     snapshots = parse_snapshot_info(network)
     
     while True:
@@ -1106,11 +1124,122 @@ WantedBy=multi-user.target
     subprocess.run(["sudo", "mv", "osmosisd.service", unit_file_path])
     subprocess.run(["sudo", "systemctl", "daemon-reload"])
     subprocess.run(["systemctl", "restart", "systemd-journald"])
-    # Should we start the service?
-    # subprocess.run(["sudo", "systemctl", "start", "osmosisd"])
+    #Should we start the service?
+    subprocess.run(["sudo", "systemctl", "start", "osmosisd"])
     clear_screen()
 
+def branchSelection():  
+    version = LOCALOSMOSIS.version
+    print(bcolors.OKGREEN + """
+Would you like to run LocalOsmosis on the most recent release of Osmosis: {v} ?
+1) Yes, use {v} (recommended)
+2) No, I want to use a different version of Osmosis for LocalOsmosis from a branch on the osmosis repo
+3) No, I want to use a different version of Osmosis for LocalOsmosis from a branch on an external repo
+    """.format(
+        v=version) + bcolors.ENDC)
 
+    branchSelect = input(bcolors.OKGREEN + 'Enter Choice: ' + bcolors.ENDC)
+
+    if branchSelect == "1":
+        clear_screen() 
+    elif branchSelect == "2":
+        clear_screen()
+        #branchHandler() TODO
+    elif branchSelect == "3":
+        clear_screen()
+        #repoHandler() TODO
+    else:
+        clear_screen()
+        brachSelection()
+
+
+def installRust():
+    isRustInstalled = subprocess.run(
+        ["rustc --version"], capture_output=True, shell=True, text=True).stderr.strip()
+    if "not found" not in isRustInstalled:
+        return
+    print(bcolors.OKGREEN + """Rust not found on your device. Do you want to install Rust?:
+1) Yes, install Rust
+2) No, do not install Rust
+    """ + bcolors.ENDC)
+
+    installRust = input(bcolors.OKGREEN + 'Enter Choice: ' + bcolors.ENDC)
+
+    if installRust == "1":
+        clear_screen()
+        subprocess.run(
+            ["curl https://sh.rustup.rs -sSf | sh -s -- -y"], shell=True)  
+        clear_screen()
+    elif installRust == "2":
+        clear_screen()
+    else:
+        clear_screen()
+        installRust()
+
+# TODO: Cannot set this up. Cargo, rustup not found
+def setupContactEnvironment(HOME):
+    # my_env = os.environ.copy()
+    # my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME+"/go/bin:/" + \
+    #     HOME+"/.go/bin:"+HOME+"/.cargo/bin:" + my_env["PATH"]     
+    print(bcolors.OKGREEN + """Do you want to set up a basic contract environment?:
+1) Yes, setup a basic contract environment
+2) No, continue with the rest of the setup
+    """ + bcolors.ENDC)
+
+    setupContractEnv = input(bcolors.OKGREEN + 'Enter Choice: ' + bcolors.ENDC) 
+    if setupContractEnv == "1":
+        clear_screen()
+        print("Setting 'stable' as the default release channel:")
+        subprocess.run(["rustup default stable"], shell=True)
+        print("Adding WASM as the compilation target:")
+        subprocess.run(
+            ["rustup target add wasm32-unknown-unknown"], shell=True)
+        print("Installing packages to generate the contract:")
+        subprocess.run(
+            ["cargo install cargo-generate --features vendored-openssl"], shell=True)
+        subprocess.run(["cargo install cargo-run-script"],
+                       shell=True)
+        print("Installing beaker:")
+        subprocess.run(["cargo install -f beaker"], shell=True)
+    elif setupContractEnv == "2":
+        clear_screen()
+    else:
+        clear_screen()
+        setupContactEnvironment()
+
+
+def installDocker(): 
+    operating_system = platform.system()
+    if operating_system == "Linux": 
+ 
+        print("Installing Docker...")
+        subprocess.run(["sudo apt-get remove docker docker-engine docker.io"],
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        subprocess.run(["sudo apt-get update"], stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL, shell=True)
+        subprocess.run(["sudo apt install docker.io -y"],
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        print("Installing Docker-Compose...")
+        subprocess.run(["sudo apt install docker-compose -y"],
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        print("Adding Wallet Keys to Keyring...")
+        subprocess.run(["make localnet-keys"], stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL, shell=True) 
+                        
+        clear_screen() 
+    else: 
+        print("Installing Docker...")
+        subprocess.run(["brew install docker"], stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL, shell=True)
+        print("Installing Docker-Compose...")
+        subprocess.run(["brew install docker-compose"],
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        print("Adding Wallet Keys to Keyring...")
+        subprocess.run(["make localnet-keys"], stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL, shell=True)
+
+        clear_screen()
+    
 def main():
 
     welcome_message()
@@ -1146,6 +1275,20 @@ def main():
         client_complete_message()
 
     elif chosen_install == InstallChoice.LOCALOSMOSIS:
+        network = NetworkChoice.LOCALOSMOSIS
+        branchSelection()  
+        installDocker()
+        installRust()
+        osmosis_home = select_osmosis_home() 
+        moniker = select_moniker()
+        initialize_osmosis_home(osmosis_home, moniker)
+        setupContactEnvironment(osmosis_home) 
+        
+
+        # TODO: Setup install Location check def installLocation():
+
+
+    
         print("Setting up a LocalOsmosis node not yet supported.")
         sys.exit(1)
 
