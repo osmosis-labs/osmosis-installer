@@ -1151,7 +1151,7 @@ Would you like to run LocalOsmosis on the most recent release of Osmosis: {v} ?
         #repoHandler() TODO
     else:
         clear_screen()
-        brachSelection()
+        branchSelection()
 
 
 def installRust():
@@ -1239,7 +1239,7 @@ def installSetup(repo):
             clear_screen()
             print(bcolors.OKGREEN + repo + """ repo provided by user does not exist, try another URL
             """ + bcolors.ENDC)
-            brachSelection()
+            branchSelection()
         os.chdir(os.path.expanduser(HOME+"/osmosis"))
         subprocess.run(["git stash"], stdout=subprocess.DEVNULL,
                        stderr=subprocess.DEVNULL, shell=True)
@@ -1254,7 +1254,7 @@ def installSetup(repo):
             clear_screen()
             print(bcolors.OKGREEN + version + """ branch provided by user does not exist, try another branch
             """ + bcolors.ENDC)
-            brachSelection()
+            branchSelection()
 
         my_env = os.environ.copy()
         my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME + \
@@ -1295,10 +1295,10 @@ def installSetup(repo):
             my_env["PATH"]
         subprocess.run(["brew install wget"], shell=True,
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        colorprint("(2/4) Checking/installing jq...")
+        print("(2/4) Checking/installing jq...")
         subprocess.run(["brew install jq"], shell=True,
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        colorprint("(3/4) Checking/installing Go...")
+        print("(3/4) Checking/installing Go...")
         subprocess.run(["brew install coreutils"], shell=True,
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.run(["asdf plugin-add golang https://github.com/kennyp/asdf-golang.git"],
@@ -1314,7 +1314,7 @@ def installSetup(repo):
             clear_screen()
             print(bcolors.OKGREEN + version + """ branch provided by user does not exist, try another branch
             """ + bcolors.ENDC)
-            brachSelection()
+            branchSelection()
 
         my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME + \
             "/go/bin:/"+HOME+"/.go/bin:" + my_env["PATH"]
