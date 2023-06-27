@@ -99,6 +99,7 @@ class InstallChoice(str, Enum):
 class NetworkChoice(str, Enum):
     MAINNET = "1"
     TESTNET = "2"
+    LOCALOSMOSIS = "3"
 
 class PruningChoice(str, Enum):
     DEFAULT = "1"
@@ -157,6 +158,22 @@ MAINNET = Network(
     rpc_node = "https://rpc.osmosis.zone:443",
     addrbook_url = "https://rpc.osmosis.zone/addrbook",
     snapshot_url = "https://snapshots.osmosis.zone/v15/latest.json"
+)
+
+LOCALOSMOSIS = Network(
+    chain_id = "localosmosis",
+    version = "v15.1.2",
+    genesis_url = "https://osmosis.fra1.digitaloceanspaces.com/localosmosis/genesis.json", #TODO: check if this is correct
+    binary_url = {
+        "linux": {
+            "amd64": "https://github.com/osmosis-labs/osmosis/releases/download/v15.1.2/osmosisd-15.1.2-linux-amd64",
+            "arm64": "https://github.com/osmosis-labs/osmosis/releases/download/v15.1.2/osmosisd-15.1.2-linux-arm64",
+        }
+    },
+    peers = None,
+    rpc_node = "https://rpc.osmosis.zone:443", #TODO: check if this is correct
+    addrbook_url = "https://rpc.osmosis.zone/addrbook", #TODO: check if this is correct
+    snapshot_url = "https://snapshots.osmosis.zone/v15/latest.json" #TODO: check if this is correct
 )
 
 COSMOVISOR_URL = {
@@ -1110,11 +1127,291 @@ WantedBy=multi-user.target
     # subprocess.run(["sudo", "systemctl", "start", "osmosisd"])
     clear_screen()
 
+def branchSelection():  
+    version = LOCALOSMOSIS.version
+    print(bcolors.OKGREEN + """
+Would you like to run LocalOsmosis on the most recent release of Osmosis: {v} ?
+1) Yes, use {v} (recommended)
+2) No, I want to use a different version of Osmosis for LocalOsmosis from a branch on the osmosis repo
+3) No, I want to use a different version of Osmosis for LocalOsmosis from a branch on an external repo
+    """.format(
+        v=version) + bcolors.ENDC)
 
+    branchSelect = input(bcolors.OKGREEN + 'Enter Choice: ' + bcolors.ENDC)
+
+    if branchSelect == "1":
+        clear_screen() 
+    elif branchSelect == "2":
+        clear_screen()
+        # TODO handle this
+        #branchHandler()  
+    elif branchSelect == "3":
+        # TODO handle this
+        clear_screen()
+        #repoHandler() TODO
+    else:
+        clear_screen()
+        brachSelection()
+
+
+def installRust():
+    isRustInstalled = subprocess.run(
+        ["rustc --version"], capture_output=True, shell=True, text=True).stderr.strip()
+    if "not found" not in isRustInstalled:
+        return
+    print(bcolors.OKGREEN + """Rust not found on your device. Do you want to install Rust?:
+1) Yes, install Rust
+2) No, do not install Rust
+    """ + bcolors.ENDC)
+
+    installRust = input(bcolors.OKGREEN + 'Enter Choice: ' + bcolors.ENDC)
+
+    if installRust == "1":
+        clear_screen()
+        subprocess.run(
+            ["curl https://sh.rustup.rs -sSf | sh -s -- -y"], shell=True)  
+        clear_screen()
+    elif installRust == "2":
+        clear_screen()
+    else:
+        clear_screen()
+        installRust()
+
+
+def setupContactEnvironment():
+    HOME = subprocess.run(
+            ["echo $HOME"], capture_output=True, shell=True, text=True).stdout.strip()
+    my_env = os.environ.copy()
+    my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME+"/go/bin:/" + \
+        HOME+"/.go/bin:"+HOME+"/.cargo/bin:" + my_env["PATH"]     
+    
+    print(bcolors.OKGREEN + """Do you want to set up a basic contract environment?:
+1) Yes, setup a basic contract environment
+2) No, continue with the rest of the setup
+    """ + bcolors.ENDC)
+
+    setupContractEnv = input(bcolors.OKGREEN + 'Enter Choice: ' + bcolors.ENDC) 
+    if setupContractEnv == "1":
+        clear_screen()
+        print("Setting 'stable' as the default release channel:")
+        subprocess.run(["rustup default stable"], shell=True,env=my_env)
+        print("Adding WASM as the compilation target:")
+        subprocess.run(
+            ["rustup target add wasm32-unknown-unknown"], shell=True,env=my_env)
+        print("Installing packages to generate the contract:")
+        subprocess.run(
+            ["cargo install cargo-generate --features vendored-openssl"], shell=True,env=my_env)
+        subprocess.run(["cargo install cargo-run-script"],
+                       shell=True,env=my_env)
+        print("Installing beaker:")
+        subprocess.run(["cargo install -f beaker"], shell=True,env=my_env)
+    elif setupContractEnv == "2":
+        clear_screen()
+    else:
+        clear_screen()
+        setupContactEnvironment()
+
+# TODO find better way of handling this function
+def installSetup(repo): 
+    version = LOCALOSMOSIS.version
+    HOME = subprocess.run(
+    ["echo $HOME"], capture_output=True, shell=True, text=True).stdout.strip()
+
+    operating_system = platform.system()
+    if operating_system == "Linux": 
+        print("Please wait while the following processes run:")
+        print("(1/4) Updating Packages...")
+        subprocess.run(["sudo apt-get update"],
+                       stdout=subprocess.DEVNULL, shell=True)
+        print("(2/4) Installing make and GCC...")
+        subprocess.run(["sudo apt install git build-essential ufw curl jq snapd --yes"],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        print("(3/4) Installing Go...")
+        subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --remove"],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        subprocess.run(["wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.20"],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+
+        os.chdir(os.path.expanduser(HOME))
+        gitClone = subprocess.Popen(
+            ["git clone "+repo], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, shell=True)
+        if "Repository not found" in gitClone.communicate()[1]:
+            clear_screen()
+            print(bcolors.OKGREEN + repo + """ repo provided by user does not exist, try another URL
+            """ + bcolors.ENDC)
+            brachSelection()
+        os.chdir(os.path.expanduser(HOME+"/osmosis"))
+        subprocess.run(["git stash"], stdout=subprocess.DEVNULL,
+                       stderr=subprocess.DEVNULL, shell=True)
+        subprocess.run(["git pull"], stdout=subprocess.DEVNULL,
+                       stderr=subprocess.DEVNULL, shell=True)
+
+        print(bcolors.OKGREEN +
+              "(4/4) Installing Osmosis {v} Binary...".format(v=version) + bcolors.ENDC)
+        gitCheckout = subprocess.Popen(["git checkout {v}".format(
+            v=version)], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, shell=True)
+        if "did not match any file(s) known to git" in gitCheckout.communicate()[1]:
+            clear_screen()
+            print(bcolors.OKGREEN + version + """ branch provided by user does not exist, try another branch
+            """ + bcolors.ENDC)
+            brachSelection()
+
+        my_env = os.environ.copy()
+        my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME + \
+            "/go/bin:/"+HOME+"/.go/bin:" + my_env["PATH"]
+        subprocess.run(["make install"], stdout=subprocess.DEVNULL,
+                       stderr=subprocess.DEVNULL, shell=True, env=my_env)
+
+        print("Installing Docker...")
+        subprocess.run(["sudo apt-get remove docker docker-engine docker.io"],
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        subprocess.run(["sudo apt-get update"], stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL, shell=True)
+        subprocess.run(["sudo apt install docker.io -y"],
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        print("Installing Docker-Compose...")
+        subprocess.run(["sudo apt install docker-compose -y"],
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        print("Adding Wallet Keys to Keyring...")
+        subprocess.run(["make localnet-keys"], stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL, shell=True) 
+
+        clear_screen() 
+    else: 
+        print("Please wait while the following processes run:")
+        print(
+            "(1/4) Checking for brew and wget. If not present, installing...")
+        subprocess.run(["sudo chown -R $(whoami) /usr/local/var/homebrew"],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        subprocess.run(["echo | /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)\""],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        subprocess.run(["echo 'eval \"$(/opt/homebrew/bin/brew shellenv)\"' >> "+HOME +
+                       "/.zprofile"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        subprocess.run(["eval \"$(/opt/homebrew/bin/brew shellenv)\""],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+      
+        my_env = os.environ.copy()
+        my_env["PATH"] = "/opt/homebrew/bin:/opt/homebrew/bin/brew:" + \
+            my_env["PATH"]
+        subprocess.run(["brew install wget"], shell=True,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        colorprint("(2/4) Checking/installing jq...")
+        subprocess.run(["brew install jq"], shell=True,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        colorprint("(3/4) Checking/installing Go...")
+        subprocess.run(["brew install coreutils"], shell=True,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["asdf plugin-add golang https://github.com/kennyp/asdf-golang.git"],
+                       shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["asdf install golang 1.20"], shell=True,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+        print(bcolors.OKGREEN +
+                "(4/4) Installing Osmosis {v} Binary...".format(v=version) + bcolors.ENDC)
+        gitCheckout = subprocess.Popen(["git checkout {v}".format(
+            v=version)], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, shell=True)
+        if "did not match any file(s) known to git" in gitCheckout.communicate()[1]:
+            clear_screen()
+            print(bcolors.OKGREEN + version + """ branch provided by user does not exist, try another branch
+            """ + bcolors.ENDC)
+            brachSelection()
+
+        my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME + \
+            "/go/bin:/"+HOME+"/.go/bin:" + my_env["PATH"]
+        subprocess.run(["make install"], shell=True,
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=my_env)
+
+
+        print("(4/4) Installing Docker...")
+        subprocess.run(["brew install docker"], stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL, shell=True)
+        print("Installing Docker-Compose...")
+        subprocess.run(["brew install docker-compose"],
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        print("Adding Wallet Keys to Keyring...")
+        subprocess.run(["make localnet-keys"], stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL, shell=True)
+
+        clear_screen()
+
+def initNodeName(osmo_home): 
+    HOME = subprocess.run(
+    ["echo $HOME"], capture_output=True, shell=True, text=True).stdout.strip()
+
+    print(
+        "AFTER INPUTTING NODE NAME, ALL PREVIOUS OSMOSIS DATA WILL BE RESET")
+
+    nodeName = input(
+        bcolors.OKGREEN + "Input desired node name (no quotes, cant be blank): " + bcolors.ENDC)
+
+    # TODO check if node is client and type is localosmosis
+    if nodeName:
+        clear_screen()
+        subprocess.run(["rm -r "+osmo_home], stdout=subprocess.DEVNULL,
+                       stderr=subprocess.DEVNULL, shell=True)
+        subprocess.run(["rm -r "+HOME+"/.osmosisd"], stdout=subprocess.DEVNULL,
+                       stderr=subprocess.DEVNULL, shell=True)
+        clientSettings(osmo_home, nodeName)
+    else:
+        clear_screen()
+        print("Please insert a non-blank node name")
+        initNodeName(osmo_home)
+
+
+# ? how we do this for mainnet and testnet? 
+def clientSettings(osmo_home, nodeName):  
+    print(bcolors.OKGREEN + "Initializing LocalOsmosis Node " +
+            nodeName + bcolors.ENDC)
+    subprocess.run(["rm "+osmo_home+"/config/client.toml"],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+    subprocess.run(["osmosisd init " + nodeName + " --chain-id=localosmosis -o --home "+osmo_home],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+
+    print("Changing Client Settings...")
+    subprocess.run(["sed -i -E 's/chain-id = \"\"/chain-id = \"localosmosis\"/g' " +
+                    osmo_home+"/config/client.toml"], shell=True)
+    subprocess.run(["sed -i -E 's|node = \"tcp://localhost:26657\"|node = \"tcp://127.0.0.1:26657\"|g' " +
+                    osmo_home+"/config/client.toml"], shell=True)
+    
+    setupLocalnet(nodeName)
+
+def setupLocalnet(nodeName): 
+    version = LOCALOSMOSIS.version
+    HOME = subprocess.run(
+        ["echo $HOME"], capture_output=True, shell=True, text=True).stdout.strip()
+
+    print(bcolors.OKGREEN + "Initializing LocalOsmosis " + nodeName + bcolors.ENDC)
+    os.chdir(os.path.expanduser(HOME+"/osmosis"))
+    print(bcolors.OKGREEN +
+          "Building LocalOsmosis docker image {v}...".format(v=version) + bcolors.ENDC)
+    subprocess.run(["make localnet-build"], stdout=subprocess.DEVNULL,
+                   stderr=subprocess.DEVNULL, shell=True)
+    clear_screen()
+ 
+def localOsmosisComplete():
+    print(bcolors.OKGREEN +
+          "Congratulations! You have successfully completed setting up a LocalOsmosis node!")
+    print(bcolors.OKGREEN + "To start the local network:")
+    print(bcolors.OKGREEN + "Ensure docker is running in the background if on linux or start the Docker application if on Mac")
+    print(bcolors.OKGREEN + "Run 'cd $HOME/osmosis'")
+    print(bcolors.OKGREEN +
+          "First, you MUST clean your env, run 'make localnet-clean' and select 'yes'")
+    print(bcolors.OKGREEN + "To start the node, run 'make localnet-start'")
+    print(bcolors.OKGREEN +
+          "Run 'osmosisd status' to check that you are now creating blocks")
+    print(bcolors.OKGREEN + "To stop the node and retain data, run 'make localnet-stop'")
+    print(bcolors.OKGREEN +
+          "To stop the node and remove data, run 'make localnet-remove'")
+    print(bcolors.OKGREEN + "To run LocalOsmosis on a different version, git checkout the desired branch, run 'make localnet-build', then follow the above instructions")
+    print(bcolors.OKGREEN + "For more in depth information, see https://github.com/osmosis-labs/osmosis/blob/main/tests/localosmosis/README.md" + bcolors.ENDC)
+    quit()
+
+
+ 
 def main():
 
     welcome_message()
-
+    repo = "https://github.com/osmosis-labs/osmosis"
     # Start the installation
     chosen_install = select_install()
 
@@ -1146,7 +1443,16 @@ def main():
         client_complete_message()
 
     elif chosen_install == InstallChoice.LOCALOSMOSIS:
-        print("Setting up a LocalOsmosis node not yet supported.")
-        sys.exit(1)
+        network = NetworkChoice.LOCALOSMOSIS
+        branchSelection()  
+        installSetup(repo)
+        installRust()
+        osmosis_home = select_osmosis_home() 
+        moniker = select_moniker()
+        initialize_osmosis_home(osmosis_home, moniker)
+        setupContactEnvironment() 
+
+        initNodeName(osmosis_home)
+        localOsmosisComplete() 
 
 main()
