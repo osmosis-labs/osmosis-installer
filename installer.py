@@ -1152,8 +1152,34 @@ def branchHandler(version):
         clear_screen()
         return version
 
+def repoHandler(repo, version): 
+    print(
+        "Input desired repo URL (do not include branch). Press enter for default location")
+    repo_def = subprocess.run(
+        ["echo "+repo], capture_output=True, shell=True, text=True).stdout.strip()
 
-def branchSelection():  
+    repo = rlinput(bcolors.OKGREEN + "Repo URL: " + bcolors.ENDC, repo_def)
+
+    if repo.endswith("/"):
+        print(bcolors.FAIL +
+              "Please ensure your path does not end with `/`" + bcolors.FAIL)
+        repoHandler(repo, version)
+    elif not repo.startswith("https://"):
+        print(bcolors.FAIL +
+              "Please ensure your path begins with a `https://`" + bcolors.FAIL)
+        repoHandler(repo, version)
+    elif repo == "":
+        print(bcolors.FAIL + "Please ensure your path is not blank" + bcolors.FAIL)
+        repoHandler(repo, version)
+    else:
+        repo = subprocess.run(
+            ["echo "+repo], capture_output=True, shell=True, text=True).stdout.strip()
+        clear_screen()
+        branchHandler(version)
+
+
+
+def branchSelection(repo):  
     version = LOCALOSMOSIS.version
     print(bcolors.OKGREEN + """
 Would you like to run LocalOsmosis on the most recent release of Osmosis: {v} ?
@@ -1172,14 +1198,13 @@ Would you like to run LocalOsmosis on the most recent release of Osmosis: {v} ?
         clear_screen() 
         updatedVersion = branchHandler(version)  
         return updatedVersion
-    elif branchSelect == "3":
-        # TODO handle this
+    elif branchSelect == "3": 
         clear_screen()
-        #repoHandler() TODO
-        return
+        repoHandler(repo, version) 
+        return version
     else:
         clear_screen()
-        branchSelection()
+        branchSelection(repo)
 
 # TODO find better way of handling this function
 def installSetup(repo, HOME, version):  
@@ -1206,7 +1231,7 @@ def installSetup(repo, HOME, version):
             clear_screen()
             print(bcolors.OKGREEN + repo + """ repo provided by user does not exist, try another URL
             """ + bcolors.ENDC)
-            branchSelection()
+            branchSelection(repo)
         os.chdir(os.path.expanduser(HOME+"/osmosis"))
         subprocess.run(["git stash"], stdout=subprocess.DEVNULL,
                        stderr=subprocess.DEVNULL, shell=True)
@@ -1221,7 +1246,7 @@ def installSetup(repo, HOME, version):
             clear_screen()
             print(bcolors.OKGREEN + version + """ branch provided by user does not exist, try another branch
             """ + bcolors.ENDC)
-            branchSelection()
+            branchSelection(repo)
 
         print(bcolors.OKGREEN+ "(4/4) Installing Docker...")
         subprocess.run(["sudo apt-get remove docker docker-engine docker.io"],
@@ -1268,7 +1293,7 @@ def installSetup(repo, HOME, version):
             clear_screen()
             print(bcolors.OKGREEN + version + """ branch provided by user does not exist, try another branch
             """ + bcolors.ENDC)
-            branchSelection()
+            branchSelection(repo)
 
         print(bcolors.OKGREEN + "(4/4) Installing Docker...")
         subprocess.run(["brew install docker"], stdout=subprocess.DEVNULL,
@@ -1386,7 +1411,7 @@ def main():
 
     elif chosen_install == InstallChoice.LOCALOSMOSIS:
         network = NetworkChoice.LOCALOSMOSIS
-        version = branchSelection()  
+        version = branchSelection(repo)  
         installSetup(repo, HOME, version)
   
         osmosis_home = select_osmosis_home() 
