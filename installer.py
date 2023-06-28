@@ -1348,7 +1348,6 @@ def localOsmosisComplete():
 def main():
 
     welcome_message()
-    repo = "https://github.com/osmosis-labs/osmosis"
     HOME = subprocess.run(
     ["echo $HOME"], capture_output=True, shell=True, text=True).stdout.strip()
 
