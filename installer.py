@@ -229,7 +229,6 @@ def client_complete_message():
 # Options
 
 def select_install():
-
     # Check if setup is specified in args
     if args.install:
         if args.install == "fullnode":
@@ -1177,6 +1176,14 @@ def repoHandler(repo, version):
 
 
 def branchSelection(repo):  
+    """
+    selects the branch to use install localosmosis client with.
+
+    Returns:
+        the osmosis release version
+
+    """
+
     version = LOCALOSMOSIS.version
     print(bcolors.OKGREEN + """
 Would you like to run LocalOsmosis on the most recent release of Osmosis: {v} ?
@@ -1203,8 +1210,13 @@ Would you like to run LocalOsmosis on the most recent release of Osmosis: {v} ?
         else: 
             print("Invalid input. Please choose a valid option.")
             
+
 # TODO find better way of handling this function
 def installSetup(repo, HOME, version):  
+    """
+    install required packages for linux or darwin machine
+
+    """
     operating_system = platform.system()
     my_env = os.environ.copy()
     my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME + \
@@ -1301,7 +1313,12 @@ def installSetup(repo, HOME, version):
 
         clear_screen()
 
+
 def setupLocalnet(nodeName, HOME, version): 
+    """
+    Initalizes localOsmosis
+
+    """
     print(bcolors.OKGREEN + "Initializing LocalOsmosis " + nodeName + bcolors.ENDC)
     os.chdir(os.path.expanduser(HOME+"/osmosis"))
     print(bcolors.OKGREEN +
