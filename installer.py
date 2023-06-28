@@ -113,7 +113,7 @@ class Answer(str, Enum):
 
 # Network configurations
 class Network:
-    def __init__(self, chain_id, version, genesis_url, binary_url, peers, rpc_node, addrbook_url, snapshot_url):
+    def __init__(self, chain_id, version, genesis_url, binary_url, peers, rpc_node, addrbook_url, snapshot_url, repo = None):
         self.chain_id = chain_id
         self.version = version
         self.genesis_url = genesis_url
@@ -122,6 +122,7 @@ class Network:
         self.rpc_node = rpc_node
         self.addrbook_url = addrbook_url
         self.snapshot_url = snapshot_url
+        self.repo = repo
 
 TESTNET = Network(
     chain_id = "osmo-test-5",
@@ -142,7 +143,7 @@ TESTNET = Network(
     ],
     rpc_node = "https://rpc.osmotest5.osmosis.zone:443",
     addrbook_url = "https://rpc.osmotest5.osmosis.zone/addrbook/",
-    snapshot_url = "https://snapshots.osmotest5.osmosis.zone/latest"
+    snapshot_url = "https://snapshots.osmotest5.osmosis.zone/latest", 
 )
 
 MAINNET = Network(
@@ -158,24 +159,20 @@ MAINNET = Network(
     peers = None,
     rpc_node = "https://rpc.osmosis.zone:443",
     addrbook_url = "https://rpc.osmosis.zone/addrbook",
-    snapshot_url = "https://snapshots.osmosis.zone/v15/latest.json"
+    snapshot_url = "https://snapshots.osmosis.zone/v15/latest.json", 
 )
 
 LOCALOSMOSIS = Network(
     chain_id = "localosmosis",
     version = "v15.1.2",
-    genesis_url = "https://osmosis.fra1.digitaloceanspaces.com/localosmosis/genesis.json", #TODO: check if this is correct
-    binary_url = {
-        "linux": {
-            "amd64": "https://github.com/osmosis-labs/osmosis/releases/download/v15.1.2/osmosisd-15.1.2-linux-amd64",
-            "arm64": "https://github.com/osmosis-labs/osmosis/releases/download/v15.1.2/osmosisd-15.1.2-linux-arm64",
-        }
-    },
+    genesis_url = None,
+    binary_url = None,
     peers = None,
-    rpc_node = "https://rpc.osmosis.zone:443", #TODO: check if this is correct
-    addrbook_url = "https://rpc.osmosis.zone/addrbook", #TODO: check if this is correct
-    snapshot_url = "https://snapshots.osmosis.zone/v15/latest.json" #TODO: check if this is correct
-)
+    rpc_node = None,
+    addrbook_url = None,
+    snapshot_url = None, 
+    repo = "https://github.com/osmosis-labs/osmosis"
+) 
 
 COSMOVISOR_URL = {
     "darwin": {
@@ -1189,23 +1186,23 @@ Would you like to run LocalOsmosis on the most recent release of Osmosis: {v} ?
     """.format(
         v=version) + bcolors.ENDC)
 
-    branchSelect = input(bcolors.OKGREEN + 'Enter Choice: ' + bcolors.ENDC)
+    while True:
+        branchSelect = input(bcolors.OKGREEN + 'Enter Choice: ' + bcolors.ENDC)
 
-    if branchSelect == "1":
-        clear_screen()
-        return version 
-    elif branchSelect == "2":
-        clear_screen() 
-        updatedVersion = branchHandler(version)  
-        return updatedVersion
-    elif branchSelect == "3": 
-        clear_screen()
-        repoHandler(repo, version) 
-        return version
-    else:
-        clear_screen()
-        branchSelection(repo)
-
+        if branchSelect == "1":
+            clear_screen()
+            return version 
+        elif branchSelect == "2":
+            clear_screen() 
+            updatedVersion = branchHandler(version)  
+            return updatedVersion
+        elif branchSelect == "3": 
+            clear_screen()
+            repoHandler(repo, version) 
+            return version 
+        else: 
+            print("Invalid input. Please choose a valid option.")
+            
 # TODO find better way of handling this function
 def installSetup(repo, HOME, version):  
     operating_system = platform.system()
@@ -1266,7 +1263,7 @@ def installSetup(repo, HOME, version):
     else: 
         print("Please wait while the following processes run:")
         print(bcolors.OKGREEN +
-            "(1/4) Checking for brew and wget. If not present, installing...")
+            "(1/3) Checking for brew and wget. If not present, installing...")
         subprocess.run(["sudo chown -R $(whoami) /usr/local/var/homebrew"],
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         subprocess.run(["echo | /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)\""],
@@ -1281,12 +1278,9 @@ def installSetup(repo, HOME, version):
             my_env["PATH"]
         subprocess.run(["brew install wget"], shell=True,
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        print(bcolors.OKGREEN + "(2/4) Checking/installing jq...")
-        subprocess.run(["brew install jq"], shell=True,
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
- 
+
         print(bcolors.OKGREEN +
-                "(3/4) Installing Osmosis {v} Binary...".format(v=version) + bcolors.ENDC)
+                "(2/3) Installing Osmosis {v} Binary...".format(v=version) + bcolors.ENDC)
         gitCheckout = subprocess.Popen(["git checkout {v}".format(
             v=version)], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, shell=True)
         if "did not match any file(s) known to git" in gitCheckout.communicate()[1]:
@@ -1295,7 +1289,7 @@ def installSetup(repo, HOME, version):
             """ + bcolors.ENDC)
             branchSelection(repo)
 
-        print(bcolors.OKGREEN + "(4/4) Installing Docker...")
+        print(bcolors.OKGREEN + "(3/3) Installing Docker...")
         subprocess.run(["brew install docker"], stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL, shell=True)
         print("Installing Docker-Compose...")
@@ -1306,44 +1300,6 @@ def installSetup(repo, HOME, version):
                         stderr=subprocess.DEVNULL, shell=True)
 
         clear_screen()
-
-def initNodeName(osmo_home, HOME, version): 
-    print(
-        "AFTER INPUTTING NODE NAME, ALL PREVIOUS OSMOSIS DATA WILL BE RESET")
-
-    nodeName = input(
-        bcolors.OKGREEN + "Input desired node name (no quotes, cant be blank): " + bcolors.ENDC)
-
-    # TODO check if node is client and type is localosmosis
-    if nodeName:
-        clear_screen()
-        subprocess.run(["rm -r "+osmo_home], stdout=subprocess.DEVNULL,
-                       stderr=subprocess.DEVNULL, shell=True)
-        subprocess.run(["rm -r "+HOME+"/.osmosisd"], stdout=subprocess.DEVNULL,
-                       stderr=subprocess.DEVNULL, shell=True)
-        clientSettings(osmo_home, nodeName, HOME, version)
-    else:
-        clear_screen()
-        print("Please insert a non-blank node name")
-        initNodeName(osmo_home, HOME, version)
-
-
-# ? how we do this for mainnet and testnet? 
-def clientSettings(osmo_home, nodeName, HOME, version):  
-    print(bcolors.OKGREEN + "Initializing LocalOsmosis Node " +
-            nodeName + bcolors.ENDC)
-    subprocess.run(["rm "+osmo_home+"/config/client.toml"],
-                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-    subprocess.run(["osmosisd init " + nodeName + " --chain-id=localosmosis -o --home "+osmo_home],
-                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
-
-    print("Changing Client Settings...")
-    subprocess.run(["sed -i -E 's/chain-id = \"\"/chain-id = \"localosmosis\"/g' " +
-                    osmo_home+"/config/client.toml"], shell=True)
-    subprocess.run(["sed -i -E 's|node = \"tcp://localhost:26657\"|node = \"tcp://127.0.0.1:26657\"|g' " +
-                    osmo_home+"/config/client.toml"], shell=True)
-    
-    setupLocalnet(nodeName, HOME, version)
 
 def setupLocalnet(nodeName, HOME, version): 
     print(bcolors.OKGREEN + "Initializing LocalOsmosis " + nodeName + bcolors.ENDC)
@@ -1410,7 +1366,7 @@ def main():
         client_complete_message()
 
     elif chosen_install == InstallChoice.LOCALOSMOSIS:
-        network = NetworkChoice.LOCALOSMOSIS
+        repo = LOCALOSMOSIS.repo
         version = branchSelection(repo)  
         installSetup(repo, HOME, version)
   
@@ -1418,7 +1374,7 @@ def main():
         moniker = select_moniker()
         initialize_osmosis_home(osmosis_home, moniker)
  
-        initNodeName(osmosis_home, HOME, version)
+        setupLocalnet(osmosis_home, HOME, version)
         localOsmosisComplete() 
 
 main()
