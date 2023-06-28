@@ -5,6 +5,7 @@ import subprocess
 import platform
 import random
 import textwrap
+import readline
 import urllib.request as urlrq
 import ssl
 import json
@@ -1127,6 +1128,31 @@ WantedBy=multi-user.target
     # subprocess.run(["sudo", "systemctl", "start", "osmosisd"])
     clear_screen()
 
+
+def rlinput(prompt, prefill=''):
+    readline.set_startup_hook(lambda: readline.insert_text(prefill))
+    try:
+        return input(prompt)
+    finally:
+        readline.set_startup_hook()
+
+def branchHandler(version): 
+    print(bcolors.OKGREEN+"Input desired branch. Press enter for default branch")
+    branch_def = subprocess.run(["echo {v}".format(
+        v=version)], capture_output=True, shell=True, text=True).stdout.strip()
+
+    version = rlinput(bcolors.OKGREEN + "Branch: " + bcolors.ENDC, branch_def)
+
+    if version == "":
+        print(bcolors.FAIL + "Please ensure your branch is not blank" + bcolors.FAIL)
+        branchHandler(version)
+    else:
+        version = subprocess.run(
+            ["echo "+version], capture_output=True, shell=True, text=True).stdout.strip()
+        clear_screen()
+        return version
+
+
 def branchSelection():  
     version = LOCALOSMOSIS.version
     print(bcolors.OKGREEN + """
@@ -1140,29 +1166,29 @@ Would you like to run LocalOsmosis on the most recent release of Osmosis: {v} ?
     branchSelect = input(bcolors.OKGREEN + 'Enter Choice: ' + bcolors.ENDC)
 
     if branchSelect == "1":
-        clear_screen() 
-    elif branchSelect == "2":
         clear_screen()
-        # TODO handle this
-        #branchHandler()  
+        return version 
+    elif branchSelect == "2":
+        clear_screen() 
+        updatedVersion = branchHandler(version)  
+        return updatedVersion
     elif branchSelect == "3":
         # TODO handle this
         clear_screen()
         #repoHandler() TODO
+        return
     else:
         clear_screen()
         branchSelection()
 
 # TODO find better way of handling this function
-def installSetup(repo, HOME): 
-    version = LOCALOSMOSIS.version 
+def installSetup(repo, HOME, version):  
     operating_system = platform.system()
     my_env = os.environ.copy()
     my_env["PATH"] = "/"+HOME+"/go/bin:/"+HOME + \
         "/go/bin:/"+HOME+"/.go/bin:" + my_env["PATH"]
     subprocess.run(["make install"], stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL, shell=True, env=my_env)
-
 
     if operating_system == "Linux": 
         print("Please wait while the following processes run:")
@@ -1256,7 +1282,7 @@ def installSetup(repo, HOME):
 
         clear_screen()
 
-def initNodeName(osmo_home, HOME): 
+def initNodeName(osmo_home, HOME, version): 
     print(
         "AFTER INPUTTING NODE NAME, ALL PREVIOUS OSMOSIS DATA WILL BE RESET")
 
@@ -1270,15 +1296,15 @@ def initNodeName(osmo_home, HOME):
                        stderr=subprocess.DEVNULL, shell=True)
         subprocess.run(["rm -r "+HOME+"/.osmosisd"], stdout=subprocess.DEVNULL,
                        stderr=subprocess.DEVNULL, shell=True)
-        clientSettings(osmo_home, nodeName, HOME)
+        clientSettings(osmo_home, nodeName, HOME, version)
     else:
         clear_screen()
         print("Please insert a non-blank node name")
-        initNodeName(osmo_home, HOME)
+        initNodeName(osmo_home, HOME, version)
 
 
 # ? how we do this for mainnet and testnet? 
-def clientSettings(osmo_home, nodeName, HOME):  
+def clientSettings(osmo_home, nodeName, HOME, version):  
     print(bcolors.OKGREEN + "Initializing LocalOsmosis Node " +
             nodeName + bcolors.ENDC)
     subprocess.run(["rm "+osmo_home+"/config/client.toml"],
@@ -1292,11 +1318,9 @@ def clientSettings(osmo_home, nodeName, HOME):
     subprocess.run(["sed -i -E 's|node = \"tcp://localhost:26657\"|node = \"tcp://127.0.0.1:26657\"|g' " +
                     osmo_home+"/config/client.toml"], shell=True)
     
-    setupLocalnet(nodeName, HOME)
+    setupLocalnet(nodeName, HOME, version)
 
-def setupLocalnet(nodeName, HOME): 
-    version = LOCALOSMOSIS.version
-   
+def setupLocalnet(nodeName, HOME, version): 
     print(bcolors.OKGREEN + "Initializing LocalOsmosis " + nodeName + bcolors.ENDC)
     os.chdir(os.path.expanduser(HOME+"/osmosis"))
     print(bcolors.OKGREEN +
@@ -1362,14 +1386,14 @@ def main():
 
     elif chosen_install == InstallChoice.LOCALOSMOSIS:
         network = NetworkChoice.LOCALOSMOSIS
-        branchSelection()  
-        installSetup(repo, HOME)
+        version = branchSelection()  
+        installSetup(repo, HOME, version)
   
         osmosis_home = select_osmosis_home() 
         moniker = select_moniker()
         initialize_osmosis_home(osmosis_home, moniker)
  
-        initNodeName(osmosis_home, HOME)
+        initNodeName(osmosis_home, HOME, version)
         localOsmosisComplete() 
 
 main()
