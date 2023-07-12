@@ -20,7 +20,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [self-hosted, macos-latest]
         network: [osmosis-1, osmo-test-5]
       fail-fast: false
 
@@ -36,7 +36,7 @@ jobs:
       - 
         name: Run Installer
         run: |
-          sudo python installer.py \
+          python installer.py \
             --install client \
             --network ${{ matrix.network }} \
             --home ${{ runner.temp }}/.osmosisd \

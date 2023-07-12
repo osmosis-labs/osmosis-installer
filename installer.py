@@ -464,19 +464,9 @@ Do you want to initialize the Osmosis home directory at '{osmosis_home}'?
             ["rm", "-rf", osmosis_home], 
             stderr=subprocess.DEVNULL, check=True)
         
-        # subprocess.run(
-        #     ["osmosisd", "init", moniker,  "-o", "--home", osmosis_home], 
-        #     stderr=subprocess.DEVNULL, check=True)
-
         subprocess.run(
-            ["osmosisd", "version"],
-            check=True
-        )
-
-        subprocess.run(
-            ["osmosisd", "init", moniker, "-o", "--home", osmosis_home],
-            check=True
-        )
+            ["osmosisd", "init", moniker,  "-o", "--home", osmosis_home], 
+            stderr=subprocess.DEVNULL, check=True)
 
         print("Initialization completed successfully.")
 
