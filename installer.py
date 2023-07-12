@@ -123,13 +123,17 @@ class Network:
 
 TESTNET = Network(
     chain_id = "osmo-test-5",
-    version = "v15.1.0-testnet",
+    version = "v16.0.0-rc2-testnet",
     genesis_url = "https://osmosis.fra1.digitaloceanspaces.com/osmo-test-5/genesis.json",
     binary_url = {
         "linux": {
-            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/osmo-test-5/binaries/osmosisd-15.1.0-testnet-linux-amd64",
-            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/osmo-test-5/binaries/osmosisd-15.1.0-testnet-linux-arm64",
-        }
+            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/osmosisd-16.0.0-rc2-testnet-linux-amd64",
+            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/osmosisd-16.0.0-rc2-testnet-linux-arm64",
+        },
+        "darwin": {
+            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/osmosisd-16.0.0-rc2-testnet-darwin-all",
+            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/osmosisd-16.0.0-rc2-testnet-darwin-all"
+        },
     },
     peers = [
         "a5f81c035ff4f985d5e7c940c7c3b846389b7374@167.235.115.14:26656",
