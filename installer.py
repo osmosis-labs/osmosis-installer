@@ -150,7 +150,7 @@ TESTNET = Network(
         "ade4d8bc,8cbe014af6ebdf3cb7b1e9ad36f412c0@testnet-seeds.polkachu.com:12556",
     ],
     rpc_node = "https://rpc.testnet.osmosis.zone:443",
-    addrbook_url = "https://rpc.testnet.osmosis.zone/addrbook/",
+    addrbook_url = "https://rpc.testnet.osmosis.zone/addrbook",
     snapshot_url = "https://snapshots.testnet.osmosis.zone/latest"
 )
 
