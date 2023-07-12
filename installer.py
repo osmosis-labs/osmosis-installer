@@ -138,8 +138,8 @@ TESTNET = Network(
             "arm64": "https://github.com/osmosis-labs/osmosis/releases/download/v16.0.0-rc2/osmosisd-16.0.0-rc2-testnet-linux-arm64"
         },
         "darwin": {
-            "amd64": "https://github.com/osmosis-labs/osmosis/releases/download/v16.0.0-rc2-testnet/osmosisd-16.0.0-rc2-testnet-darwin-amd64",
-            "arm64": "https://github.com/osmosis-labs/osmosis/releases/download/v16.0.0-rc2-testnet/osmosisd-16.0.0-rc2-testnet-darwin-arm64"
+            "amd64": "https://github.com/osmosis-labs/osmosis/releases/download/v16.0.0-rc2/osmosisd-16.0.0-rc2-testnet-darwin-amd64",
+            "arm64": "https://github.com/osmosis-labs/osmosis/releases/download/v16.0.0-rc2/osmosisd-16.0.0-rc2-testnet-darwin-arm64"
         },
     },
     peers = [
