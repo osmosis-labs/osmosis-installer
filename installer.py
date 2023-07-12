@@ -127,12 +127,12 @@ TESTNET = Network(
     genesis_url = "https://osmosis.fra1.digitaloceanspaces.com/osmo-test-5/genesis.json",
     binary_url = {
         "linux": {
-            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/osmosisd-16.0.0-rc2-testnet-linux-amd64",
-            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/osmosisd-16.0.0-rc2-testnet-linux-arm64",
+            "amd64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0-rc2-testnet/osmosisd-16.0.0-rc2-testnet-linux-amd64",
+            "arm64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0-rc2-testnet/osmosisd-16.0.0-rc2-testnet-linux-arm64"
         },
         "darwin": {
-            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/osmosisd-16.0.0-rc2-testnet-darwin-all",
-            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/osmosisd-16.0.0-rc2-testnet-darwin-all"
+            "amd64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0-rc2-testnet/osmosisd-16.0.0-rc2-testnet-darwin-amd64",
+            "arm64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0-rc2-testnet/osmosisd-16.0.0-rc2-testnet-darwin-arm64"
         },
     },
     peers = [
@@ -157,12 +157,12 @@ MAINNET = Network(
         #     "arm64": "https://github.com/osmosis-labs/osmosis/releases/download/v15.2.0/osmosisd-15.2.0-linux-arm64",
         # }
         "linux": {
-            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/osmosisd-16.0.0-linux-amd64",
-            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/osmosisd-16.0.0-linux-arm64",
+            "amd64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0/osmosisd-16.0.0-linux-amd64",
+            "arm64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0/osmosisd-16.0.0-linux-arm64"
         },
         "darwin": {
-            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/osmosisd-16.0.0-darwin-all",
-            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/osmosisd-16.0.0-darwin-all"
+            "amd64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0/osmosisd-16.0.0-darwin-amd64",
+            "arm64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0/osmosisd-16.0.0-darwin-arm64"
         },
     },
     peers = None,
@@ -645,7 +645,6 @@ def download_binary(network):
         binary_url = binary_urls[operating_system][architecture]
     else:
         print(f"Binary download URL not available for {operating_system}/{architecture}")
-        # TODO: Add option to build from source
         sys.exit(0)
 
     try:
