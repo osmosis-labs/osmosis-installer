@@ -657,9 +657,8 @@ def download_binary(network):
         os.chmod("/tmp/osmosisd", 0o755)
         subprocess.run(["mv", "/tmp/osmosisd", binary_path], check=True)
 
-        # Add binary_path to PATH if "osmosisd" is not found
-        if shutil.which("osmosisd") is None:
-            os.environ["PATH"] += os.pathsep + os.path.dirname(binary_path)
+        # Test binary 
+        subprocess.run(["osmosisd", "version"], check=True)
 
         print("Binary downloaded successfully.")
 

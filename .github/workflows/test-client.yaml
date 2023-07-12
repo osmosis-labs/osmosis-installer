@@ -41,8 +41,7 @@ jobs:
             --network ${{ matrix.network }} \
             --home $HOME/.osmosisd \
             --moniker osmosis \
-            --overwrite \
-            --binary_path ${{ runner.temp }} \
+            --overwrite 
       - 
         name: Run osmosisd
         run: |
