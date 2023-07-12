@@ -658,10 +658,12 @@ def download_binary(network):
 
         if platform.system() == "Linux":
             subprocess.run(["sudo", "mv", "/tmp/osmosisd", binary_path], check=True)
+            subprocess.run(["sudo", "chmod", "+x", binary_path], check=True)
         else:
             subprocess.run(["mv", "/tmp/osmosisd", binary_path], check=True)
 
         # Test binary 
+        subprocess.run(["which", "osmosisd"], check=True)
         subprocess.run(["osmosisd", "version"], check=True)
 
         print("Binary downloaded successfully.")
