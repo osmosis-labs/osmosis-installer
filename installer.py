@@ -981,12 +981,28 @@ Do you want to install cosmovisor?
         print(f"Binary download URL not available for {os}/{architecture}")
         sys.exit(0)
 
-    try:
-        print("Downloading " + bcolors.PURPLE + "cosmovisor" + bcolors.ENDC + f" from {binary_url}")
-        binary_path = "/usr/local/bin/cosmovisor"
+    try:   
+        binary_path = os.path.join(args.binary_path, "cosmovisor")
 
-        subprocess.run(["wget", binary_url,"-q", "-O", binary_path], check=True)
-        os.chmod(binary_path, 0o755)
+        print("Downloading " + bcolors.PURPLE+ "cosmovisor" + bcolors.ENDC, end="\n\n")
+        print("from " + bcolors.OKGREEN + f"{binary_url}" + bcolors.ENDC, end=" ")
+        print("to " + bcolors.OKGREEN + f"{binary_path}" + bcolors.ENDC)
+        print()
+        print(bcolors.OKGREEN + "💡 You can change the path using --binary_path" + bcolors.ENDC)
+
+        subprocess.run(["wget", binary_url,"-q", "-O", "/tmp/cosmovisor"], check=True)
+        os.chmod("/tmp/cosmovisor", 0o755)
+
+        if platform.system() == "Linux":
+            subprocess.run(["sudo", "mv", "/tmp/cosmovisor", binary_path], check=True)
+            subprocess.run(["sudo", "chown", f"{os.environ['USER']}:{os.environ['USER']}", binary_path], check=True)
+            subprocess.run(["sudo", "chmod", "+x", binary_path], check=True)
+        else:
+            subprocess.run(["mv", "/tmp/cosmovisor", binary_path], check=True)
+
+        # Test binary 
+        subprocess.run(["cosmovisor", "help"], check=True)
+
         print("Binary downloaded successfully.")
 
     except subprocess.CalledProcessError:
