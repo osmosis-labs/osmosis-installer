@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 import argparse
 import subprocess
@@ -8,7 +9,6 @@ import textwrap
 import urllib.request as urlrq
 import ssl
 import json
-from time import time, sleep
 from enum import Enum
 
 DEFAULT_OSMOSIS_HOME = os.path.expanduser("~/.osmosisd")
@@ -75,6 +75,13 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--binary_path",
+    type=str,
+    help=f"Path where to download the binary",
+    default="/usr/local/bin"
+)
+
+parser.add_argument(
     '-c',
     '--cosmovisor',
     action='store_true',
@@ -123,13 +130,17 @@ class Network:
 
 TESTNET = Network(
     chain_id = "osmo-test-5",
-    version = "v15.1.0-testnet",
+    version = "v16.0.0-rc2-testnet",
     genesis_url = "https://osmosis.fra1.digitaloceanspaces.com/osmo-test-5/genesis.json",
     binary_url = {
         "linux": {
-            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/osmo-test-5/binaries/osmosisd-15.1.0-testnet-linux-amd64",
-            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/osmo-test-5/binaries/osmosisd-15.1.0-testnet-linux-arm64",
-        }
+            "amd64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0-rc2-testnet/osmosisd-16.0.0-rc2-testnet-linux-amd64",
+            "arm64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0-rc2-testnet/osmosisd-16.0.0-rc2-testnet-linux-arm64"
+        },
+        "darwin": {
+            "amd64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0-rc2-testnet/osmosisd-16.0.0-rc2-testnet-darwin-amd64",
+            "arm64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0-rc2-testnet/osmosisd-16.0.0-rc2-testnet-darwin-arm64"
+        },
     },
     peers = [
         "a5f81c035ff4f985d5e7c940c7c3b846389b7374@167.235.115.14:26656",
@@ -145,13 +156,21 @@ TESTNET = Network(
 
 MAINNET = Network(
     chain_id = "osmosis-1",
-    version = "v15.1.2",
+    version = "v15.2.0",
     genesis_url = "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/genesis.json",
     binary_url = {
+        # "linux": {
+        #     "amd64": "https://github.com/osmosis-labs/osmosis/releases/download/v15.2.0/osmosisd-15.2.0-linux-amd64",
+        #     "arm64": "https://github.com/osmosis-labs/osmosis/releases/download/v15.2.0/osmosisd-15.2.0-linux-arm64",
+        # }
         "linux": {
-            "amd64": "https://github.com/osmosis-labs/osmosis/releases/download/v15.1.2/osmosisd-15.1.2-linux-amd64",
-            "arm64": "https://github.com/osmosis-labs/osmosis/releases/download/v15.1.2/osmosisd-15.1.2-linux-arm64",
-        }
+            "amd64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0/osmosisd-16.0.0-linux-amd64",
+            "arm64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0/osmosisd-16.0.0-linux-arm64"
+        },
+        "darwin": {
+            "amd64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0/osmosisd-16.0.0-darwin-amd64",
+            "arm64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0/osmosisd-16.0.0-darwin-arm64"
+        },
     },
     peers = None,
     rpc_node = "https://rpc.osmosis.zone:443",
@@ -204,12 +223,11 @@ it is recommended to back up any important Osmosis data before proceeding.
 
 def client_complete_message():
     print(bcolors.OKGREEN + """
-✨ Congratulations! You have successfully completed setting up an Osmosis client node! ✨
+✨ Congratulations! You have successfully completed setting up an Osmosis client! ✨
 """ + bcolors.ENDC)
 
     print("🧪 Try running: " + bcolors.OKGREEN + "osmosisd status" + bcolors.ENDC)
     print()
-
 
 # Options
 
@@ -419,15 +437,17 @@ def initialize_osmosis_home(osmosis_home, moniker):
         while True:
             print(bcolors.OKGREEN + f"""
 Do you want to initialize the Osmosis home directory at '{osmosis_home}'?
-            """ + bcolors.ENDC)
+            """ + bcolors.ENDC, end="")
 
             print(bcolors.RED + f"""
 ⚠️ All contents of the directory will be deleted.
-            """ + bcolors.ENDC)
+            """ + bcolors.ENDC, end="")
 
             print(bcolors.OKGREEN + f"""
     1) Yes, proceed with initialization
     2) No, quit
+
+💡 You can overwrite the osmosis home using --overwrite flag.
             """ + bcolors.ENDC)
             
             choice = input("Enter your choice, or 'exit' to quit: ").strip()
@@ -454,11 +474,13 @@ Do you want to initialize the Osmosis home directory at '{osmosis_home}'?
         subprocess.run(
             ["osmosisd", "init", moniker,  "-o", "--home", osmosis_home], 
             stderr=subprocess.DEVNULL, check=True)
+
         print("Initialization completed successfully.")
 
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as e:
         print("Initialization failed.")
         print("Please check if the home directory is valid and has write permissions.")
+        print(e)
         sys.exit(1)
 
     clear_screen()
@@ -620,18 +642,28 @@ def download_binary(network):
         binary_url = binary_urls[operating_system][architecture]
     else:
         print(f"Binary download URL not available for {operating_system}/{architecture}")
-        # TODO: Add option to build from source
         sys.exit(0)
 
-    try:
-        print("Downloading " + bcolors.PURPLE + "osmosisd" + bcolors.ENDC + f" from {binary_url}")
-        binary_path = "/usr/local/bin/osmosisd"
+    try:   
+        binary_path = os.path.join(args.binary_path, "osmosisd")
 
-        subprocess.run(["wget", binary_url,"-q", "-O", binary_path], check=True)
-        os.chmod(binary_path, 0o755)
+        print("Downloading " + bcolors.PURPLE+ "osmosisd" + bcolors.ENDC, end="\n\n")
+        print("from " + bcolors.OKGREEN + f"{binary_url}" + bcolors.ENDC, end=" ")
+        print("to " + bcolors.OKGREEN + f"{binary_path}" + bcolors.ENDC)
+        print()
+        print(bcolors.OKGREEN + "💡 You can change the path using --binary_path" + bcolors.ENDC)
+
+        subprocess.run(["wget", binary_url,"-q", "-O", "/tmp/osmosisd"], check=True)
+        os.chmod("/tmp/osmosisd", 0o755)
+        subprocess.run(["mv", "/tmp/osmosisd", binary_path], check=True)
+
+        # Test binary 
+        subprocess.run(["osmosisd", "version"], check=True)
+
         print("Binary downloaded successfully.")
 
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as e:
+        print(e)
         print("Failed to download the binary.")
         sys.exit(1)
 
@@ -772,7 +804,6 @@ Do you want me to install it?
             dict: Dictionary containing the parsed snapshot information.
 
         """
-
         snapshot_info = []
 
         if network == NetworkChoice.TESTNET:
