@@ -461,9 +461,10 @@ Do you want to initialize the Osmosis home directory at '{osmosis_home}'?
             stderr=subprocess.DEVNULL, check=True)
         print("Initialization completed successfully.")
 
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as e:
         print("Initialization failed.")
         print("Please check if the home directory is valid and has write permissions.")
+        print(e)
         sys.exit(1)
 
     clear_screen()
