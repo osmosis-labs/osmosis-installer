@@ -648,10 +648,10 @@ def download_binary(network):
         binary_path = os.path.join(args.binary_path, "osmosisd")
 
         print("Downloading " + bcolors.PURPLE+ "osmosisd" + bcolors.ENDC, end="\n\n")
-        print("from  " + bcolors.OKGREEN + f"{binary_url}" + bcolors.ENDC)
-        print("to    " + bcolors.OKGREEN + f"{binary_path}" + bcolors.ENDC)
+        print("from " + bcolors.OKGREEN + f"{binary_url}" + bcolors.ENDC, end=" ")
+        print("to " + bcolors.OKGREEN + f"{binary_path}" + bcolors.ENDC)
         print()
-        print(bcolors.OKGREEN + "💡 You can change the path using --binary-path" + bcolors.ENDC)
+        print(bcolors.OKGREEN + "💡 You can change the path using --binary_path" + bcolors.ENDC)
 
         subprocess.run(["wget", binary_url,"-q", "-O", "/tmp/osmosisd"], check=True)
         os.chmod("/tmp/osmosisd", 0o755)
