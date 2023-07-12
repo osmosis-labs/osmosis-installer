@@ -20,7 +20,9 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        # os: [ubuntu-latest, macos-latest]
+        # Can't execute on runner due to permission issues
+        os: [macos-latest]
         network: [osmosis-1, osmo-test-5]
       fail-fast: false
 
