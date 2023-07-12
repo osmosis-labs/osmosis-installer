@@ -39,10 +39,10 @@ jobs:
           python installer.py \
             --install client \
             --network ${{ matrix.network }} \
-            --home $HOME/.osmosisd \
+            --home  --home ${{ runner.temp }}/.osmosisd \
             --moniker osmosis \
             --overwrite 
-      - 
+      -
         name: Run osmosisd
         run: |
           osmosisd status --home ${{ runner.temp }}/.osmosisd
