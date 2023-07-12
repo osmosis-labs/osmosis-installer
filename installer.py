@@ -1,4 +1,5 @@
 import os
+import stat
 import sys
 import argparse
 import subprocess
@@ -645,7 +646,7 @@ def download_binary(network):
         binary_path = "/usr/local/bin/osmosisd"
 
         subprocess.run(["wget", binary_url,"-q", "-O", binary_path], check=True)
-        os.chmod(binary_path, 0o755)
+        os.chmod(binary_path, os.stat(binary_path).st_mode | stat.S_IXUSR)
         print("Binary downloaded successfully.")
 
     except subprocess.CalledProcessError:
