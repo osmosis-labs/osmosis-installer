@@ -9,7 +9,6 @@ import textwrap
 import urllib.request as urlrq
 import ssl
 import json
-from time import time, sleep
 from enum import Enum
 
 DEFAULT_OSMOSIS_HOME = os.path.expanduser("~/.osmosisd")
@@ -790,7 +789,6 @@ Do you want me to install it?
             dict: Dictionary containing the parsed snapshot information.
 
         """
-
         snapshot_info = []
 
         if network == NetworkChoice.TESTNET:

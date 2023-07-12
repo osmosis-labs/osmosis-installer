@@ -20,9 +20,9 @@ jobs:
 
     strategy:
       matrix:
-        # os: [ubuntu-latest, macos-latest]
-        # arch: [amd64, arm64]
-        network: [osmo-test-5]
+        os: [ubuntu-latest, macos-latest]
+        arch: [amd64, arm64]
+        network: [osmosis-1, osmo-test-5]
 
     steps:
       - 
