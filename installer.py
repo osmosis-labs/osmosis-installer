@@ -176,12 +176,12 @@ MAINNET = Network(
 
 COSMOVISOR_URL = {
     "darwin": {
-        "amd64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/cosmovisor/cosmovisor-v1.2.0-darwin-amd64",
-        "arm64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/cosmovisor/cosmovisor-v1.2.0-darwin-arm64"
+        "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/cosmovisor/cosmovisor-v1.2.0-darwin-amd64",
+        "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/cosmovisor/cosmovisor-v1.2.0-darwin-arm64"
     },
     "linux": {
-        "amd64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/cosmovisor/cosmovisor-v1.2.0-linux-amd64",
-        "arm64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/cosmovisor/cosmovisor-v1.2.0-linux-arm64"
+        "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/cosmovisor/cosmovisor-v1.2.0-linux-amd64",
+        "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/cosmovisor/cosmovisor-v1.2.0-linux-arm64"
     }
 }
 # Terminal utils
@@ -1176,7 +1176,7 @@ def main():
         download_genesis(network, osmosis_home)
         download_addrbook(network, osmosis_home)
         select_pruning(osmosis_home)
-        download_snapshot(network, osmosis_home)
+        # download_snapshot(network, osmosis_home)
         using_cosmovisor = download_cosmovisor(osmosis_home)
         if using_cosmovisor:
             setup_cosmovisor_service(osmosis_home)
