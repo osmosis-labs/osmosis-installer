@@ -20,7 +20,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [self-hosted, macos-latest]
+        os: [ubuntu-latest, macos-latest]
         network: [osmosis-1, osmo-test-5]
       fail-fast: false
 
