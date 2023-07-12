@@ -134,8 +134,8 @@ TESTNET = Network(
     genesis_url = "https://osmosis.fra1.digitaloceanspaces.com/osmo-test-5/genesis.json",
     binary_url = {
         "linux": {
-            "amd64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0-rc2-testnet/osmosisd-16.0.0-rc2-testnet-linux-amd64",
-            "arm64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0-rc2-testnet/osmosisd-16.0.0-rc2-testnet-linux-arm64"
+            "amd64": "https://github.com/osmosis-labs/osmosis/releases/download/v16.0.0-rc2/osmosisd-16.0.0-rc2-testnet-linux-amd64",
+            "arm64": "https://github.com/osmosis-labs/osmosis/releases/download/v16.0.0-rc2/osmosisd-16.0.0-rc2-testnet-linux-arm64"
         },
         "darwin": {
             "amd64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0-rc2-testnet/osmosisd-16.0.0-rc2-testnet-darwin-amd64",
@@ -160,12 +160,12 @@ MAINNET = Network(
     genesis_url = "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/genesis.json",
     binary_url = {
         # "linux": {
-        #     "amd64": "https://github.com/osmosis-labs/osmosis/releases/download/v15.2.0/osmosisd-15.2.0-linux-amd64",
+        #     "amd64": "",
         #     "arm64": "https://github.com/osmosis-labs/osmosis/releases/download/v15.2.0/osmosisd-15.2.0-linux-arm64",
         # }
         "linux": {
-            "amd64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0/osmosisd-16.0.0-linux-amd64",
-            "arm64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0/osmosisd-16.0.0-linux-arm64"
+            "amd64": "https://github.com/osmosis-labs/osmosis/releases/download/v16.0.0/osmosisd-16.0.0-linux-amd64",
+            "arm64": "https://github.com/osmosis-labs/osmosis/releases/download/v16.0.0/osmosisd-16.0.0-linux-arm64"
         },
         "darwin": {
             "amd64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0/osmosisd-16.0.0-darwin-amd64",
@@ -226,7 +226,7 @@ def client_complete_message():
 ✨ Congratulations! You have successfully completed setting up an Osmosis client! ✨
 """ + bcolors.ENDC)
 
-    print("🧪 Try running: " + bcolors.OKGREEN + "osmosisd status" + bcolors.ENDC)
+    print("🧪 Try running: " + bcolors.OKGREEN + f"osmosisd status --home {args.home}" + bcolors.ENDC)
     print()
 
 # Options
@@ -655,9 +655,16 @@ def download_binary(network):
 
         subprocess.run(["wget", binary_url,"-q", "-O", "/tmp/osmosisd"], check=True)
         os.chmod("/tmp/osmosisd", 0o755)
-        subprocess.run(["mv", "/tmp/osmosisd", binary_path], check=True)
+
+        if platform.system() == "Linux":
+            subprocess.run(["sudo", "mv", "/tmp/osmosisd", binary_path], check=True)
+            subprocess.run(["sudo", "chown", f"{os.environ['USER']}:{os.environ['USER']}", binary_path], check=True)
+            subprocess.run(["sudo", "chmod", "+x", binary_path], check=True)
+        else:
+            subprocess.run(["mv", "/tmp/osmosisd", binary_path], check=True)
 
         # Test binary 
+        subprocess.run(["which", "osmosisd"], check=True)
         subprocess.run(["osmosisd", "version"], check=True)
 
         print("Binary downloaded successfully.")
