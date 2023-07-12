@@ -1,4 +1,4 @@
-name: Test Installer
+name: Test Installer (Client)
 
 on:
   push:
@@ -12,7 +12,7 @@ on:
 
 jobs:
   install:
-    name: Run Installer
+    name: test-installer-client
     runs-on: ubuntu-latest
 
     strategy:
