@@ -21,7 +21,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        network: [osmosis-1]
+        network: [osmosis-1, osmo-test-5]
+      fail-fast: false
 
     steps:
       - 
