@@ -1,5 +1,5 @@
 import os
-import stat
+import shutil
 import sys
 import argparse
 import subprocess
@@ -72,6 +72,13 @@ parser.add_argument(
     type=str,
     choices=INSTALL_CHOICES,
     help=f"Which installation to do: {INSTALL_CHOICES})",
+)
+
+parser.add_argument(
+    "--binary_path",
+    type=str,
+    help=f"Path where to download the binary",
+    default="/usr/local/bin"
 )
 
 parser.add_argument(
@@ -637,17 +644,23 @@ def download_binary(network):
         print(f"Binary download URL not available for {operating_system}/{architecture}")
         sys.exit(0)
 
-    try:
-        print("Downloading " + bcolors.PURPLE + "osmosisd" + bcolors.ENDC + f" from {binary_url}")
-        binary_path = "/usr/local/bin/osmosisd"
+    try:   
+        binary_path = os.path.join(args.binary_path, "osmosisd")
+
+        print("Downloading " + bcolors.PURPLE+ "osmosisd" + bcolors.ENDC, end="\n\n")
+        print("from  " + bcolors.OKGREEN + f"{binary_url}" + bcolors.ENDC)
+        print("to    " + bcolors.OKGREEN + f"{binary_path}" + bcolors.ENDC)
+        print()
+        print(bcolors.OKGREEN + "💡 You can change the path using --binary-path" + bcolors.ENDC)
 
         subprocess.run(["wget", binary_url,"-q", "-O", "/tmp/osmosisd"], check=True)
         os.chmod("/tmp/osmosisd", 0o755)
+        subprocess.run(["mv", "/tmp/osmosisd", binary_path], check=True)
 
-        if platform.system().lower() == "linux":
-            subprocess.run(["sudo", "mv", "/tmp/osmosisd", binary_path], check=True)
-        else:
-            subprocess.run(["mv", "/tmp/osmosisd", binary_path], check=True)
+        # Add binary_path to PATH if "osmosisd" is not found
+        if shutil.which("osmosisd") is None:
+            os.environ["PATH"] += os.pathsep + os.path.dirname(binary_path)
+
         print("Binary downloaded successfully.")
 
     except subprocess.CalledProcessError as e:
