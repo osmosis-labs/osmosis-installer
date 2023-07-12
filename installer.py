@@ -226,7 +226,7 @@ def client_complete_message():
 ✨ Congratulations! You have successfully completed setting up an Osmosis client! ✨
 """ + bcolors.ENDC)
 
-    print("🧪 Try running: " + bcolors.OKGREEN + "osmosisd status" + bcolors.ENDC)
+    print("🧪 Try running: " + bcolors.OKGREEN + f"osmosisd status --home {args.home}" + bcolors.ENDC)
     print()
 
 # Options
