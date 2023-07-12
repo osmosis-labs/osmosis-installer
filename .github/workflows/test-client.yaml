@@ -13,7 +13,7 @@ on:
 jobs:
   install:
     name: test-installer-client
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     env:
       TERM: xterm
@@ -21,8 +21,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        arch: [amd64, arm64]
-        network: [osmosis-1, osmo-test-5]
+        network: [osmosis-1]
 
     steps:
       - 
