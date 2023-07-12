@@ -655,7 +655,11 @@ def download_binary(network):
 
         subprocess.run(["wget", binary_url,"-q", "-O", "/tmp/osmosisd"], check=True)
         os.chmod("/tmp/osmosisd", 0o755)
-        subprocess.run(["mv", "/tmp/osmosisd", binary_path], check=True)
+
+        if platform.system() == "Linux":
+            subprocess.run(["sudo", "mv", "/tmp/osmosisd", binary_path], check=True)
+        else:
+            subprocess.run(["mv", "/tmp/osmosisd", binary_path], check=True)
 
         # Test binary 
         subprocess.run(["osmosisd", "version"], check=True)
