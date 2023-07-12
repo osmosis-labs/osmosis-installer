@@ -15,6 +15,9 @@ jobs:
     name: test-installer-client
     runs-on: ubuntu-latest
 
+    env:
+      TERM: xterm
+
     strategy:
       matrix:
         network: [osmo-test-5, osmosis-1]
