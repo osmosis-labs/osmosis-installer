@@ -647,7 +647,7 @@ def download_binary(network):
         if platform.system().lower() == "linux":
             subprocess.run(["sudo", "mv", "/tmp/osmosisd", binary_path], check=True)
         else:
-            subprocess.run(["wget", binary_url,"-q", "-O", binary_path], check=True)
+            subprocess.run(["mv", "/tmp/osmosisd", binary_path], check=True)
         print("Binary downloaded successfully.")
 
     except subprocess.CalledProcessError as e:
