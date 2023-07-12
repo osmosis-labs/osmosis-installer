@@ -208,12 +208,11 @@ it is recommended to back up any important Osmosis data before proceeding.
 
 def client_complete_message():
     print(bcolors.OKGREEN + """
-✨ Congratulations! You have successfully completed setting up an Osmosis client node! ✨
+✨ Congratulations! You have successfully completed setting up an Osmosis client! ✨
 """ + bcolors.ENDC)
 
     print("🧪 Try running: " + bcolors.OKGREEN + "osmosisd status" + bcolors.ENDC)
     print()
-
 
 # Options
 
@@ -423,15 +422,17 @@ def initialize_osmosis_home(osmosis_home, moniker):
         while True:
             print(bcolors.OKGREEN + f"""
 Do you want to initialize the Osmosis home directory at '{osmosis_home}'?
-            """ + bcolors.ENDC)
+            """ + bcolors.ENDC, end="")
 
             print(bcolors.RED + f"""
 ⚠️ All contents of the directory will be deleted.
-            """ + bcolors.ENDC)
+            """ + bcolors.ENDC, end="")
 
             print(bcolors.OKGREEN + f"""
     1) Yes, proceed with initialization
     2) No, quit
+
+💡 You can overwrite the osmosis home using --overwrite flag.
             """ + bcolors.ENDC)
             
             choice = input("Enter your choice, or 'exit' to quit: ").strip()
