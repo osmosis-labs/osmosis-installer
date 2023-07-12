@@ -164,8 +164,8 @@ MAINNET = Network(
         #     "arm64": "https://github.com/osmosis-labs/osmosis/releases/download/v15.2.0/osmosisd-15.2.0-linux-arm64",
         # }
         "linux": {
-            "amd64": "https://github.com/osmosis-labs/osmosis/releases/download/v15.2.0/osmosisd-15.2.0-linux-amd64",
-            "arm64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0/osmosisd-16.0.0-linux-arm64"
+            "amd64": "https://github.com/osmosis-labs/osmosis/releases/download/v16.0.0/osmosisd-16.0.0-linux-amd64",
+            "arm64": "https://github.com/osmosis-labs/osmosis/releases/download/v16.0.0/osmosisd-16.0.0-linux-arm64"
         },
         "darwin": {
             "amd64": "https://github.com/niccoloraspa/osmosis/releases/download/v16.0.0/osmosisd-16.0.0-darwin-amd64",
