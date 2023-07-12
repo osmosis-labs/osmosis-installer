@@ -15,7 +15,7 @@ DEFAULT_OSMOSIS_HOME = os.path.expanduser("~/.osmosisd")
 DEFAULT_MONIKER = "osmosis"
 
 NETWORK_CHOICES = ['osmosis-1', 'osmo-test-5']
-INSTALL_CHOICES = ['fullnode', 'client', 'localosmosis']
+INSTALL_CHOICES = ['node', 'client', 'localosmosis']
 PRUNING_CHOICES = ['default', 'nothing', 'everything']
 
 # CLI arguments
@@ -99,7 +99,7 @@ args = parser.parse_args()
 
 # Choices
 class InstallChoice(str, Enum):
-    FULLNODE = "1"
+    NODE = "1"
     CLIENT = "2"
     LOCALOSMOSIS = "3"
 
@@ -230,8 +230,8 @@ def select_install():
 
     # Check if setup is specified in args
     if args.install:
-        if args.install == "fullnode":
-            choice = InstallChoice.FULLNODE
+        if args.install == "node":
+            choice = InstallChoice.NODE
         elif args.install == "client":
             choice = InstallChoice.CLIENT
         elif args.install ==  "localosmosis":
@@ -245,9 +245,9 @@ def select_install():
         print(bcolors.OKGREEN + """
 Please choose the desired installation:
 
-    1) Full Node (downloads chain data and runs locally)
-    2) Client Node (sets up a daemon to query a public RPC)
-    3) LocalOsmosis Node (sets up a daemon to query a local Osmosis development RPC)
+    1) node         - run an osmosis node and join mainnet or testnet
+    2) client       - setup osmosisd to query a public node
+    3) localosmosis - setup a local osmosis development node
 
 💡 You can select the installation using the --install flag.
         """ + bcolors.ENDC)
@@ -259,7 +259,7 @@ Please choose the desired installation:
                 print("Exiting the program...")
                 sys.exit(0)
 
-            if choice not in [InstallChoice.FULLNODE, InstallChoice.CLIENT, InstallChoice.LOCALOSMOSIS]:
+            if choice not in [InstallChoice.NODE, InstallChoice.CLIENT, InstallChoice.LOCALOSMOSIS]:
                 print("Invalid input. Please choose a valid option.")
             else:
                 break
@@ -941,7 +941,7 @@ def download_cosmovisor(osmosis_home):
         print(bcolors.OKGREEN + f"""
 Do you want to install cosmovisor?
 
-    1) Yes, download and install cosmovisor ({DEFAULT_MONIKER})
+    1) Yes, download and install cosmovisor (default)
     2) No
 
 💡 You can specify the cosmovisor setup using the --cosmovisor flag.
@@ -1151,7 +1151,7 @@ def main():
     # Start the installation
     chosen_install = select_install()
 
-    if chosen_install == InstallChoice.FULLNODE:
+    if chosen_install == InstallChoice.NODE:
         network = select_network()
         download_binary(network)
         osmosis_home = select_osmosis_home()
@@ -1167,7 +1167,7 @@ def main():
         else:
             setup_osmosisd_service(osmosis_home)
         # setup_swap()
-        # fullnode_complete_message()
+        # node_complete_message()
 
     elif chosen_install == InstallChoice.CLIENT:
         network = select_network()
