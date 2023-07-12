@@ -645,7 +645,8 @@ def download_binary(network):
         os.chmod(binary_path, 0o755)
         print("Binary downloaded successfully.")
 
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as e:
+        print(e)
         print("Failed to download the binary.")
         sys.exit(1)
 
