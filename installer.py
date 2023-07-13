@@ -1,5 +1,4 @@
 import os
-import shutil
 import sys
 import argparse
 import subprocess
@@ -156,7 +155,7 @@ TESTNET = Network(
 
 MAINNET = Network(
     chain_id = "osmosis-1",
-    version = "v15.2.0",
+    version = "v16.1.0",
     genesis_url = "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/genesis.json",
     binary_url = {
         "linux": {
