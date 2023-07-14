@@ -1,0 +1,47 @@
+name: Test Installer (Client)
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  install:
+    name: test-installer-client
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        network: [osmosis-1, osmo-test-5]
+      fail-fast: false
+
+    steps:
+      - 
+        name: Checkout Repository
+        uses: actions/checkout@v3
+      - 
+        name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - 
+        name: Run Installer
+        env:
+          TERM: xterm
+        run: |
+          python osmosis-installer.py \
+            --install client \
+            --network ${{ matrix.network }} \
+            --home ${{ runner.temp }}/.osmosisd \
+            --moniker osmosis \
+            --overwrite 
+      -
+        name: Run osmosisd
+        run: |
+          osmosisd status --home ${{ runner.temp }}/.osmosisd
