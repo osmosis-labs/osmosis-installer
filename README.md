@@ -10,15 +10,15 @@ The Osmosis Installer is a simple tool that provides an easy and streamlined way
 
 The Osmosis Installer offers the following key features:
 
-🔧 **Dependency Installation**: Automatically installs the necessary dependencies for running Osmosis.
+- 🔧 **Dependency Installation**: Automatically installs the necessary dependencies for running Osmosis.
 
-🌐 **Network Joining**: Allows you to choose between joining the testnet or mainnet.
+- 🌐 **Network Joining**: Allows you to choose between joining the testnet or mainnet.
 
-⬇️ **Binary Download**: Downloads the Osmosis binary for the selected network.
+- ⬇️ **Binary Download**: Downloads the Osmosis binary for the selected network.
 
-⚙️ **Configuration Customization**: Provides options for customizing your Osmosis configuration.
+- ⚙️ **Configuration Customization**: Provides options for customizing your Osmosis configuration.
 
-🔌 **Background Service Setup**: Sets up either cosmovisor or osmosisd as background services for continuous operation.
+- 🔌 **Background Service Setup**: Sets up either cosmovisor or osmosisd as background services for continuous operation.
 
 ##  Installation
 
