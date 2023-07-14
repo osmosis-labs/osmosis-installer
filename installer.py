@@ -171,7 +171,7 @@ MAINNET = Network(
     peers = None,
     rpc_node = "https://rpc.osmosis.zone:443",
     addrbook_url = "https://rpc.osmosis.zone/addrbook",
-    snapshot_url = "https://snapshots.osmosis.zone/v15/latest.json"
+    snapshot_url = "https://snapshots.osmosis.zone/latest"
 )
 
 COSMOVISOR_URL = {
@@ -509,6 +509,63 @@ Do you want to initialize the Osmosis home directory at '{osmosis_home}'?
     clear_screen()
 
 
+def initialize_cosmovisor_home(osmosis_home):
+    """
+    Initializes the Cosmovisor home directory.
+
+    Args:
+        osmosis_home (str): The Osmosis home directory.
+    """
+    if not args.overwrite:
+
+        while True:
+            print(bcolors.OKGREEN + f"""
+Do you want to initialize the cosmovisor home directory at '{osmosis_home}/cosmovisor/'?
+            """ + bcolors.ENDC, end="")
+
+            print(bcolors.RED + f"""
+⚠️ All contents of the directory will be deleted.
+            """ + bcolors.ENDC, end="")
+
+            print(bcolors.OKGREEN + f"""
+    1) Yes, proceed with initialization
+    2) No, quit
+
+💡 You can overwrite the osmosis home using --overwrite flag.
+            """ + bcolors.ENDC)
+            
+            choice = input("Enter your choice, or 'exit' to quit: ").strip()
+
+            if choice.lower() == "exit":
+                print("Exiting the program...")
+                sys.exit(0)
+
+            if choice == Answer.YES:
+                break
+
+            elif choice == Answer.NO:
+                sys.exit(0)
+
+            else:
+                print("Invalid choice. Please enter 1 or 2.")
+    
+    print(f"Initializing cosmovisor home directory at '{osmosis_home}/cosmovisor'...")
+    try:
+        subprocess.run(["mkdir", "-p", os.path.join(osmosis_home, "cosmovisor/genesis/bin")], check=True)
+        subprocess.run(["mkdir", "-p", os.path.join(osmosis_home, "cosmovisor/upgrades")], check=True)
+        subprocess.run(["cp", "/usr/local/bin/osmosisd", os.path.join(osmosis_home, "cosmovisor/genesis/bin")], check=True)
+
+        print("Initialization completed successfully.")
+
+    except subprocess.CalledProcessError as e:
+        print("Initialization failed.")
+        print(f"Please check if the {osmosis_home}/cosmovisor directory is valid and has write permissions.")
+        print(e)
+        sys.exit(1)
+
+    clear_screen()
+
+
 def select_pruning(osmosis_home):
     """
     Allows the user to choose pruning settings and performs actions based on the selected option.
@@ -814,7 +871,7 @@ Do you want me to install it?
                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         else:
             print("Installing Homebrew...")
-            subprocess.run(['/bin/bash', '-c', '$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)'])
+            subprocess.run(['bash', '-c', '$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)'])
 
             print("Installing lz4...")
             subprocess.run(['brew', 'install', 'lz4'])
@@ -1040,13 +1097,15 @@ Do you want to install cosmovisor?
         print("Failed to download the binary.")
         sys.exit(1)
 
+    clear_screen()
+
     # Initialize cosmovisor
     print("Setting up cosmovisor directory...")
 
     # Set environment variables
     env = {
         "DAEMON_NAME": "osmosisd",
-        "DAEMON_HOME": os.path.join(os.path.abspath(osmosis_home), "cosmovisor")
+        "DAEMON_HOME": osmosis_home
     }
 
     try:
@@ -1204,16 +1263,17 @@ def main():
         osmosis_home = select_osmosis_home()
         moniker = select_moniker()
         initialize_osmosis_home(osmosis_home, moniker)
+        using_cosmovisor = download_cosmovisor(osmosis_home)
+        # if using_cosmovisor:
+        #     initialize_cosmovisor_home(osmosis_home)
         download_genesis(network, osmosis_home)
         download_addrbook(network, osmosis_home)
         select_pruning(osmosis_home)
-        # download_snapshot(network, osmosis_home)
-        using_cosmovisor = download_cosmovisor(osmosis_home)
+        download_snapshot(network, osmosis_home)
         if using_cosmovisor:
             using_service = setup_cosmovisor_service(osmosis_home)
         else:
             using_service = setup_osmosisd_service(osmosis_home)
-        # setup_swap()
         node_complete_message(using_cosmovisor, using_service, osmosis_home)
 
     elif chosen_install == InstallChoice.CLIENT:
