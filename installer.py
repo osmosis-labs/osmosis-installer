@@ -8,6 +8,7 @@ import textwrap
 import urllib.request as urlrq
 import ssl
 import json
+import tempfile
 from enum import Enum
 
 DEFAULT_OSMOSIS_HOME = os.path.expanduser("~/.osmosisd")
@@ -198,7 +199,7 @@ def clear_screen():
 
 def welcome_message():
     print(bcolors.OKGREEN + """
-██████╗ ███████╗███╗   ███╗ ██████╗ ███████╗██╗███████╗
+ ██████╗ ███████╗███╗   ███╗ ██████╗ ███████╗██╗███████╗
 ██╔═══██╗██╔════╝████╗ ████║██╔═══██╗██╔════╝██║██╔════╝
 ██║   ██║███████╗██╔████╔██║██║   ██║███████╗██║███████╗
 ██║   ██║╚════██║██║╚██╔╝██║██║   ██║╚════██║██║╚════██║
@@ -207,20 +208,48 @@ def welcome_message():
 
 Welcome to the Osmosis node installer!
 
-For more information, please visit docs.osmosis.zone
-Ensure no osmosis services are running in the background
+
+For more information, please visit https://docs.osmosis.zone
 
 If you have an old Osmosis installation, 
-it is recommended to back up any important Osmosis data before proceeding.
+- backup any important data before proceeding
+- ensure that no osmosis services are running in the background
 """ + bcolors.ENDC)
 
 
-def client_complete_message():
+def client_complete_message(osmosis_home):
     print(bcolors.OKGREEN + """
 ✨ Congratulations! You have successfully completed setting up an Osmosis client! ✨
 """ + bcolors.ENDC)
 
-    print("🧪 Try running: " + bcolors.OKGREEN + f"osmosisd status --home {args.home}" + bcolors.ENDC)
+    print("🧪 Try running: " + bcolors.OKGREEN + f"osmosisd status --home {osmosis_home}" + bcolors.ENDC)
+    print()
+
+
+def node_complete_message(using_cosmovisor, using_service, osmosis_home):
+    print(bcolors.OKGREEN + """
+✨ Congratulations! You have successfully completed setting up an Osmosis node! ✨
+""" + bcolors.ENDC)
+    
+    if using_service:
+
+        if using_cosmovisor:
+            print("🧪 To start the cosmovisor service run: ")
+            print(bcolors.OKGREEN + f"sudo systemctl start cosmovisor" + bcolors.ENDC)
+        else:
+            print("🧪 To start the osmosisd service run: ")
+            print(bcolors.OKGREEN + f"sudo systemctl start osmosisd" + bcolors.ENDC)
+
+    else:
+        if using_cosmovisor:
+            print("🧪 To start cosmovisor run: ")
+            print(bcolors.OKGREEN + f"DAEMON_NAME=osmosisd DAEMON_HOME={osmosis_home} cosmovisor run start" + bcolors.ENDC)
+        else:
+            print("🧪 To start osmosisd run: ")
+            print(bcolors.OKGREEN + f"osmosisd start --home {osmosis_home}" + bcolors.ENDC)
+
+
+    
     print()
 
 # Options
@@ -658,7 +687,6 @@ def download_binary(network):
             subprocess.run(["mv", "/tmp/osmosisd", binary_path], check=True)
 
         # Test binary 
-        subprocess.run(["which", "osmosisd"], check=True)
         subprocess.run(["osmosisd", "version"], check=True)
 
         print("Binary downloaded successfully.")
@@ -694,7 +722,7 @@ def download_genesis(network, osmosis_home):
             genesis_path = os.path.join(osmosis_home, "config", "genesis.json")
 
             subprocess.run(["wget", genesis_url, "-q", "-O", genesis_path], check=True)
-            print("Genesis downloaded successfully.")
+            print("Genesis downloaded successfully.\n")
 
         except subprocess.CalledProcessError:
             print("Failed to download the genesis.")
@@ -989,15 +1017,19 @@ Do you want to install cosmovisor?
         print()
         print(bcolors.OKGREEN + "💡 You can change the path using --binary_path" + bcolors.ENDC)
 
-        subprocess.run(["wget", binary_url,"-q", "-O", "/tmp/cosmovisor"], check=True)
-        os.chmod("/tmp/cosmovisor", 0o755)
+        clear_screen()
+        temp_dir = tempfile.mkdtemp()
+        temp_binary_path = os.path.join(temp_dir, "cosmovisor")
+
+        subprocess.run(["wget", binary_url,"-q", "-O", temp_binary_path], check=True)
+        os.chmod(temp_binary_path, 0o755)
 
         if platform.system() == "Linux":
-            subprocess.run(["sudo", "mv", "/tmp/cosmovisor", binary_path], check=True)
+            subprocess.run(["sudo", "mv", temp_binary_path, binary_path], check=True)
             subprocess.run(["sudo", "chown", f"{os.environ['USER']}:{os.environ['USER']}", binary_path], check=True)
             subprocess.run(["sudo", "chmod", "+x", binary_path], check=True)
         else:
-            subprocess.run(["mv", "/tmp/cosmovisor", binary_path], check=True)
+            subprocess.run(["mv", temp_binary_path, binary_path], check=True)
 
         # Test binary 
         subprocess.run(["cosmovisor", "help"], check=True)
@@ -1091,9 +1123,9 @@ WantedBy=multi-user.target
     subprocess.run(["sudo", "mv", "cosmovisor.service", unit_file_path])
     subprocess.run(["sudo", "systemctl", "daemon-reload"])
     subprocess.run(["systemctl", "restart", "systemd-journald"])
-    # Should we start the service?
-    # subprocess.run(["sudo", "systemctl", "start", "cosmovisor"])
+
     clear_screen()
+    return True
 
 
 def setup_osmosisd_service(osmosis_home):
@@ -1154,9 +1186,9 @@ WantedBy=multi-user.target
     subprocess.run(["sudo", "mv", "osmosisd.service", unit_file_path])
     subprocess.run(["sudo", "systemctl", "daemon-reload"])
     subprocess.run(["systemctl", "restart", "systemd-journald"])
-    # Should we start the service?
-    # subprocess.run(["sudo", "systemctl", "start", "osmosisd"])
+
     clear_screen()
+    return True
 
 
 def main():
@@ -1178,11 +1210,11 @@ def main():
         # download_snapshot(network, osmosis_home)
         using_cosmovisor = download_cosmovisor(osmosis_home)
         if using_cosmovisor:
-            setup_cosmovisor_service(osmosis_home)
+            using_service = setup_cosmovisor_service(osmosis_home)
         else:
-            setup_osmosisd_service(osmosis_home)
+            using_service = setup_osmosisd_service(osmosis_home)
         # setup_swap()
-        # node_complete_message()
+        node_complete_message(using_cosmovisor, using_service, osmosis_home)
 
     elif chosen_install == InstallChoice.CLIENT:
         network = select_network()
@@ -1191,7 +1223,7 @@ def main():
         moniker = select_moniker()
         initialize_osmosis_home(osmosis_home, moniker)
         customize_config(osmosis_home, network)
-        client_complete_message()
+        client_complete_message(osmosis_home)
 
     elif chosen_install == InstallChoice.LOCALOSMOSIS:
         print("Setting up a LocalOsmosis node not yet supported.")
