@@ -39,9 +39,9 @@ Follow the on-screen instructions to complete the installation. The installer wi
 > 💡 Optional Flags:
 > You can use some flag to specify the choices. For example, if you want to install the node, you can use the `--install node` flag. If you want to install the client, you can use the `--install client` flag.
 
-## Further Optimizations
+### Further Optimizations
 
-### Adding Swap
+#### Adding Swap
 
 Adding Swap Space
 For optimal performance, it is recommended to have at least 64GB of RAM when running an Osmosis node. If your system does not meet this requirement, setting up swap space can help ensure smooth operation and prevent out-of-memory (OOM) errors.
@@ -71,7 +71,7 @@ Replace <swap_size> with the size of the additional swap space you calculated. F
 sudo swapon --show
 ```
 
-### Increasing Open File Limits
+#### Increasing Open File Limits
 
 In Linux, the number of files limit affects the maximum number of connections a node can have,
 By default, the operating system imposes limits on the number of files a process can open simultaneously to prevent resource exhaustion.
