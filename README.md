@@ -1,7 +1,7 @@
 # Osmosis Installer 🧪 ⚙️
 
 <p align="center">
-  <img src="assets/screenshot.png" alt="Screenshot" width="500">
+  <img src="assets/screenshot.png" alt="Screenshot" width="700">
 </p>
 
 The Osmosis Installer is a simple tool that provides an easy and streamlined way to install and configure Osmosis.
