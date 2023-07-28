@@ -160,12 +160,12 @@ MAINNET = Network(
     genesis_url = "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/genesis.json",
     binary_url = {
         "linux": {
-            "amd64": "https://github.com/osmosis-labs/osmosis/releases/download/v16.1.0/osmosisd-16.1.1-linux-amd64",
+            "amd64": "https://github.com/osmosis-labs/osmosis/releases/download/v16.1.1/osmosisd-16.1.1-linux-amd64",
             "arm64": "https://github.com/osmosis-labs/osmosis/releases/download/v16.1.1/osmosisd-16.1.1-linux-arm64"
         },
         "darwin": {
-            "amd64": "https://github.com/osmosis-labs/osmosis/releases/download/v16.1.0/osmosisd-16.1.1-darwin-amd64",
-            "arm64": "https://github.com/osmosis-labs/osmosis/releases/download/v16.1.0/osmosisd-16.1.1-darwin-arm64"
+            "amd64": "https://github.com/osmosis-labs/osmosis/releases/download/v16.1.1/osmosisd-16.1.1-darwin-amd64",
+            "arm64": "https://github.com/osmosis-labs/osmosis/releases/download/v16.1.1/osmosisd-16.1.1-darwin-arm64"
         },
     },
     peers = None,
