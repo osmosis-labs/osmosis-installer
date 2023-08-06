@@ -157,7 +157,6 @@ TESTNET = Network(
 MAINNET = Network(
     chain_id = "osmosis-1",
     version = "v16.1.1",
-    version = "v16.1.1",
     genesis_url = "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/genesis.json",
     binary_url = {
         "linux": {
