@@ -157,6 +157,7 @@ TESTNET = Network(
 MAINNET = Network(
     chain_id = "osmosis-1",
     version = "v16.1.1",
+    version = "v16.1.1",
     genesis_url = "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/genesis.json",
     binary_url = {
         "linux": {
@@ -652,7 +653,8 @@ def download_binary(network):
         architecture = "amd64"
     elif architecture == "aarch64":
         architecture = "arm64"
-    else:
+
+    if architecture not in ["arm64", "amd64"]:
         print(f"Unsupported architecture {architecture}.")
         sys.exit(1)
 
@@ -998,7 +1000,8 @@ Do you want to install cosmovisor?
         architecture = "amd64"
     elif architecture == "aarch64":
         architecture = "arm64"
-    else:
+
+    if architecture not in ["arm64", "amd64"]:
         print(f"Unsupported architecture {architecture}.")
         sys.exit(1)
     
