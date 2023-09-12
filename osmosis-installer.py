@@ -130,12 +130,16 @@ class Network:
 
 TESTNET = Network(
     chain_id = "osmo-test-5",
-    version = "v18.0.0",
+    version = "v19.0.0",
     genesis_url = "https://osmosis.fra1.digitaloceanspaces.com/osmo-test-5/genesis.json",
     binary_url = {
         "linux": {
-            "amd64": "https://github.com/osmosis-labs/osmosis/releases/download/v18.0.0/osmosisd-18.0.0-linux-amd64",
-            "arm64": "https://github.com/osmosis-labs/osmosis/releases/download/v18.0.0/osmosisd-18.0.0-linux-arm64"
+            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/osmosisd-19.0.0-linux-amd64",
+            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/osmosisd-19.0.0-linux-arm64"
+        },
+        "darwin": {
+            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/osmosisd-19.0.0-darwin-amd64",
+            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/osmosisd-19.0.0-darwin-arm64"
         },
     },
     peers = [
@@ -152,17 +156,17 @@ TESTNET = Network(
 
 MAINNET = Network(
     chain_id = "osmosis-1",
-    version = "v18.0.0",
+    version = "v19.0.0",
     genesis_url = "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/genesis.json",
     binary_url = {
         "linux": {
-            "amd64": "https://github.com/osmosis-labs/osmosis/releases/download/v18.0.0/osmosisd-18.0.0-linux-amd64",
-            "arm64": "https://github.com/osmosis-labs/osmosis/releases/download/v18.0.0/osmosisd-18.0.0-linux-arm64"
+            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/osmosisd-19.0.0-linux-amd64",
+            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/osmosisd-19.0.0-linux-arm64"
         },
-        # "darwin": {
-        #     "amd64": "https://github.com/osmosis-labs/osmosis/releases/download/v18.0.0/osmosisd-18.0.0-darwin-amd64",
-        #     "arm64": "https://github.com/osmosis-labs/osmosis/releases/download/v18.0.0/osmosisd-18.0.0-darwin-arm64"
-        # },
+        "darwin": {
+            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/osmosisd-19.0.0-darwin-amd64",
+            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/osmosisd-19.0.0-darwin-arm64"
+        },
     },
     peers = None,
     rpc_node = "https://rpc.osmosis.zone:443",
