@@ -130,16 +130,16 @@ class Network:
 
 TESTNET = Network(
     chain_id = "osmo-test-5",
-    version = "v19.2.0",
+    version = "v20.1.0-testnet",
     genesis_url = "https://osmosis.fra1.digitaloceanspaces.com/osmo-test-5/genesis.json",
     binary_url = {
         "linux": {
-            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/osmosisd-19.2.0-linux-amd64",
-            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/osmosisd-19.2.0-linux-arm64"
+            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.1.0-testnet/osmosisd-20.1.0-testnet-linux-amd64",
+            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.1.0-testnet/osmosisd-20.1.0-testnet-linux-arm64"
         },
         "darwin": {
-            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/osmosisd-19.2.0-darwin-amd64",
-            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/osmosisd-19.2.0-darwin-arm64"
+            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.1.0-testnet/osmosisd-20.1.0-testnet-darwin-amd64",
+            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.1.0-testnet/osmosisd-20.1.0-testnet-darwin-arm64"
         },
     },
     peers = [
@@ -156,16 +156,16 @@ TESTNET = Network(
 
 MAINNET = Network(
     chain_id = "osmosis-1",
-    version = "v19.2.0",
+    version = "v20.1.0",
     genesis_url = "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/genesis.json",
     binary_url = {
         "linux": {
-            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/osmosisd-19.2.0-linux-amd64",
-            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/osmosisd-19.2.0-linux-arm64"
+            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.1.0/osmosisd-20.1.0-linux-amd64",
+            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.1.0/osmosisd-20.1.0-linux-arm64"
         },
         "darwin": {
-            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/osmosisd-19.2.0-darwin-amd64",
-            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/binaries/osmosisd-19.2.0-darwin-arm64"
+            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.1.0/osmosisd-20.1.0-darwin-amd64",
+            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.1.0/osmosisd-20.1.0-darwin-arm64"
         },
     },
     peers = None,
