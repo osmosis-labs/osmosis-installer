@@ -156,16 +156,16 @@ TESTNET = Network(
 
 MAINNET = Network(
     chain_id = "osmosis-1",
-    version = "v20.1.0",
+    version = "v20.2.1",
     genesis_url = "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/genesis.json",
     binary_url = {
         "linux": {
-            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.1.0/osmosisd-20.1.0-linux-amd64",
-            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.1.0/osmosisd-20.1.0-linux-arm64"
+            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.2.1/osmosisd-20.2.1-linux-amd64",
+            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.2.1/osmosisd-20.2.1-linux-arm64"
         },
         "darwin": {
-            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.1.0/osmosisd-20.1.0-darwin-amd64",
-            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.1.0/osmosisd-20.1.0-darwin-arm64"
+            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.2.1/osmosisd-20.2.1-darwin-amd64",
+            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.2.1/osmosisd-20.2.1-darwin-arm64"
         },
     },
     peers = None,
