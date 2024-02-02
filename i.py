@@ -18,6 +18,9 @@ NETWORK_CHOICES = ['osmosis-1', 'osmo-test-5']
 INSTALL_CHOICES = ['node', 'client', 'localosmosis']
 PRUNING_CHOICES = ['default', 'nothing', 'everything']
 
+MAINNET_VERSION = "22.0.3"
+TESTNET_VERSION = "20.1.0-testnet"
+
 # CLI arguments
 parser = argparse.ArgumentParser(description="Osmosis Installer")
 
@@ -130,16 +133,16 @@ class Network:
 
 TESTNET = Network(
     chain_id = "osmo-test-5",
-    version = "v20.1.0-testnet",
+    version = f"v${TESTNET_VERSION}",
     genesis_url = "https://osmosis.fra1.digitaloceanspaces.com/osmo-test-5/genesis.json",
     binary_url = {
         "linux": {
-            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.1.0-testnet/osmosisd-20.1.0-testnet-linux-amd64",
-            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.1.0-testnet/osmosisd-20.1.0-testnet-linux-arm64"
+            "amd64": f"https://osmosis.fra1.digitaloceanspaces.com/binaries/v{TESTNET_VERSION}/osmosisd-{TESTNET_VERSION}-linux-amd64",
+            "arm64": f"https://osmosis.fra1.digitaloceanspaces.com/binaries/v{TESTNET_VERSION}/osmosisd-{TESTNET_VERSION}-linux-arm64"
         },
         "darwin": {
-            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.1.0-testnet/osmosisd-20.1.0-testnet-darwin-amd64",
-            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.1.0-testnet/osmosisd-20.1.0-testnet-darwin-arm64"
+            "amd64": f"https://osmosis.fra1.digitaloceanspaces.com/binaries/v{TESTNET_VERSION}/osmosisd-{TESTNET_VERSION}-darwin-amd64",
+            "arm64": f"https://osmosis.fra1.digitaloceanspaces.com/binaries/v{TESTNET_VERSION}/osmosisd-{TESTNET_VERSION}-darwin-arm64"
         },
     },
     peers = [
@@ -156,16 +159,16 @@ TESTNET = Network(
 
 MAINNET = Network(
     chain_id = "osmosis-1",
-    version = "v20.2.1",
+    version = f"v{MAINNET_VERSION}",
     genesis_url = "https://osmosis.fra1.digitaloceanspaces.com/osmosis-1/genesis.json",
     binary_url = {
         "linux": {
-            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.2.1/osmosisd-20.2.1-linux-amd64",
-            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.2.1/osmosisd-20.2.1-linux-arm64"
+            "amd64": f"https://osmosis.fra1.digitaloceanspaces.com/binaries/v{MAINNET_VERSION}/osmosisd-{MAINNET_VERSION}-linux-amd64",
+            "arm64": f"https://osmosis.fra1.digitaloceanspaces.com/binaries/v{MAINNET_VERSION}/osmosisd-{MAINNET_VERSION}-linux-arm64"
         },
         "darwin": {
-            "amd64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.2.1/osmosisd-20.2.1-darwin-amd64",
-            "arm64": "https://osmosis.fra1.digitaloceanspaces.com/binaries/v20.2.1/osmosisd-20.2.1-darwin-arm64"
+            "amd64": f"https://osmosis.fra1.digitaloceanspaces.com/binaries/v{MAINNET_VERSION}/osmosisd-{MAINNET_VERSION}-darwin-amd64",
+            "arm64": f"https://osmosis.fra1.digitaloceanspaces.com/binaries/v{MAINNET_VERSION}/osmosisd-{MAINNET_VERSION}-darwin-arm64"
         },
     },
     peers = None,
