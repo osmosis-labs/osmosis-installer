@@ -19,7 +19,7 @@ INSTALL_CHOICES = ['node', 'client', 'localosmosis']
 PRUNING_CHOICES = ['default', 'nothing', 'everything']
 
 MAINNET_VERSION = "22.0.3"
-TESTNET_VERSION = "20.1.0-testnet"
+TESTNET_VERSION = "22.0.0-rc0"
 
 # CLI arguments
 parser = argparse.ArgumentParser(description="Osmosis Installer")
