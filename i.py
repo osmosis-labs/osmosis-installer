@@ -1112,7 +1112,7 @@ Environment="DAEMON_ALLOW_DOWNLOAD_BINARIES=false"
 Environment="DAEMON_LOG_BUFFER_SIZE=512"
 Environment="UNSAFE_SKIP_BACKUP=true"
 User={user}
-ExecStart=/usr/local/bin/cosmovisor start --home {osmosis_home}
+ExecStart=/usr/local/bin/cosmovisor run start --home {osmosis_home}
 Restart=always
 RestartSec=3
 LimitNOFILE=infinity
