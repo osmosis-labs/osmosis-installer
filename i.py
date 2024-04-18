@@ -18,7 +18,7 @@ NETWORK_CHOICES = ['osmosis-1', 'osmo-test-5']
 INSTALL_CHOICES = ['node', 'client', 'localosmosis']
 PRUNING_CHOICES = ['default', 'nothing', 'everything']
 
-MAINNET_VERSION = "23.0.8"
+MAINNET_VERSION = "24.0.1"
 TESTNET_VERSION = "24.0.0-rc0"
 
 # CLI arguments
