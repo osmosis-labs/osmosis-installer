@@ -41,7 +41,7 @@ jobs:
 
     - name: Generate branch name
       run: |
-        RANDOM_ID=$(openssl rand -hex 4)"
+        RANDOM_ID=$(openssl rand -hex 4)
         BRANCH_NAME="UPDATE-${{ env.VERSION_VAR }}-TO-${{ env.NETWORK_VERSION }}-${{ env.RANDOM_ID }}"
         echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
@@ -100,7 +100,7 @@ jobs:
 
     - name: Generate branch name
       run: |
-        RANDOM_ID=$(openssl rand -hex 4)"
+        RANDOM_ID=$(openssl rand -hex 4)
         BRANCH_NAME="UPDATE-${{ env.VERSION_VAR }}-TO-${{ env.NETWORK_VERSION }}-${{ env.RANDOM_ID }}"
         echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
