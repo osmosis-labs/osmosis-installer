@@ -41,8 +41,8 @@ jobs:
 
     - name: Generate branch name
       run: |
-        RANDOM_ID=$(openssl rand -hex 4)
-        BRANCH_NAME="UPDATE-${{ env.VERSION_VAR }}-TO-${{ env.NETWORK_VERSION }}-${{ env.RANDOM_ID }}"
+        RANDOM_ID=$(openssl rand -hex 6)
+        BRANCH_NAME="UPDATE-${{ env.VERSION_VAR }}-TO-${{ env.NETWORK_VERSION }}-$RANDOM_ID"
         echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
     - name: Update version if different
@@ -62,6 +62,7 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         commit-message: Update ${{ env.VERSION_VAR }} version to $NETWORK_VERSION
+        base: main
         branch: ${{env.BRANCH_NAME}}
         title: Update ${{ env.VERSION_VAR }} version to $NETWORK_VERSION
         body: |
@@ -100,8 +101,8 @@ jobs:
 
     - name: Generate branch name
       run: |
-        RANDOM_ID=$(openssl rand -hex 4)
-        BRANCH_NAME="UPDATE-${{ env.VERSION_VAR }}-TO-${{ env.NETWORK_VERSION }}-${{ env.RANDOM_ID }}"
+        RANDOM_ID=$(openssl rand -hex 6)
+        BRANCH_NAME="UPDATE-${{ env.VERSION_VAR }}-TO-${{ env.NETWORK_VERSION }}-$RANDOM_ID"
         echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
     - name: Update version if different
@@ -121,6 +122,7 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         commit-message: Update ${{ env.VERSION_VAR }} version to $NETWORK_VERSION
+        base: main
         branch: ${{env.BRANCH_NAME}}
         title: Update ${{ env.VERSION_VAR }} version to $NETWORK_VERSION
         body: |
