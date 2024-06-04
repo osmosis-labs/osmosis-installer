@@ -1,4 +1,4 @@
-name: Check Network Versions
+name: Update Installer
 
 on:
   schedule:
@@ -57,7 +57,7 @@ jobs:
         commit-message: Update ${{ env.VERSION_VAR }} version to ${{ env.NETWORK_VERSION }}
         base: main
         reviewers: niccoloraspa
-        team-reviewers: devops
+        # team-reviewers: devops
         branch: ${{env.BRANCH_NAME}}
         title: Update ${{ env.VERSION_VAR }} version to ${{ env.NETWORK_VERSION }}
         body: |
@@ -115,7 +115,7 @@ jobs:
         commit-message: Update ${{ env.VERSION_VAR }} version to ${{ env.NETWORK_VERSION }}
         base: main
         reviewers: niccoloraspa
-        team-reviewers: devops
+        # team-reviewers: devops
         branch: ${{env.BRANCH_NAME}}
         title: Update ${{ env.VERSION_VAR }} version to ${{ env.NETWORK_VERSION }}
         body: |
