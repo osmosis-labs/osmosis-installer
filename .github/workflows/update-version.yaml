@@ -39,23 +39,30 @@ jobs:
           exit 1
         fi
 
+    - name: Generate branch name
+      run: |
+        RANDOM_ID=$(openssl rand -hex 4)"
+        BRANCH_NAME="UPDATE-${{ env.VERSION_VAR }}-TO-${{ env.NETWORK_VERSION }}-${{ env.RANDOM_ID }}"
+        echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
     - name: Update version if different
       if: env.NETWORK_VERSION != env.FILE_VERSION
       run: |
         sed -i "s/${{ env.VERSION_VAR }} = \".*\"/${{ env.VERSION_VAR }} = \"$NETWORK_VERSION\"/" i.py
         git config --global user.name 'github-actions'
         git config --global user.email 'github-actions@github.com'
-        git checkout -b update-${{ env.VERSION_VAR }}-version
+
+        git checkout -b $BRANCH_NAME
         git add i.py
         git commit -m "Update ${{ env.VERSION_VAR }} version to $NETWORK_VERSION"
-        git push --set-upstream origin update-${{ env.VERSION_VAR }}-version
+        git push --set-upstream origin $BRANCH_NAME
 
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v6
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         commit-message: Update ${{ env.VERSION_VAR }} version to $NETWORK_VERSION
-        branch: update-${{ env.VERSION_VAR }}-version
+        branch: ${{env.BRANCH_NAME}}
         title: Update ${{ env.VERSION_VAR }} version to $NETWORK_VERSION
         body: |
           This PR updates the ${{ env.VERSION_VAR }} version to $NETWORK_VERSION.
@@ -91,23 +98,30 @@ jobs:
           exit 1
         fi
 
+    - name: Generate branch name
+      run: |
+        RANDOM_ID=$(openssl rand -hex 4)"
+        BRANCH_NAME="UPDATE-${{ env.VERSION_VAR }}-TO-${{ env.NETWORK_VERSION }}-${{ env.RANDOM_ID }}"
+        echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
     - name: Update version if different
       if: env.NETWORK_VERSION != env.FILE_VERSION
       run: |
         sed -i "s/${{ env.VERSION_VAR }} = \".*\"/${{ env.VERSION_VAR }} = \"$NETWORK_VERSION\"/" i.py
         git config --global user.name 'github-actions'
         git config --global user.email 'github-actions@github.com'
-        git checkout -b update-${{ env.VERSION_VAR }}-version
+
+        git checkout -b $BRANCH_NAME
         git add i.py
         git commit -m "Update ${{ env.VERSION_VAR }} version to $NETWORK_VERSION"
-        git push --set-upstream origin update-${{ env.VERSION_VAR }}-version
+        git push --set-upstream origin $BRANCH_NAME
 
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v6
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         commit-message: Update ${{ env.VERSION_VAR }} version to $NETWORK_VERSION
-        branch: update-${{ env.VERSION_VAR }}-version
+        branch: ${{env.BRANCH_NAME}}
         title: Update ${{ env.VERSION_VAR }} version to $NETWORK_VERSION
         body: |
           This PR updates the ${{ env.VERSION_VAR }} version to $NETWORK_VERSION.
