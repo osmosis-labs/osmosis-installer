@@ -25,7 +25,7 @@ jobs:
 
     - name: Get current version from file
       run: |
-        FILE_VERSION=$(grep '${{ env.VERSION_VAR }}' i.py | cut -d'"' -f2)
+        FILE_VERSION=$(grep '${{ env.VERSION_VAR }}' i.py | cut -d'"' -f2 | head -n 1)
         echo "FILE_VERSION=$FILE_VERSION" >> $GITHUB_ENV
 
     - name: Validate version format
@@ -77,7 +77,7 @@ jobs:
     - name: Get current version from file
       id: get_file_version
       run: |
-        FILE_VERSION=$(grep '${{ env.VERSION_VAR }}' i.py | cut -d'"' -f2)
+        FILE_VERSION=$(grep '${{ env.VERSION_VAR }}' i.py | cut -d'"' -f2 | head -n 1)
         echo "FILE_VERSION=$FILE_VERSION" >> $GITHUB_ENV
 
     - name: Validate version format
