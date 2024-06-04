@@ -3,7 +3,7 @@ name: Test Installer (Client)
 on:
   push:
     branches:
-      - main
+      # - main
       - dev
   pull_request:
     branches:
@@ -22,15 +22,15 @@ jobs:
       fail-fast: false
 
     steps:
-      - 
+      -
         name: Checkout Repository
         uses: actions/checkout@v3
-      - 
+      -
         name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-      - 
+      -
         name: Run Installer
         env:
           TERM: xterm
@@ -40,7 +40,7 @@ jobs:
             --network ${{ matrix.network }} \
             --home ${{ runner.temp }}/.osmosisd \
             --moniker osmosis \
-            --overwrite 
+            --overwrite
       -
         name: Run osmosisd
         run: |
