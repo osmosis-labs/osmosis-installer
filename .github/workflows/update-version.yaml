@@ -17,11 +17,11 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Check current testnet version from RPC
+    - name: Check current version from RPC
       run: |
         RESPONSE=$(curl -s ${{ env.RPC_URL }})
         NETWORK_VERSION=$(echo $RESPONSE | jq -r '.result.response.version')
-        echo "${{ env.VERSION_VAR }}=$NETWORK_VERSION" >> $GITHUB_ENV
+        echo "NETWORK_VERSION=$NETWORK_VERSION" >> $GITHUB_ENV
 
     - name: Get current version from file
       run: |
@@ -67,12 +67,11 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Check current mainnet version from RPC
-      id: get_version
+    - name: Check current version from RPC
       run: |
         RESPONSE=$(curl -s ${{ env.RPC_URL }})
         NETWORK_VERSION=$(echo $RESPONSE | jq -r '.result.response.version')
-        echo "${{ env.VERSION_VAR }}=$NETWORK_VERSION" >> $GITHUB_ENV
+        echo "NETWORK_VERSION=$NETWORK_VERSION" >> $GITHUB_ENV
 
     - name: Get current version from file
       id: get_file_version
