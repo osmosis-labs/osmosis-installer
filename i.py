@@ -49,7 +49,7 @@ parser.add_argument(
     '-o',
     '--overwrite',
     action='store_true',
-    help="Overwrite existing Osmosis home without prompt",
+    help="Overwrite existing Osmosis home and binary without prompt",
     dest="overwrite"
 )
 
@@ -648,22 +648,24 @@ def download_binary(network):
         SystemExit: If the binary download URL is not available for the current operating system and architecture.
     """
     binary_path = os.path.join(args.binary_path, "osmosisd")
-    try:
+
+    if not args.overwrite:
         # Check if osmosisd is already installed
-        subprocess.run([binary_path, "version"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        print("osmosisd is already installed at " + bcolors.OKGREEN + f"{binary_path}" + bcolors.ENDC)
-        while True:
-            choice = input("Do you want to skip the download or re-download the file? (skip/re-download): ").strip().lower()
-            if choice == "skip":
-                print("Skipping download.")
-                return
-            elif choice == "re-download":
-                print("Proceeding with re-download.")
-                break
-            else:
-                print("Invalid input. Please enter 'skip' or 're-download'.")
-    except subprocess.CalledProcessError:
-        print("osmosisd is not installed. Proceeding with download.")
+        try:
+            subprocess.run([binary_path, "version"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            print("osmosisd is already installed at " + bcolors.OKGREEN + f"{binary_path}" + bcolors.ENDC)
+            while True:
+                choice = input("Do you want to skip the download or overwrite the binary? (skip/overwrite): ").strip().lower()
+                if choice == "skip":
+                    print("Skipping download.")
+                    return
+                elif choice == "overwrite":
+                    print("Proceeding with overwrite.")
+                    break
+                else:
+                    print("Invalid input. Please enter 'skip' or 'overwrite'.")
+        except subprocess.CalledProcessError:
+            print("osmosisd is not installed. Proceeding with download.")
 
     operating_system = platform.system().lower()
     architecture = platform.machine()
