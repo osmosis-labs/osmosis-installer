@@ -56,8 +56,6 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         commit-message: Update ${{ env.VERSION_VAR }} version to ${{ env.NETWORK_VERSION }}
         base: main
-        reviewers: niccoloraspa
-        # team-reviewers: devops
         branch: ${{env.BRANCH_NAME}}
         title: Update ${{ env.VERSION_VAR }} version to ${{ env.NETWORK_VERSION }}
         body: |
@@ -114,8 +112,6 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         commit-message: Update ${{ env.VERSION_VAR }} version to ${{ env.NETWORK_VERSION }}
         base: main
-        reviewers: niccoloraspa
-        # team-reviewers: devops
         branch: ${{env.BRANCH_NAME}}
         title: Update ${{ env.VERSION_VAR }} version to ${{ env.NETWORK_VERSION }}
         body: |
