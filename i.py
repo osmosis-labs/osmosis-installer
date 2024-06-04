@@ -214,7 +214,7 @@ Welcome to the Osmosis node installer!
 
 For more information, please visit https://docs.osmosis.zone
 
-If you have an old Osmosis installation, 
+If you have an old Osmosis installation,
 - backup any important data before proceeding
 - ensure that no osmosis services are running in the background
 """ + bcolors.ENDC)
@@ -233,7 +233,7 @@ def node_complete_message(using_cosmovisor, using_service, osmosis_home):
     print(bcolors.OKGREEN + """
 ✨ Congratulations! You have successfully completed setting up an Osmosis node! ✨
 """ + bcolors.ENDC)
-    
+
     if using_service:
 
         if using_cosmovisor:
@@ -252,7 +252,7 @@ def node_complete_message(using_cosmovisor, using_service, osmosis_home):
             print(bcolors.OKGREEN + f"osmosisd start --home {osmosis_home}" + bcolors.ENDC)
 
 
-    
+
     print()
 
 # Options
@@ -270,7 +270,7 @@ def select_install():
         else:
             print(bcolors.RED + f"Invalid setup {args.install}. Please choose a valid setup.\n" + bcolors.ENDC)
             sys.exit(1)
-    
+
     else:
 
         print(bcolors.OKGREEN + """
@@ -294,7 +294,7 @@ Please choose the desired installation:
                 print("Invalid input. Please choose a valid option.")
             else:
                 break
-            
+
         if args.verbose:
             clear_screen()
             print(f"Chosen install: {INSTALL_CHOICES[int(choice) - 1]}")
@@ -346,7 +346,7 @@ Please choose the desired network:
                 print(bcolors.RED + "Invalid input. Please choose a valid option. Accepted values: [ 1 , 2 ] \n" + bcolors.ENDC)
             else:
                 break
-        
+
     if args.verbose:
         clear_screen()
         print(f"Chosen network: {NETWORK_CHOICES[int(choice) - 1]}")
@@ -475,7 +475,7 @@ Do you want to initialize the Osmosis home directory at '{osmosis_home}'?
 
 💡 You can overwrite the osmosis home using --overwrite flag.
             """ + bcolors.ENDC)
-            
+
             choice = input("Enter your choice, or 'exit' to quit: ").strip()
 
             if choice.lower() == "exit":
@@ -490,15 +490,15 @@ Do you want to initialize the Osmosis home directory at '{osmosis_home}'?
 
             else:
                 print("Invalid choice. Please enter 1 or 2.")
-    
+
     print(f"Initializing Osmosis home directory at '{osmosis_home}'...")
     try:
         subprocess.run(
-            ["rm", "-rf", osmosis_home], 
+            ["rm", "-rf", osmosis_home],
             stderr=subprocess.DEVNULL, check=True)
-        
+
         subprocess.run(
-            ["osmosisd", "init", moniker,  "-o", "--home", osmosis_home], 
+            ["osmosisd", "init", moniker,  "-o", "--home", osmosis_home],
             stderr=subprocess.DEVNULL, check=True)
 
         print("Initialization completed successfully.")
@@ -529,7 +529,7 @@ def select_pruning(osmosis_home):
         else:
             print(bcolors.RED + f"Invalid pruning setting {args.pruning}. Please choose a valid setting.\n" + bcolors.ENDC)
             sys.exit(1)
-    
+
     else:
 
         print(bcolors.OKGREEN + """
@@ -553,11 +553,11 @@ Please choose your desired pruning settings:
                 print("Invalid input. Please choose a valid option.")
             else:
                 break
-            
+
         if args.verbose:
             clear_screen()
             print(f"Chosen setting: {PRUNING_CHOICES[int(choice) - 1]}")
-    
+
     app_toml = os.path.join(osmosis_home, "config", "app.toml")
 
     if choice == PruningChoice.DEFAULT:
@@ -572,7 +572,7 @@ Please choose your desired pruning settings:
         subprocess.run(["sed -i -E 's/pruning = \"default\"/pruning = \"custom\"/g' " + app_toml], shell=True)
         subprocess.run(["sed -i -E 's/pruning-keep-recent = \"0\"/pruning-keep-recent = \"10000\"/g' " + app_toml], shell=True)
         subprocess.run(["sed -i -E 's/pruning-interval = \"0\"/pruning-interval = \"" + str(primeNum) + "\"/g' " + app_toml], shell=True)
-    
+
     else:
         print(bcolors.RED + f"Invalid pruning setting {choice}. Please choose a valid setting.\n" + bcolors.ENDC)
         sys.exit(1)
@@ -610,10 +610,10 @@ def customize_config(home, network):
 
         # patch config.toml
         config_toml = os.path.join(home, "config", "config.toml")
-        
+
         peers = ','.join(TESTNET.peers)
         subprocess.run(["sed -i -E 's/persistent_peers = \"\"/persistent_peers = \"" + peers + "\"/g' " + config_toml], shell=True)
-    
+
     # osmosis-1 configuration
     elif network == NetworkChoice.MAINNET:
         client_toml = os.path.join(home, "config", "client.toml")
@@ -633,7 +633,7 @@ def customize_config(home, network):
     else:
         print(bcolors.RED + f"Invalid network {network}. Please choose a valid setting.\n" + bcolors.ENDC)
         sys.exit(1)
-    
+
     clear_screen()
 
 
@@ -646,8 +646,25 @@ def download_binary(network):
 
     Raises:
         SystemExit: If the binary download URL is not available for the current operating system and architecture.
-
     """
+    binary_path = os.path.join(args.binary_path, "osmosisd")
+    try:
+        # Check if osmosisd is already installed
+        subprocess.run([binary_path, "version"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        print("osmosisd is already installed at " + bcolors.OKGREEN + f"{binary_path}" + bcolors.ENDC)
+        while True:
+            choice = input("Do you want to skip the download or re-download the file? (skip/re-download): ").strip().lower()
+            if choice == "skip":
+                print("Skipping download.")
+                return
+            elif choice == "re-download":
+                print("Proceeding with re-download.")
+                break
+            else:
+                print("Invalid input. Please enter 'skip' or 're-download'.")
+    except subprocess.CalledProcessError:
+        print("osmosisd is not installed. Proceeding with download.")
+
     operating_system = platform.system().lower()
     architecture = platform.machine()
 
@@ -671,16 +688,14 @@ def download_binary(network):
         print(f"Binary download URL not available for {operating_system}/{architecture}")
         sys.exit(0)
 
-    try:   
-        binary_path = os.path.join(args.binary_path, "osmosisd")
-
-        print("Downloading " + bcolors.PURPLE+ "osmosisd" + bcolors.ENDC, end="\n\n")
+    try:
+        print("Downloading " + bcolors.PURPLE + "osmosisd" + bcolors.ENDC, end="\n\n")
         print("from " + bcolors.OKGREEN + f"{binary_url}" + bcolors.ENDC, end=" ")
         print("to " + bcolors.OKGREEN + f"{binary_path}" + bcolors.ENDC)
         print()
         print(bcolors.OKGREEN + "💡 You can change the path using --binary_path" + bcolors.ENDC)
 
-        subprocess.run(["wget", binary_url,"-q", "-O", "/tmp/osmosisd"], check=True)
+        subprocess.run(["wget", binary_url, "-q", "-O", "/tmp/osmosisd"], check=True)
         os.chmod("/tmp/osmosisd", 0o755)
 
         if platform.system() == "Linux":
@@ -690,7 +705,7 @@ def download_binary(network):
         else:
             subprocess.run(["mv", "/tmp/osmosisd", binary_path], check=True)
 
-        # Test binary 
+        # Test binary
         subprocess.run(["osmosisd", "version"], check=True)
 
         print("Binary downloaded successfully.")
@@ -701,7 +716,6 @@ def download_binary(network):
         sys.exit(1)
 
     clear_screen()
-
 
 def download_genesis(network, osmosis_home):
     """
@@ -811,7 +825,7 @@ Do you want me to install it?
             else:
                 print("Invalid choice. Please enter 1 or 2.")
 
-        operating_system = platform.system().lower()  
+        operating_system = platform.system().lower()
         if operating_system == "linux":
             print("Installing lz4...")
             subprocess.run(["sudo apt-get install wget liblz4-tool aria2 -y"],
@@ -830,7 +844,7 @@ Do you want me to install it?
     def parse_snapshot_info(network):
         """
         Creates a dictionary containing the snapshot information for the specified network.
-        It merges the snapshot information from the osmosis official snapshot JSON and 
+        It merges the snapshot information from the osmosis official snapshot JSON and
         quicksync from chianlayer https://dl2.quicksync.io/json/osmosis.json
 
         Returns:
@@ -877,7 +891,7 @@ Do you want me to install it?
             snapshots = json.loads(data)
 
             for snapshot in snapshots:
-                
+
                 if not snapshot["file"].startswith(quicksync_prefix):
                     continue
 
@@ -925,7 +939,7 @@ Choose one of the following snapshots:
 
     install_snapshot_prerequisites()
     snapshots = parse_snapshot_info(network)
-    
+
     while True:
 
         print_snapshot_download_info(snapshots)
@@ -940,7 +954,7 @@ Choose one of the following snapshots:
             print(bcolors.RED + "Invalid input. Please choose a valid option." + bcolors.ENDC)
         else:
             break
-    
+
     snapshot_url = snapshots[int(choice) - 1]['url']
 
     try:
@@ -1006,14 +1020,14 @@ Do you want to install cosmovisor?
     if architecture not in ["arm64", "amd64"]:
         print(f"Unsupported architecture {architecture}.")
         sys.exit(1)
-    
+
     if operating_system in COSMOVISOR_URL and architecture in COSMOVISOR_URL[operating_system]:
         binary_url = COSMOVISOR_URL[operating_system][architecture]
     else:
         print(f"Binary download URL not available for {os}/{architecture}")
         sys.exit(0)
 
-    try:   
+    try:
         binary_path = os.path.join(args.binary_path, "cosmovisor")
 
         print("Downloading " + bcolors.PURPLE+ "cosmovisor" + bcolors.ENDC, end="\n\n")
@@ -1036,7 +1050,7 @@ Do you want to install cosmovisor?
         else:
             subprocess.run(["mv", temp_binary_path, binary_path], check=True)
 
-        # Test binary 
+        # Test binary
         subprocess.run(["cosmovisor", "help"], check=True)
 
         print("Binary downloaded successfully.")
@@ -1075,7 +1089,7 @@ def setup_cosmovisor_service(osmosis_home):
 
     if operating_system != "Linux":
         return False
-    
+
     if not args.service:
         print(bcolors.OKGREEN + f"""
 Do you want to setup cosmovisor as a background service?
@@ -1097,9 +1111,9 @@ Do you want to setup cosmovisor as a background service?
                 break
             elif choice == Answer.NO:
                 return
-    
+
     user = os.environ.get("USER")
-    
+
     unit_file_contents = f"""[Unit]
 Description=Cosmovisor daemon
 After=network-online.target
@@ -1166,9 +1180,9 @@ Do you want to set up osmosisd as a background service?
                 break
             elif choice == Answer.NO:
                 return
-    
+
     user = os.environ.get("USER")
-    
+
     unit_file_contents = f"""[Unit]
 Description=Osmosis Daemon
 After=network-online.target
