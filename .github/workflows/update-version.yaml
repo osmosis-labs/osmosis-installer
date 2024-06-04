@@ -1,0 +1,109 @@
+name: Check Network Versions
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Runs every day at midnight
+  workflow_dispatch:
+
+jobs:
+  update-testnet-version:
+    runs-on: ubuntu-latest
+
+    env:
+      RPC_URL: https://rpc.testnet.osmosis.zone/abci_info
+      VERSION_VAR: TESTNET_VERSION
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Check current testnet version from RPC
+      run: |
+        RESPONSE=$(curl -s ${{ env.RPC_URL }})
+        NETWORK_VERSION=$(echo $RESPONSE | jq -r '.result.response.version')
+        echo "${{ env.VERSION_VAR }}=$NETWORK_VERSION" >> $GITHUB_ENV
+
+    - name: Get current version from file
+      run: |
+        FILE_VERSION=$(grep '${{ env.VERSION_VAR }}' i.py | cut -d'"' -f2)
+        echo "FILE_VERSION=$FILE_VERSION" >> $GITHUB_ENV
+
+    - name: Validate version format
+      run: |
+        if [[ ! $NETWORK_VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$ ]]; then
+          echo "Version $NETWORK_VERSION does not match the format vX.Y.Z{-rcW}"
+          exit 1
+        fi
+
+    - name: Update version if different
+      if: env.NETWORK_VERSION != env.FILE_VERSION
+      run: |
+        sed -i "s/${{ env.VERSION_VAR }} = \".*\"/${{ env.VERSION_VAR }} = \"$NETWORK_VERSION\"/" i.py
+        git config --global user.name 'github-actions'
+        git config --global user.email 'github-actions@github.com'
+        git checkout -b update-${{ env.VERSION_VAR }}-version
+        git add i.py
+        git commit -m "Update ${{ env.VERSION_VAR }} version to $NETWORK_VERSION"
+        git push --set-upstream origin update-${{ env.VERSION_VAR }}-version
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v6
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: Update ${{ env.VERSION_VAR }} version to $NETWORK_VERSION
+        branch: update-${{ env.VERSION_VAR }}-version
+        title: Update ${{ env.VERSION_VAR }} version to $NETWORK_VERSION
+        body: |
+          This PR updates the ${{ env.VERSION_VAR }} version to $NETWORK_VERSION.
+
+  update-mainnet-version:
+    runs-on: ubuntu-latest
+
+    env:
+      RPC_URL: https://rpc.osmosis.zone/abci_info
+      VERSION_VAR: MAINNET_VERSION
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Check current mainnet version from RPC
+      id: get_version
+      run: |
+        RESPONSE=$(curl -s ${{ env.RPC_URL }})
+        NETWORK_VERSION=$(echo $RESPONSE | jq -r '.result.response.version')
+        echo "${{ env.VERSION_VAR }}=$NETWORK_VERSION" >> $GITHUB_ENV
+
+    - name: Get current version from file
+      id: get_file_version
+      run: |
+        FILE_VERSION=$(grep '${{ env.VERSION_VAR }}' i.py | cut -d'"' -f2)
+        echo "FILE_VERSION=$FILE_VERSION" >> $GITHUB_ENV
+
+    - name: Validate version format
+      run: |
+        if [[ ! $NETWORK_VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$ ]]; then
+          echo "Version $NETWORK_VERSION does not match the format vX.Y.Z{-rcW}"
+          exit 1
+        fi
+
+    - name: Update version if different
+      if: env.NETWORK_VERSION != env.FILE_VERSION
+      run: |
+        sed -i "s/${{ env.VERSION_VAR }} = \".*\"/${{ env.VERSION_VAR }} = \"$NETWORK_VERSION\"/" i.py
+        git config --global user.name 'github-actions'
+        git config --global user.email 'github-actions@github.com'
+        git checkout -b update-${{ env.VERSION_VAR }}-version
+        git add i.py
+        git commit -m "Update ${{ env.VERSION_VAR }} version to $NETWORK_VERSION"
+        git push --set-upstream origin update-${{ env.VERSION_VAR }}-version
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v6
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: Update ${{ env.VERSION_VAR }} version to $NETWORK_VERSION
+        branch: update-${{ env.VERSION_VAR }}-version
+        title: Update ${{ env.VERSION_VAR }} version to $NETWORK_VERSION
+        body: |
+          This PR updates the ${{ env.VERSION_VAR }} version to $NETWORK_VERSION.
