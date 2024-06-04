@@ -79,7 +79,7 @@ jobs:
       run: |
         RESPONSE=$(curl -s --retry 5 --retry-delay 5 --connect-timeout 30 -H "Accept: application/json" ${{ env.RPC_URL }})
         NETWORK_VERSION=$(echo $RESPONSE | jq -r '.result.response.version')
-        echo "NETWORK_VERSION=${{ env.NETWORK_VERSION }}" >> $GITHUB_ENV
+        echo "NETWORK_VERSION=$NETWORK_VERSION" >> $GITHUB_ENV
 
     - name: Get current version from file
       id: get_file_version
