@@ -31,7 +31,7 @@ jobs:
     - name: Validate version format
       run: |
         if [[ ! $NETWORK_VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$ ]]; then
-          echo "Version $NETWORK_VERSION does not match the format vX.Y.Z{-rcW}"
+          echo "Version $NETWORK_VERSION does not match the format vX.Y.Z or vX.Y.Z-rcW"
           exit 1
         fi
 
@@ -83,7 +83,7 @@ jobs:
     - name: Validate version format
       run: |
         if [[ ! $NETWORK_VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$ ]]; then
-          echo "Version $NETWORK_VERSION does not match the format vX.Y.Z{-rcW}"
+          echo "Version $NETWORK_VERSION does not match the format vX.Y.Z or vX.Y.Z-rcW"
           exit 1
         fi
 
