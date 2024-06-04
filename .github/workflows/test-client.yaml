@@ -3,7 +3,7 @@ name: Test Installer (Client)
 on:
   push:
     branches:
-      # - main
+      - main
       - dev
   pull_request:
     branches:
