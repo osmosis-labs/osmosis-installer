@@ -22,7 +22,7 @@ The Osmosis Installer offers the following key features:
 
 ##  Installation
 
-To install Osmosisd, follow these steps:
+To install `osmosisd`, follow these steps:
 
 1. Open your terminal.
 
@@ -31,6 +31,8 @@ To install Osmosisd, follow these steps:
 ```bash
 source <(curl -sL https://get.osmosis.zone/run)
 ```
+
+> ⚠️ Requires `wget` to be present in the machine
 
 This command will download and execute the Osmosis Installer script.
 
@@ -48,7 +50,7 @@ For optimal performance, it is recommended to have at least 64GB of RAM when run
 
 To add swap space to your system, follow these steps:
 
-1. Calculate the additional swap space needed: Subtract the amount of RAM you have from 64GB to determine the required swap space. 
+1. Calculate the additional swap space needed: Subtract the amount of RAM you have from 64GB to determine the required swap space.
 For example, if you have 32GB of RAM, you would need to add 32GB of swap space.
 
 2. Open a terminal and execute the following commands:
