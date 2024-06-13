@@ -664,7 +664,7 @@ def download_binary(network):
                     break
                 else:
                     print("Invalid input. Please enter 'skip' or 'overwrite'.")
-        except subprocess.CalledProcessError:
+        except FileNotFoundError:
             print("osmosisd is not installed. Proceeding with download.")
 
     operating_system = platform.system().lower()
