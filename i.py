@@ -651,21 +651,24 @@ def download_binary(network):
 
     if not args.overwrite:
         # Check if osmosisd is already installed
-        try:
-            subprocess.run([binary_path, "version"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            print("osmosisd is already installed at " + bcolors.OKGREEN + f"{binary_path}" + bcolors.ENDC)
-            while True:
-                choice = input("Do you want to skip the download or overwrite the binary? (skip/overwrite): ").strip().lower()
-                if choice == "skip":
-                    print("Skipping download.")
-                    return
-                elif choice == "overwrite":
-                    print("Proceeding with overwrite.")
-                    break
-                else:
-                    print("Invalid input. Please enter 'skip' or 'overwrite'.")
-        except subprocess.CalledProcessError:
-            print("osmosisd is not installed. Proceeding with download.")
+        if os.path.exists(binary_path):
+            try:
+                subprocess.run([binary_path, "version"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                print("osmosisd is already installed at " + bcolors.OKGREEN + f"{binary_path}" + bcolors.ENDC)
+                while True:
+                    choice = input("Do you want to skip the download or overwrite the binary? (skip/overwrite): ").strip().lower()
+                    if choice == "skip":
+                        print("Skipping download.")
+                        return
+                    elif choice == "overwrite":
+                        print("Proceeding with overwrite.")
+                        break
+                    else:
+                        print("Invalid input. Please enter 'skip' or 'overwrite'.")
+            except subprocess.CalledProcessError:
+                print("osmosisd is not installed. Proceeding with download.")
+        else:
+            print(f"Binary not found at {binary_path}. Proceeding with download.")
 
     operating_system = platform.system().lower()
     architecture = platform.machine()
@@ -691,7 +694,7 @@ def download_binary(network):
         sys.exit(0)
 
     try:
-        print("Downloading " + bcolors.PURPLE + "osmosisd" + bcolors.ENDC, end="\n\n")
+        print("Downloading " + bcolors.PURPLE + "osmosisd..." + bcolors.ENDC, end="\n\n")
         print("from " + bcolors.OKGREEN + f"{binary_url}" + bcolors.ENDC, end=" ")
         print("to " + bcolors.OKGREEN + f"{binary_path}" + bcolors.ENDC)
         print()
@@ -708,7 +711,7 @@ def download_binary(network):
             subprocess.run(["mv", "/tmp/osmosisd", binary_path], check=True)
 
         # Test binary
-        subprocess.run(["osmosisd", "version"], check=True)
+        subprocess.run([binary_path, "version"], check=True)
 
         print("Binary downloaded successfully.")
 
