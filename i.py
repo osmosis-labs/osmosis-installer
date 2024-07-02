@@ -19,7 +19,7 @@ INSTALL_CHOICES = ['node', 'client', 'localosmosis']
 PRUNING_CHOICES = ['default', 'nothing', 'everything']
 
 
-MAINNET_VERSION = "25.1.3"
+MAINNET_VERSION = "25.0.0"
 TESTNET_VERSION = "25.1.3"
 
 # CLI arguments
