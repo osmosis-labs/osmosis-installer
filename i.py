@@ -20,7 +20,7 @@ PRUNING_CHOICES = ['default', 'nothing', 'everything']
 
 
 MAINNET_VERSION = "25.1.3"
-TESTNET_VERSION = "25.1.3"
+TESTNET_VERSION = "25.2.0"
 
 # CLI arguments
 parser = argparse.ArgumentParser(description="Osmosis Installer")
