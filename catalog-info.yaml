@@ -1,0 +1,31 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: osmosis-installer
+  title: Osmosis Installer
+  description: CLI installer for Osmosis blockchain nodes and clients, hosted at get.osmosis.zone
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+    github.com/project-slug: osmosis-labs/osmosis-installer
+  tags:
+    - installer
+    - cli
+    - python
+    - blockchain
+    - osmosis
+    - cosmovisor
+  links:
+    - url: https://github.com/osmosis-labs/osmosis-installer
+      title: GitHub Repository
+    - url: https://get.osmosis.zone
+      title: Installer Landing Page
+spec:
+  type: tool
+  lifecycle: production
+  owner: devops
+  system: osmosis-nodes
+  dependsOn:
+    - component:osmosis-1-prod-fullnodes
+    - component:osmo-test-5-fullnodes
+    - component:snapshot-service
+  providesApis: []
